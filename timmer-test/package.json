@@ -1,0 +1,22 @@
+{
+  "name": "timmer-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./lib/to-usb.js",
+    "test": "jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@serialport/parser-readline": "2.0.2",
+    "hyperid": "2.0.2",
+    "serialport": "7.1.5",
+    "typescript": "3.5.3"
+  },
+  "devDependencies": {
+    "@types/serialport": "7.0.4",
+    "virtual-serialport": "4.0.1"
+  }
+}

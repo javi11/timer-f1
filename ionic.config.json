@@ -1,0 +1,7 @@
+{
+  "name": "Timmer",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}

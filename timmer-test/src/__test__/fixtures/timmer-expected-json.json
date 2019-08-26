@@ -1,0 +1,192 @@
+{
+  "id": "1000000000000000000000000000000",
+  "ledOff": true,
+  "servos": [
+    {
+      "id": "Engine",
+      "minRotation": 30,
+      "maxRotation": 150,
+      "timeStep": 0.1,
+      "steps": [
+        {
+          "position": 80,
+          "delay": 40000
+        },
+        {
+          "position": 70,
+          "delay": 40000
+        },
+        {
+          "position": 60,
+          "delay": 40000
+        },
+        {
+          "position": 50,
+          "delay": 40000
+        },
+        {
+          "position": 1,
+          "delay": 300
+        }
+      ],
+      "initialPosition": 0,
+      "RDT": 150
+    },
+    {
+      "id": "Flap",
+      "minRotation": 30,
+      "maxRotation": 150,
+      "timeStep": 0.1,
+      "steps": [
+        {
+          "position": 80,
+          "delay": 40000
+        },
+        {
+          "position": 70,
+          "delay": 40000
+        },
+        {
+          "position": 60,
+          "delay": 40000
+        },
+        {
+          "position": 50,
+          "delay": 40000
+        }
+      ],
+      "initialPosition": 0,
+      "RDT": 150
+    },
+    {
+      "id": "Stabilo",
+      "minRotation": 30,
+      "maxRotation": 150,
+      "timeStep": 0.1,
+      "steps": [
+        {
+          "position": 80,
+          "delay": 40000
+        },
+        {
+          "position": 70,
+          "delay": 40000
+        },
+        {
+          "position": 60,
+          "delay": 40000
+        },
+        {
+          "position": 50,
+          "delay": 40000
+        }
+      ],
+      "initialPosition": 0,
+      "RDT": 150
+    },
+    {
+      "id": "Rudder",
+      "minRotation": 30,
+      "maxRotation": 150,
+      "timeStep": 0.1,
+      "steps": [
+        {
+          "position": 80,
+          "delay": 40000
+        },
+        {
+          "position": 70,
+          "delay": 40000
+        },
+        {
+          "position": 60,
+          "delay": 40000
+        },
+        {
+          "position": 50,
+          "delay": 40000
+        }
+      ],
+      "initialPosition": 0,
+      "RDT": 150
+    },
+    {
+      "id": "Folder",
+      "minRotation": 30,
+      "maxRotation": 150,
+      "timeStep": 0.1,
+      "steps": [
+        {
+          "position": 80,
+          "delay": 40000
+        },
+        {
+          "position": 70,
+          "delay": 40000
+        },
+        {
+          "position": 60,
+          "delay": 40000
+        },
+        {
+          "position": 50,
+          "delay": 40000
+        },
+        {
+          "position": 60,
+          "delay": 40000
+        },
+        {
+          "position": 120,
+          "delay": 40000
+        },
+        {
+          "position": 10,
+          "delay": 40000
+        },
+        {
+          "position": 5,
+          "delay": 40000
+        },
+        {
+          "position": 39,
+          "delay": 40000
+        },
+        {
+          "position": 60,
+          "delay": 40000
+        },
+        {
+          "position": 55,
+          "delay": 40000
+        },
+        {
+          "position": 11,
+          "delay": 40000
+        },
+        {
+          "position": 12,
+          "delay": 40000
+        },
+        {
+          "position": 13,
+          "delay": 40000
+        },
+        {
+          "position": 14,
+          "delay": 40000
+        },
+        {
+          "position": 115,
+          "delay": 40000
+        },
+        {
+          "position": 114,
+          "delay": 40000
+        }
+      ],
+      "initialPosition": 0,
+      "RDT": 150
+    }
+  ]
+}
