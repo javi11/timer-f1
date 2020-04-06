@@ -17,8 +17,12 @@ environment:
   sdk: '>=2.1.0 <3.0.0'
 
 dependencies:
+  flutter_blue: ^0.7.1
   user_location: any
   flutter_map: any
+  flutter_hooks: any
+  flutter_easyloading: any
+  flutter_lottie: any
   flutter:
     sdk: flutter
 
@@ -40,8 +44,9 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #  - images/a_dot_burr.jpeg
+  assets:
+    - assets/animations/bluetooth-pairing.json
+    - assets/animations/bluetooth-off.json
   #  - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
