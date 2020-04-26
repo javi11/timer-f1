@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:timmer/tracking/components/buetooth_off.dart';
-import 'package:timmer/tracking/components/device_pairing.dart';
 
 typedef Widget BluetoothBuilder(BuildContext context);
 
@@ -15,12 +12,13 @@ class TimmerBluetoothProvider extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final device = useState(null);
+    /* 
+    final device = useState(null); */
 
     return Scaffold(body: Center(
       child: HookBuilder(
         builder: (context) {
-          final stream = useMemoized(
+          /* final stream = useMemoized(
             () => FlutterBlue.instance.state,
           );
 
@@ -32,7 +30,7 @@ class TimmerBluetoothProvider extends HookWidget {
           if (device.value == null) {
             return DevicePairing(
                 callback: (BluetoothDevice val) => device.value = val);
-          }
+          } */
           return _childBuilder(context);
         },
       ),

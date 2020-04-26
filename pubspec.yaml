@@ -21,8 +21,9 @@ dependencies:
   user_location: any
   flutter_map: any
   flutter_hooks: any
-  flutter_easyloading: any
+  scoped_model: any
   flutter_lottie: any
+  location: ^2.3.5
   flutter:
     sdk: flutter
 
@@ -47,6 +48,7 @@ flutter:
   assets:
     - assets/animations/bluetooth-pairing.json
     - assets/animations/bluetooth-off.json
+    - assets/res/bluetooth_receiver_data.txt
   #  - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

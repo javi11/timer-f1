@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_lottie/flutter_lottie.dart';
+import 'package:timmer/types.dart';
 
-enum PairingStatus { FINDING_DEVICES, PAIRING, PAIR, ERROR }
 typedef void DeviceCallback(BluetoothDevice val);
 
 final String deviceName = 'DSD TECH';
@@ -13,11 +13,11 @@ final String deviceName = 'DSD TECH';
 class DevicePairing extends HookWidget {
   final DeviceCallback callback;
   DevicePairing({this.callback});
-  LottieController controller;
 
   @override
   Widget build(BuildContext context) {
     final step = useState(PairingStatus.FINDING_DEVICES);
+    final device = useState(null);
 
     return Scaffold(body: Center(child: HookBuilder(builder: (context) {
       Text message;
@@ -31,6 +31,24 @@ class DevicePairing extends HookWidget {
       } else if (step.value == PairingStatus.PAIR) {
         message = Text('Timmer pair.');
       }
+      final stream = useMemoized(
+        () {
+          FlutterBlue.instance.startScan(timeout: Duration(seconds: 10));
+          return FlutterBlue.instance.scanResults;
+        },
+      );
+      AsyncSnapshot<List<ScanResult>> scanResults = useStream(stream);
+
+      if (scanResults.data != null) {
+        for (ScanResult r in scanResults.data) {
+          if (r.device.name == deviceName) {
+            step.value = PairingStatus.PAIRING;
+            device.value = r.device;
+            FlutterBlue.instance.stopScan();
+          }
+        }
+      }
+
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -70,7 +88,6 @@ class DevicePairing extends HookWidget {
   }
 
   Future<void> onViewCreatedFile(LottieController controller) async {
-    this.controller = controller;
-    await this.controller.setLoopAnimation(true);
+    await controller.setLoopAnimation(true);
   }
 }
