@@ -203,31 +203,37 @@ class _MapComponentState extends State<MapComponent> {
         Positioned(
             top: 0,
             right: 0,
-            child: DropdownButton<String>(
-    icon: Icon(Icons.arrow_downward),
-    iconSize: 24,
-    elevation: 16,
-    style: TextStyle(
-      color: Colors.deepPurple
-    ),
-    underline: Container(
-      height: 2,
-      color: Colors.deepPurpleAccent,
-    ),
-    items: <Widget>[new ListTile(
+            child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 180.0),
+                child: ListView(
+                  shrinkWrap: true,
+                  children: <Widget>[
+                    new Opacity(
+                        opacity: 0.8,
+                        child: Card(
+                          child: ListTile(
                             title: Text(planeTemperature.toString() + ' ºC'),
                             trailing: Icon(Icons.ac_unit),
-                          ), new ListTile(
+                          ),
+                        )),
+                    new Opacity(
+                        opacity: 0.8,
+                        child: Card(
+                          child: ListTile(
                             title: Text(planeHeight.toString() + ' m'),
                             trailing: Icon(Icons.line_weight),
-                          ), new ListTile(
+                          ),
+                        )),
+                    new Opacity(
+                        opacity: 0.8,
+                        child: Card(
+                          child: ListTile(
                             title: Text(planePressure.toString() + ' Pa'),
                             trailing: Icon(Icons.trending_up),
                           ),
-                        )],
-  );
-            
-            ),
+                        )),
+                  ],
+                ))),
       ],
     );
   }
