@@ -14,15 +14,20 @@ description: A new Flutter project.
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.1.0 <3.0.0'
+  sdk: '>=2.7.2 <3.0.0'
 
 dependencies:
   flutter_blue: ^0.7.1
-  user_location: any
+  user_location: ^0.1.2
   flutter_map: any
   flutter_hooks: any
   scoped_model: any
+  sliding_up_panel: ^1.0.2
   flutter_lottie: any
+  flushbar: ^1.10.2
+  responsive_grid: ^1.1.1
+  awesome_dialog: ^0.1.4
+  timeline_list: ^0.0.3
   location: ^2.3.5
   flutter:
     sdk: flutter
