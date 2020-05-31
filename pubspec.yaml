@@ -17,20 +17,22 @@ environment:
   sdk: '>=2.7.2 <3.0.0'
 
 dependencies:
+  expandable_bottom_sheet: ^0.2.1+1
+  flutter_animator: ^2.0.9
   flutter_blue: ^0.7.1
   user_location: ^0.1.2
   flutter_map: any
-  flutter_hooks: any
-  scoped_model: any
-  sliding_up_panel: ^1.0.2
+  provider: ^3.0.0
   flutter_lottie: any
   flushbar: ^1.10.2
   responsive_grid: ^1.1.1
   awesome_dialog: ^0.1.4
-  timeline_list: ^0.0.3
   location: ^2.3.5
+  flutter_svg: ^0.17.4
+  page_transition: ^1.1.5
   flutter:
     sdk: flutter
+  sqflite:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -54,6 +56,7 @@ flutter:
     - assets/animations/bluetooth-pairing.json
     - assets/animations/bluetooth-off.json
     - assets/res/bluetooth_receiver_data.txt
+    - assets/images/logo.svg
   #  - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

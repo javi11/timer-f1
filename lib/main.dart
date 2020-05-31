@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:timmer/home/home_page.dart';
+import 'package:timmer/models/bluetooth.dart';
+import 'package:timmer/models/timmer.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<Timmer>(create: (_) => Timmer()),
+        ChangeNotifierProvider<Bluetooth>(create: (_) => Bluetooth()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

@@ -1,7 +1,7 @@
-import 'package:timmer/models/timmer_data.dart';
+import 'package:timmer/models/flight_data.dart';
 
 class FlightHistory {
-  List<TimmerData> history = [];
+  List<FlightData> _data = [];
   int durationInMs = 0;
   int startTimestamp = 0;
   int endTimestamp = 0;
@@ -10,9 +10,9 @@ class FlightHistory {
   double maxHeight = 0;
   double maxTemperature = 0;
 
-  void addData(TimmerData timmerData) {
+  void addData(FlightData timmerData) {
     this.planeId = timmerData.id;
-    this.history.add(timmerData);
+    this._data.add(timmerData);
   }
 
   void start() {
@@ -22,7 +22,7 @@ class FlightHistory {
   void end() {
     this.endTimestamp = DateTime.now().millisecondsSinceEpoch;
     this.durationInMs = this.endTimestamp - this.startTimestamp;
-    this.history.forEach((element) {
+    this._data.forEach((element) {
       if (element.height > this.maxHeight) {
         this.maxHeight = element.height;
       }
@@ -33,5 +33,30 @@ class FlightHistory {
         this.maxTemperature = element.temperature;
       }
     });
+  }
+
+  Map toMap() {
+    Map map = {
+      'durationInMs': durationInMs,
+      'startTimestamp': startTimestamp,
+      'endTimestamp': endTimestamp,
+      'planeId': planeId,
+      'maxPressure': maxPressure,
+      'maxHeight': maxHeight,
+      'maxTemperature': maxTemperature,
+    };
+    return map;
+  }
+
+  FlightHistory();
+
+  FlightHistory.fromMap(Map map) {
+    durationInMs = map['durationInMs'];
+    startTimestamp = map['startTimestamp'];
+    endTimestamp = map['endTimestamp'];
+    planeId = map['planeId'];
+    maxPressure = map['maxPressure'];
+    maxHeight = map['maxHeight'];
+    maxTemperature = map['maxTemperature'];
   }
 }
