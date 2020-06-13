@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -18,10 +19,10 @@ class EmptyList extends StatelessWidget {
         height: MediaQuery.of(context).size.height,
         child: Column(children: <Widget>[
           logo,
-          Text(
+          AutoSizeText(
             'No Flights Done Yet',
             style: TextStyle(
-                fontSize: 25,
+                fontSize: 30,
                 fontWeight: FontWeight.bold,
                 color: Colors.black54),
           ),
@@ -30,7 +31,10 @@ class EmptyList extends StatelessWidget {
           ),
           SizedBox(
             width: 210,
-            child: Text('Make sure that bluetooth device is on before start.',
+            child: AutoSizeText(
+                'Make sure that bluetooth device is on before start.',
+                maxLines: 2,
+                maxFontSize: 25,
                 style: TextStyle(
                     fontWeight: FontWeight.w500, color: Colors.black38)),
           ),
@@ -49,9 +53,9 @@ class EmptyList extends StatelessWidget {
                     color: Colors.blue,
                   ),
                   textColor: Colors.black87,
-                  label: Text(
+                  label: AutoSizeText(
                     'Start a flight',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                    style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800),
                   ),
                   color: Colors.green[50],
                   onPressed: onStartFlight))

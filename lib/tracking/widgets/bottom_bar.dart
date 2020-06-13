@@ -2,6 +2,7 @@ import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:timmer/models/flight_data.dart';
 import 'package:timmer/types.dart';
+import 'package:timmer/util/display_distance.dart';
 import 'package:timmer/widgets/round_button.dart';
 
 class BottomBar extends StatelessWidget {
@@ -55,13 +56,7 @@ class BottomBar extends StatelessWidget {
                             width: 5,
                           ),
                           Text(
-                            flightData.planeDistanceFromUser > 1000
-                                ? (flightData.planeDistanceFromUser / 1000)
-                                        .toStringAsFixed(2) +
-                                    ' Km'
-                                : flightData.planeDistanceFromUser
-                                        .toStringAsFixed(2) +
-                                    ' m',
+                            distanceToString(flightData.planeDistanceFromUser),
                             textAlign: TextAlign.justify,
                             style: TextStyle(
                                 color: Colors.green,

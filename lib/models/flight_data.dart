@@ -8,7 +8,7 @@ num toVolts = pow(10, -2);
 class FlightData {
   String id = '';
   int timestamp = 0;
-  LatLng planeCoordinates = LatLng(0, 0);
+  LatLng planeCoordinates;
   double height = 0;
   double temperature = 0;
   double pressure = 0;

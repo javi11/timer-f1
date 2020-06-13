@@ -1,4 +1,7 @@
+import 'dart:collection';
+import 'package:latlong/latlong.dart';
 import 'package:timmer/models/flight_data.dart';
+import 'package:timmer/util/distance_calculator.dart';
 
 class FlightHistory {
   List<FlightData> _data = [];
@@ -9,10 +12,16 @@ class FlightHistory {
   double maxPressure = 0;
   double maxHeight = 0;
   double maxTemperature = 0;
+  double maxDistanceFromUser = 0;
+  double maxPlaneDistanceFromStart = 0;
+  LatLng farCoordinates;
+
+  UnmodifiableListView<FlightData> get flightData =>
+      UnmodifiableListView(_data);
 
   void addData(FlightData timmerData) {
     this.planeId = timmerData.id;
-    this._data.add(timmerData);
+    this._data.add(FlightData.fromMap(timmerData.toMap()));
   }
 
   void start() {
@@ -32,6 +41,18 @@ class FlightHistory {
       if (element.temperature > this.maxTemperature) {
         this.maxTemperature = element.temperature;
       }
+      if (element.planeDistanceFromUser > this.maxDistanceFromUser) {
+        this.maxDistanceFromUser = element.planeDistanceFromUser;
+      }
+      if (this.farCoordinates == null) {
+        this.farCoordinates = element.planeCoordinates;
+      }
+      double distanceFromStart =
+          calculateDistance(element.planeCoordinates, this.farCoordinates);
+      if (distanceFromStart > this.maxPlaneDistanceFromStart) {
+        this.maxPlaneDistanceFromStart = distanceFromStart;
+        this.farCoordinates = element.planeCoordinates;
+      }
     });
   }
 
@@ -44,6 +65,8 @@ class FlightHistory {
       'maxPressure': maxPressure,
       'maxHeight': maxHeight,
       'maxTemperature': maxTemperature,
+      'farCoordinates': farCoordinates,
+      'maxPlaneDistanceFromStart': maxPlaneDistanceFromStart,
     };
     return map;
   }
@@ -58,5 +81,7 @@ class FlightHistory {
     maxPressure = map['maxPressure'];
     maxHeight = map['maxHeight'];
     maxTemperature = map['maxTemperature'];
+    farCoordinates = map['farCoordinates'];
+    maxPlaneDistanceFromStart = map['maxPlaneDistanceFromStart'];
   }
 }

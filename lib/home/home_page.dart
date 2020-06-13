@@ -1,7 +1,9 @@
 import 'dart:math';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animator/flutter_animator.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
@@ -62,6 +64,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Do not allow rotate the screen
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
     return Consumer<Timmer>(builder: (context, timmer, child) {
       return Scaffold(
           drawer: buildDrawer(),
@@ -114,8 +122,9 @@ class _HomePageState extends State<HomePage> {
                     backgroundColor: Colors.green,
                     icon: Icon(Icons.flight_takeoff),
                     onPressed: _onStartFlight,
-                    label: Text(
+                    label: AutoSizeText(
                       'Start a flight',
+                      maxFontSize: 30,
                       style: TextStyle(fontSize: 20),
                     )),
               )));

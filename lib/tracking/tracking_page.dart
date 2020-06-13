@@ -3,6 +3,7 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animator/flutter_animator.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:location/location.dart';
@@ -14,7 +15,7 @@ import 'package:timmer/models/timmer.dart';
 import 'package:timmer/tracking/widgets/bottom_bar.dart';
 import 'package:timmer/tracking/widgets/map.dart';
 import 'package:timmer/tracking/widgets/map_info.dart';
-import 'package:timmer/tracking/widgets/marker.dart';
+import 'package:timmer/widgets/plain_starting_point_marker.dart';
 import 'package:timmer/tracking/widgets/voltage_warning.dart';
 import 'package:timmer/types.dart';
 import 'package:timmer/util/compute_centroid.dart';
@@ -85,16 +86,22 @@ class _TrackingPageState extends State<TrackingPage> {
       _checkBatteryWarning();
 
       if (!startMarkerSet) {
-        markers.add(buildMarker(
-            flightData.planeCoordinates, AnchorAlign.top, Icons.location_on));
+        markers.add(buildPlainStartingPointMarker(flightData.planeCoordinates));
         startMarkerSet = true;
       }
-      currentFlightHistory.addData(flightData);
+      // Just add data if plane coordinates is not empty
+      if (flightData.planeCoordinates is LatLng) {
+        currentFlightHistory.addData(flightData);
+      }
       if (!plainIdController.currentState.mounted && flightData.id.length > 0) {
         plainIdController.currentState.forward();
       } else if (plainIdController.currentState.mounted &&
           flightData.id.length == 0) {
         plainIdController.currentState.stop();
+      }
+
+      if (focusOn == FixedLocation.PlaneLocation) {
+        mapController.move(flightData.planeCoordinates, 15.0);
       }
     });
   }
@@ -190,14 +197,18 @@ class _TrackingPageState extends State<TrackingPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Do not allow rotate the screen
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
     void _updatePoints(LatLng postion) {
       setState(() {
         flightData.addUserCoordinates(postion);
         currentFlightHistory.addData(flightData);
         if (focusOn == FixedLocation.UserLocation) {
           mapController.move(flightData.userCoordinates, 15.0);
-        } else if (focusOn == FixedLocation.PlaneLocation) {
-          mapController.move(flightData.planeCoordinates, 15.0);
         }
       });
     }

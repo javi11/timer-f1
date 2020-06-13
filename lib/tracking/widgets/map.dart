@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:timmer/models/flight_data.dart';
-import 'package:timmer/tracking/widgets/marker.dart';
+import 'package:timmer/tracking/widgets/plain_marker.dart';
 import 'package:user_location/user_location.dart';
 
 Widget buildMap(List<Marker> markers, FlightData flightData,
@@ -26,11 +26,9 @@ Widget buildMap(List<Marker> markers, FlightData flightData,
           'id': 'mapbox.streets',
         },
       ),
-      MarkerLayerOptions(markers: [
-        buildMarker(flightData.planeCoordinates, AnchorAlign.top,
-            Icons.airplanemode_active)
-      ]),
       MarkerLayerOptions(markers: markers),
+      MarkerLayerOptions(
+          markers: [buildPlainMarker(flightData.planeCoordinates)]),
       PolylineLayerOptions(
         polylines: [
           Polyline(

@@ -9,7 +9,7 @@ class Timmer extends ChangeNotifier {
       UnmodifiableListView(_history);
 
   void addFlightHistory(FlightHistory item) {
-    _history.add(item);
+    _history.insert(0, item);
     notifyListeners();
   }
 
