@@ -22,15 +22,23 @@ class _HistoryMapState extends State<HistoryMap> {
     super.initState();
     mapController = MapController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      LatLng planeStartCoordinates =
-          widget.flightHistory.flightData.first.planeCoordinates;
-      LatLng planeFarCoordinates = widget.flightHistory.farCoordinates;
+      LatLng flightStartCoordinates =
+          widget.flightHistory.flightStartCoordinates;
+      LatLng farPlaneDistanceCoordinates =
+          widget.flightHistory.farPlaneDistanceCoordinates;
 
-      if (!mapController.bounds.contains(planeStartCoordinates) |
-          !mapController.bounds.contains(planeFarCoordinates)) {
+      if (flightStartCoordinates != null &&
+          farPlaneDistanceCoordinates != null &&
+          (!mapController.bounds.contains(flightStartCoordinates) ||
+              !mapController.bounds.contains(farPlaneDistanceCoordinates))) {
         setState(() {
-          mapController.bounds.extend(planeStartCoordinates);
-          mapController.bounds.extend(planeFarCoordinates);
+          mapController.bounds.extend(flightStartCoordinates);
+          mapController.bounds.extend(farPlaneDistanceCoordinates);
+          mapController.fitBounds(mapController.bounds,
+              options: FitBoundsOptions(padding: EdgeInsets.all(100)));
+        });
+      } else {
+        setState(() {
           mapController.fitBounds(mapController.bounds,
               options: FitBoundsOptions(padding: EdgeInsets.all(100)));
         });
@@ -39,31 +47,47 @@ class _HistoryMapState extends State<HistoryMap> {
 
     setState(() {
       route = widget.flightHistory.flightData
+          .where((element) => element.planeCoordinates != null)
           .map((e) => e.planeCoordinates)
           .toList();
     });
   }
 
   Widget build(BuildContext context) {
-    List<Marker> markers = [
-      buildPlainStartingPointMarker(
-          widget.flightHistory.flightData.first.planeCoordinates),
-      buildPlainEndPointMarker(
-          widget.flightHistory.flightData.last.planeCoordinates)
-    ];
+    LatLng centroid;
+    LatLng flightStartCoordinates = widget.flightHistory.flightStartCoordinates;
+    LatLng flightEndCoordinates = widget.flightHistory.flightEndCoordinates;
+    List<Marker> markers = [];
+
+    if (flightStartCoordinates == null && flightEndCoordinates == null) {
+      return Container(
+          child: Center(
+        child: Text(
+          'No plain data',
+          style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+        ),
+      ));
+    }
+
+    if (flightStartCoordinates == null) {
+      markers.add(buildPlainEndPointMarker(flightEndCoordinates));
+      centroid = flightEndCoordinates;
+    } else if (flightEndCoordinates == null) {
+      markers.add(buildPlainStartingPointMarker(flightStartCoordinates));
+      centroid = flightStartCoordinates;
+    } else {
+      markers.add(buildPlainStartingPointMarker(flightStartCoordinates));
+      markers.add(buildPlainEndPointMarker(flightEndCoordinates));
+      centroid =
+          computeCentroid([flightStartCoordinates, flightEndCoordinates]);
+    }
 
     return Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height / 3,
         child: FlutterMap(
             mapController: mapController,
-            options: MapOptions(
-                zoom: 30.0,
-                interactive: true,
-                center: computeCentroid([
-                  widget.flightHistory.flightData.first.planeCoordinates,
-                  widget.flightHistory.flightData.last.planeCoordinates
-                ])),
+            options: MapOptions(zoom: 30, interactive: true, center: centroid),
             layers: [
               TileLayerOptions(
                 urlTemplate: "https://api.tiles.mapbox.com/v4/"

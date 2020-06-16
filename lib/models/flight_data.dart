@@ -5,8 +5,22 @@ import 'package:timmer/util/distance_calculator.dart';
 num toLatLng = pow(10, -7);
 num toVolts = pow(10, -2);
 
+double parseLatLng(String timmerLatLng) {
+  return double.parse(timmerLatLng) * toLatLng;
+}
+
+double parseHeight(String timmerHeight) {
+  return double.parse(timmerHeight) / 1000;
+}
+
+double parseVoltage(String voltage) {
+  return double.parse(voltage) * toVolts;
+}
+
 class FlightData {
-  String id = '';
+  int id;
+  int flightHistoryId;
+  String planeId = '';
   int timestamp = 0;
   LatLng planeCoordinates;
   double height = 0;
@@ -18,11 +32,27 @@ class FlightData {
   LatLng userCoordinates = LatLng(0, 0);
   double planeDistanceFromUser = 0;
 
+  static final columns = [
+    'id',
+    'flightHistoryId',
+    'planeId',
+    'timestamp',
+    'planeLat',
+    'planeLng',
+    'height',
+    'temperature',
+    'pressure',
+    'voltage',
+    'userLng',
+    'userLat',
+    'planeDistanceFromUser'
+  ];
+
   parseTimmerData(String data) {
     if (data.length > 0) {
       List<String> line = data.split(',');
 
-      this.id = line[0];
+      this.planeId = line[0];
       this.timestamp = new DateTime(
               int.parse(line[1]),
               int.parse(line[2]),
@@ -32,16 +62,16 @@ class FlightData {
               int.parse(line[6]))
           .millisecondsSinceEpoch;
 
-      this.planeCoordinates = LatLng(
-          double.parse(line[7]) * toLatLng, double.parse(line[8]) * toLatLng);
+      this.planeCoordinates =
+          LatLng(parseLatLng(line[7]), parseLatLng(line[8]));
       this.route = <LatLng>[this.planeCoordinates, this.userCoordinates];
       this.planeDistanceFromUser =
           calculateDistance(this.planeCoordinates, this.userCoordinates);
       // Convert height from mm to meters.
-      this.height = double.parse(line[9]) / 1000;
+      this.height = parseHeight(line[9]);
       this.temperature = double.parse(line[10]);
       this.pressure = double.parse(line[11]);
-      this.voltage = double.parse(line[12]) * toVolts;
+      this.voltage = parseVoltage(line[12]);
       this.voltageAlert = this.voltage < 3.20;
     }
   }
@@ -53,34 +83,83 @@ class FlightData {
         calculateDistance(this.planeCoordinates, this.userCoordinates);
   }
 
-  Map toMap() {
-    Map map = {
-      'planeId': id,
+  Map<String, dynamic> toRAW() {
+    String planeLan = planeCoordinates?.latitude != null
+        ? (planeCoordinates.latitude / toLatLng).toString()
+        : null;
+    String planeLng = planeCoordinates?.longitude != null
+        ? (planeCoordinates.longitude / toLatLng).toString()
+        : null;
+    String userLan = userCoordinates?.latitude != null
+        ? (userCoordinates.latitude / toLatLng).toString()
+        : null;
+    String userLng = userCoordinates?.longitude != null
+        ? (userCoordinates.longitude / toLatLng).toString()
+        : null;
+
+    Map<String, dynamic> map = {
+      'id': id,
+      'flightHistoryId': flightHistoryId,
+      'planeId': planeId,
       'timestamp': timestamp,
-      'planeLatitude': planeCoordinates.latitude,
-      'planeLongitude': planeCoordinates.longitude,
+      'planeLat': planeLan,
+      'planeLng': planeLng,
+      'height': (height * 1000).toString(),
+      'temperature': temperature,
+      'pressure': pressure,
+      'voltage': (voltage / toVolts).toString(),
+      'userLng': userLan,
+      'userLat': userLng,
+      'planeDistanceFromUser': planeDistanceFromUser
+    };
+    return map;
+  }
+
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {
+      'id': id,
+      'flightHistoryId': flightHistoryId,
+      'planeId': planeId,
+      'timestamp': timestamp,
       'height': height,
       'temperature': temperature,
       'pressure': pressure,
       'voltage': voltage,
-      'userLongitude': userCoordinates.longitude,
-      'userLatitude': userCoordinates.latitude,
       'planeDistanceFromUser': planeDistanceFromUser
     };
+
+    if (planeCoordinates != null) {
+      map['planeLat'] = planeCoordinates.latitude.toString();
+      map['planeLng'] = planeCoordinates.longitude.toString();
+    }
+
+    if (userCoordinates != null) {
+      map['userLng'] = userCoordinates.latitude.toString();
+      map['userLat'] = userCoordinates.longitude.toString();
+    }
+
     return map;
   }
 
   FlightData();
 
   FlightData.fromMap(Map map) {
-    id = map['planeId'];
+    id = map['id'];
+    flightHistoryId = map['flightHistoryId'];
+    planeId = map['planeId'];
     timestamp = map['timestamp'];
-    planeCoordinates = LatLng(map['planeLatitude'], map['planeLongitude']);
+    if (map['planeLat'] != null && map['planeLng'] != null) {
+      planeCoordinates =
+          LatLng(double.parse(map['planeLat']), double.parse(map['planeLng']));
+    }
     height = map['height'];
     temperature = map['temperature'];
     pressure = map['pressure'];
     voltage = map['voltage'];
-    userCoordinates = LatLng(map['userLatitude'], map['userLongitude']);
+    if (map['userLat'] != null && map['userLng'] != null) {
+      userCoordinates =
+          LatLng(double.parse(map['userLat']), double.parse(map['userLng']));
+    }
     planeDistanceFromUser = map['planeDistanceFromUser'];
   }
 }

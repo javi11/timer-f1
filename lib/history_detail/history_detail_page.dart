@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:timmer/history_detail/widgets/map.dart';
+import 'package:timmer/history_detail/widgets/history_map.dart';
 import 'package:timmer/models/flight_history.dart';
 import 'package:timmer/util/display_distance.dart';
 import 'package:timmer/util/export_csv.dart';
-import 'package:timmer/widgets/round_button.dart';
 
 class HistoryDetailPage extends StatefulWidget {
   final FlightHistory flightHistory;
@@ -28,7 +27,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
       floatingActionButton: Align(
           child: FloatingActionButton(
-              backgroundColor: Colors.white,
+              backgroundColor: Color.fromRGBO(255, 255, 255, 0.7),
               onPressed: () => Navigator.of(context).pop(),
               child: Icon(
                 Icons.arrow_back,
@@ -50,6 +49,12 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
           SizedBox(
             height: 10,
           ),
+          Divider(
+            color: Colors.black26,
+            height: 3,
+            indent: 15,
+            endIndent: 15,
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -57,27 +62,40 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                   minWidth: MediaQuery.of(context).size.width / 2 - 5,
                   height: 50,
                   child: OutlineButton.icon(
+                    borderSide: BorderSide.none,
                     icon: Icon(Icons.import_export),
-                    onPressed: () {
-                      /*...*/
+                    onPressed: () async {
+                      await exportFlight2Csv(widget.flightHistory);
                     },
                     label: Text(
                       "Export",
                     ),
                   )),
+              VerticalDivider(
+                color: Colors.black26,
+                width: 3,
+                thickness: 2,
+              ),
               ButtonTheme(
                   minWidth: MediaQuery.of(context).size.width / 2 - 5,
                   height: 50,
                   child: OutlineButton.icon(
                     icon: Icon(Icons.share),
+                    borderSide: BorderSide.none,
                     onPressed: () async {
-                      await exportFlight2Csv(widget.flightHistory);
+                      await shareFligth(widget.flightHistory);
                     },
                     label: Text(
                       "Share",
                     ),
                   ))
             ],
+          ),
+          Divider(
+            color: Colors.black26,
+            height: 3,
+            indent: 15,
+            endIndent: 15,
           ),
           SizedBox(
               width: MediaQuery.of(context).size.width,

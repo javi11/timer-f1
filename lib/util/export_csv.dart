@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:csv/csv.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
+import 'package:share_extend/share_extend.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:timmer/models/flight_history.dart';
 
@@ -16,7 +18,7 @@ Future<File> getFile(String name) async {
   return File('$path/$name.csv').create();
 }
 
-Future<void> exportFlight2Csv(FlightHistory flightHistory) async {
+Future<String> generateCsv(FlightHistory flightHistory) async {
   List<List<dynamic>> rows = List<List<dynamic>>();
   rows.add([
     "id",
@@ -31,21 +33,37 @@ Future<void> exportFlight2Csv(FlightHistory flightHistory) async {
 
   for (int i = 0; i < flightHistory.flightData.length; i++) {
     List<dynamic> row = List<dynamic>();
-    row.add(flightHistory.flightData[i].id);
-    row.add(flightHistory.flightData[i].timestamp);
-    row.add(flightHistory.flightData[i].planeCoordinates.latitude);
-    row.add(flightHistory.flightData[i].planeCoordinates.longitude);
-    row.add(flightHistory.flightData[i].height);
-    row.add(flightHistory.flightData[i].temperature);
-    row.add(flightHistory.flightData[i].pressure);
-    row.add(flightHistory.flightData[i].voltage);
+    Map<dynamic, dynamic> flightData = flightHistory.flightData[i].toRAW();
+    row.add(flightData['planeId']);
+    row.add(flightData['timestamp']);
+    row.add(flightData['planeLat']);
+    row.add(flightData['planeLng']);
+    row.add(flightData['height']);
+    row.add(flightData['temperature']);
+    row.add(flightData['pressure']);
+    row.add(flightData['voltage']);
     rows.add(row);
   }
 
-  String fileName =
-      flightHistory.planeId + flightHistory.endTimestamp.toString();
+  String fileName = 'timmer_' +
+      flightHistory.planeId +
+      '_' +
+      flightHistory.endTimestamp.toString();
   File f = await getFile(fileName);
 
   String csv = const ListToCsvConverter().convert(rows);
   f.writeAsString(csv);
+
+  return f.path;
+}
+
+Future<void> exportFlight2Csv(FlightHistory flightHistory) async {
+  String filePath = await generateCsv(flightHistory);
+  final params = SaveFileDialogParams(sourceFilePath: filePath);
+  await FlutterFileDialog.saveFile(params: params);
+}
+
+Future<void> shareFligth(FlightHistory flightHistory) async {
+  String filePath = await generateCsv(flightHistory);
+  await ShareExtend.share(filePath, "Timmer flight");
 }

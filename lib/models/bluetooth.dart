@@ -34,12 +34,12 @@ class Bluetooth extends ChangeNotifier {
 
   void stop(Function listener) {
     removeListener(listener);
-    mockTimer.cancel();
+    mockTimer?.cancel();
   }
 
   @override
   void dispose() {
     super.dispose();
-    mockTimer.cancel();
+    mockTimer?.cancel();
   }
 }

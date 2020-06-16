@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:timmer/models/bluetooth.dart';
 import 'package:timmer/models/flight_data.dart';
 import 'package:timmer/models/flight_history.dart';
-import 'package:timmer/models/timmer.dart';
+import 'package:timmer/providers/history_provider.dart';
 import 'package:timmer/tracking/widgets/bottom_bar.dart';
 import 'package:timmer/tracking/widgets/map.dart';
 import 'package:timmer/tracking/widgets/map_info.dart';
@@ -93,10 +93,11 @@ class _TrackingPageState extends State<TrackingPage> {
       if (flightData.planeCoordinates is LatLng) {
         currentFlightHistory.addData(flightData);
       }
-      if (!plainIdController.currentState.mounted && flightData.id.length > 0) {
+      if (!plainIdController.currentState.mounted &&
+          flightData.planeId.length > 0) {
         plainIdController.currentState.forward();
       } else if (plainIdController.currentState.mounted &&
-          flightData.id.length == 0) {
+          flightData.planeId.length == 0) {
         plainIdController.currentState.stop();
       }
 
@@ -106,18 +107,18 @@ class _TrackingPageState extends State<TrackingPage> {
     });
   }
 
-  void _watchLocationEnabled() {
-    location.hasPermission().then((status) async {
-      if (status == PermissionStatus.GRANTED) {
-        checkLocationServiceTimer = Timer.periodic(Duration(seconds: 3), (_) {
-          location.serviceEnabled().then((enabled) async {
-            setState(() {
-              locationServiceEnabled = enabled;
-            });
-          });
+  void _watchLocationEnabled() async {
+    PermissionStatus status = await location.hasPermission();
+
+    if (status == PermissionStatus.granted) {
+      checkLocationServiceTimer =
+          Timer.periodic(Duration(seconds: 3), (_) async {
+        bool enabled = await location.serviceEnabled();
+        setState(() {
+          locationServiceEnabled = enabled;
         });
-      }
-    });
+      });
+    }
   }
 
   @override
@@ -141,7 +142,7 @@ class _TrackingPageState extends State<TrackingPage> {
   void dispose() {
     super.dispose();
     bluetoothProvider.stop(_onReceiveBluetoothData);
-    checkLocationServiceTimer.cancel();
+    checkLocationServiceTimer?.cancel();
   }
 
   void _onExit() {
@@ -152,10 +153,11 @@ class _TrackingPageState extends State<TrackingPage> {
         tittle: 'Do you want to end the fly?',
         desc: 'The fly will be saved on your history',
         btnCancelOnPress: () {},
-        btnOkOnPress: () {
+        btnOkOnPress: () async {
           currentFlightHistory.end();
-          Provider.of<Timmer>(context, listen: false)
+          await Provider.of<HistoryProvider>(context, listen: false)
               .addFlightHistory(currentFlightHistory);
+          await voltageWarningPopUp?.dismiss();
           Navigator.pop(context);
         }).show();
   }
@@ -293,7 +295,7 @@ class _TrackingPageState extends State<TrackingPage> {
                     child: Text('ID'),
                   ),
                   label: Text(
-                    flightData.id,
+                    flightData.planeId,
                     style: TextStyle(fontSize: 20),
                   ),
                 ),

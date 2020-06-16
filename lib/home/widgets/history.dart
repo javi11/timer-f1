@@ -6,17 +6,15 @@ import 'package:timmer/history_detail/history_detail_page.dart';
 import 'package:timmer/home/widgets/day_avatar.dart';
 import 'package:timmer/home/widgets/empty_list.dart';
 import 'package:timmer/models/flight_history.dart';
-import 'package:timmer/models/timmer.dart';
+import 'package:timmer/providers/history_provider.dart';
 import 'package:timmer/util/display_distance.dart';
 
 class History extends StatelessWidget {
   final bool Function(ScrollNotification) handleScrollNotification;
   final Function onStartFlight;
-  final Timmer timmer;
 
   History(
       {Key key,
-      @required this.timmer,
       @required this.handleScrollNotification,
       @required this.onStartFlight})
       : super(key: key);
@@ -113,21 +111,45 @@ class History extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget view = new ListView.builder(
-        itemCount: timmer.flightHistory.length,
-        padding: EdgeInsetsDirectional.only(
-            top: MediaQuery.of(context).size.height / 10),
-        itemBuilder: (BuildContext ctxt, int index) {
-          return _listItem(timmer.flightHistory[index], context);
-        });
+    return Consumer<HistoryProvider>(
+        builder: (context, historyProvider, child) {
+      Widget view;
+      if (historyProvider.isLoading && historyProvider.total == 0) {
+        view = Center(
+          child: CircularProgressIndicator(),
+        );
+      } else if (historyProvider.flightHistory.length == 0) {
+        view = EmptyList(
+          onStartFlight: onStartFlight,
+        );
+      } else {
+        view = ListView.builder(
+            physics: BouncingScrollPhysics(),
+            itemExtent: 160,
+            itemCount: historyProvider.flightHistory.length + 1,
+            padding: EdgeInsetsDirectional.only(
+                top: MediaQuery.of(context).size.height / 10),
+            itemBuilder: (BuildContext ctxt, int index) {
+              if (index == historyProvider.flightHistory.length &&
+                  historyProvider.isLoading == true) {
+                return Center(
+                    child: Container(
+                  child: CircularProgressIndicator(),
+                ));
+              }
 
-    if (timmer.flightHistory.length == 0) {
-      view = EmptyList(
-        onStartFlight: onStartFlight,
-      );
-    }
+              if (index == historyProvider.flightHistory.length) {
+                return SizedBox(
+                  width: 0,
+                  height: 0,
+                );
+              }
+              return _listItem(historyProvider.flightHistory[index], context);
+            });
+      }
 
-    return NotificationListener<ScrollNotification>(
-        onNotification: handleScrollNotification, child: view);
+      return NotificationListener<ScrollNotification>(
+          onNotification: handleScrollNotification, child: view);
+    });
   }
 }

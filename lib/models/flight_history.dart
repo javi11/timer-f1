@@ -4,6 +4,7 @@ import 'package:timmer/models/flight_data.dart';
 import 'package:timmer/util/distance_calculator.dart';
 
 class FlightHistory {
+  int id;
   List<FlightData> _data = [];
   int durationInMs = 0;
   int startTimestamp = 0;
@@ -14,13 +15,41 @@ class FlightHistory {
   double maxTemperature = 0;
   double maxDistanceFromUser = 0;
   double maxPlaneDistanceFromStart = 0;
-  LatLng farCoordinates;
+  LatLng farPlaneDistanceCoordinates;
+  LatLng flightStartCoordinates;
+  LatLng flightEndCoordinates;
 
   UnmodifiableListView<FlightData> get flightData =>
       UnmodifiableListView(_data);
 
+  static final columns = [
+    'id',
+    'durationInMs',
+    'startTimestamp',
+    'endTimestamp',
+    'planeId',
+    'maxPressure',
+    'maxHeight',
+    'maxTemperature',
+    'farPlaneDistanceLat',
+    'farPlaneDistanceLng',
+    'maxPlaneDistanceFromStart',
+    'startFlightLat',
+    'startFlightLng',
+    'endFlightLat',
+    'endFlightLng'
+  ];
+
+  void addAll(Iterable<FlightData> iterable) {
+    this._data.addAll(iterable);
+  }
+
   void addData(FlightData timmerData) {
-    this.planeId = timmerData.id;
+    if (this.flightStartCoordinates == null &&
+        timmerData.planeCoordinates != null) {
+      this.flightStartCoordinates = timmerData.planeCoordinates;
+    }
+    this.planeId = timmerData.planeId;
     this._data.add(FlightData.fromMap(timmerData.toMap()));
   }
 
@@ -44,20 +73,27 @@ class FlightHistory {
       if (element.planeDistanceFromUser > this.maxDistanceFromUser) {
         this.maxDistanceFromUser = element.planeDistanceFromUser;
       }
-      if (this.farCoordinates == null) {
-        this.farCoordinates = element.planeCoordinates;
+      if (this.farPlaneDistanceCoordinates == null &&
+          element.planeCoordinates != null) {
+        this.farPlaneDistanceCoordinates = element.planeCoordinates;
       }
-      double distanceFromStart =
-          calculateDistance(element.planeCoordinates, this.farCoordinates);
+      double distanceFromStart = calculateDistance(
+          element.planeCoordinates, this.flightStartCoordinates);
       if (distanceFromStart > this.maxPlaneDistanceFromStart) {
         this.maxPlaneDistanceFromStart = distanceFromStart;
-        this.farCoordinates = element.planeCoordinates;
+        this.farPlaneDistanceCoordinates = element.planeCoordinates;
       }
     });
+    this.flightEndCoordinates = this
+        ._data
+        .lastWhere((element) => element.planeCoordinates != null,
+            orElse: () => null)
+        ?.planeCoordinates;
   }
 
-  Map toMap() {
-    Map map = {
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {
+      'id': id,
       'durationInMs': durationInMs,
       'startTimestamp': startTimestamp,
       'endTimestamp': endTimestamp,
@@ -65,15 +101,33 @@ class FlightHistory {
       'maxPressure': maxPressure,
       'maxHeight': maxHeight,
       'maxTemperature': maxTemperature,
-      'farCoordinates': farCoordinates,
       'maxPlaneDistanceFromStart': maxPlaneDistanceFromStart,
     };
+
+    if (farPlaneDistanceCoordinates != null) {
+      map['farPlaneDistanceLat'] =
+          farPlaneDistanceCoordinates.latitude.toString();
+      map['farPlaneDistanceLng'] =
+          farPlaneDistanceCoordinates.longitude.toString();
+    }
+
+    if (flightStartCoordinates != null) {
+      map['startFlightLat'] = flightStartCoordinates.latitude.toString();
+      map['startFlightLng'] = flightStartCoordinates.longitude.toString();
+    }
+
+    if (flightStartCoordinates != null) {
+      map['endFlightLat'] = flightEndCoordinates.latitude.toString();
+      map['endFlightLng'] = flightEndCoordinates.longitude.toString();
+    }
+
     return map;
   }
 
   FlightHistory();
 
   FlightHistory.fromMap(Map map) {
+    id = map['id'];
     durationInMs = map['durationInMs'];
     startTimestamp = map['startTimestamp'];
     endTimestamp = map['endTimestamp'];
@@ -81,7 +135,21 @@ class FlightHistory {
     maxPressure = map['maxPressure'];
     maxHeight = map['maxHeight'];
     maxTemperature = map['maxTemperature'];
-    farCoordinates = map['farCoordinates'];
+    if (map['farPlaneDistanceLat'] != null &&
+        map['farPlaneDistanceLng'] != null) {
+      farPlaneDistanceCoordinates = LatLng(
+          double.parse(map['farPlaneDistanceLat']),
+          double.parse(map['farPlaneDistanceLng']));
+    }
+    if (map['startFlightLat'] != null && map['startFlightLng'] != null) {
+      flightStartCoordinates = LatLng(double.parse(map['startFlightLat']),
+          double.parse(map['startFlightLng']));
+    }
+    if (map['endFlightLat'] != null && map['endFlightLng'] != null) {
+      flightEndCoordinates = LatLng(
+          double.parse(map['endFlightLat']), double.parse(map['endFlightLng']));
+    }
+
     maxPlaneDistanceFromStart = map['maxPlaneDistanceFromStart'];
   }
 }

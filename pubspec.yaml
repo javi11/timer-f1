@@ -21,22 +21,27 @@ dependencies:
   expandable_bottom_sheet: ^0.2.1+1
   flutter_animator: ^2.0.9
   flutter_blue: ^0.7.1
-  user_location: ^0.1.2
+  user_location:
+    git:
+      url: https://github.com/javi11/user_location_plugin.git
+      ref: fix/location-direction-inverted
   flutter_map: any
-  provider: ^3.0.0
+  provider: ^4.0.0
   auto_size_text: ^2.1.0
   flutter_lottie: any
   flushbar: ^1.10.2
   responsive_grid: ^1.1.1
   awesome_dialog: ^0.1.4
-  location: ^2.3.5
+  location: ^3.0.0
   flutter_svg: ^0.17.4
   page_transition: ^1.1.5
   flutter:
     sdk: flutter
   sqflite:
-  path_provider: ^1.6.10
+  flutter_file_dialog: ^0.0.5
   csv: ^4.0.3
+  share_extend: '^1.1.7'
+  flutter_paginator: '0.0.6'
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:latlong/latlong.dart';
 
 final Widget plainIcon = SvgPicture.asset(
   'assets/icons/plain_marker.svg',

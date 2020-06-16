@@ -1,4 +1,3 @@
-import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:timmer/models/flight_data.dart';
 import 'package:timmer/types.dart';
