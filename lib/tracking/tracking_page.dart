@@ -83,15 +83,12 @@ class _TrackingPageState extends State<TrackingPage> {
   void _onReceiveBluetoothData() {
     setState(() {
       flightData.parseTimmerData(bluetoothProvider.chunk);
+      currentFlightHistory.addData(flightData);
       _checkBatteryWarning();
 
       if (!startMarkerSet) {
         markers.add(buildPlainStartingPointMarker(flightData.planeCoordinates));
         startMarkerSet = true;
-      }
-      // Just add data if plane coordinates is not empty
-      if (flightData.planeCoordinates is LatLng) {
-        currentFlightHistory.addData(flightData);
       }
       if (!plainIdController.currentState.mounted &&
           flightData.planeId.length > 0) {
@@ -145,6 +142,13 @@ class _TrackingPageState extends State<TrackingPage> {
     checkLocationServiceTimer?.cancel();
   }
 
+  Future<void> _saveFlight(FlightHistory flightHistory) async {
+    await Provider.of<HistoryProvider>(context, listen: false)
+        .addFlightHistory(flightHistory);
+    await voltageWarningPopUp?.dismiss();
+    Navigator.pop(context);
+  }
+
   void _onExit() {
     AwesomeDialog(
         context: context,
@@ -154,11 +158,26 @@ class _TrackingPageState extends State<TrackingPage> {
         desc: 'The fly will be saved on your history',
         btnCancelOnPress: () {},
         btnOkOnPress: () async {
-          currentFlightHistory.end();
-          await Provider.of<HistoryProvider>(context, listen: false)
-              .addFlightHistory(currentFlightHistory);
-          await voltageWarningPopUp?.dismiss();
-          Navigator.pop(context);
+          int durationInMs = currentFlightHistory.end();
+          if (durationInMs > 30000) {
+            await _saveFlight(currentFlightHistory);
+          } else {
+            AwesomeDialog(
+                context: context,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                tittle: 'Flight is to short',
+                desc: 'Do you still want to save it?',
+                btnCancelText: 'No',
+                btnOkText: 'Yes',
+                btnCancelOnPress: () async {
+                  await voltageWarningPopUp?.dismiss();
+                  Navigator.pop(context);
+                },
+                btnOkOnPress: () async {
+                  await _saveFlight(currentFlightHistory);
+                }).show();
+          }
         }).show();
   }
 
@@ -208,7 +227,6 @@ class _TrackingPageState extends State<TrackingPage> {
     void _updatePoints(LatLng postion) {
       setState(() {
         flightData.addUserCoordinates(postion);
-        currentFlightHistory.addData(flightData);
         if (focusOn == FixedLocation.UserLocation) {
           mapController.move(flightData.userCoordinates, 15.0);
         }

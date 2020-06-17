@@ -18,14 +18,8 @@ Widget buildMap(List<Marker> markers, FlightData flightData,
     ),
     layers: [
       TileLayerOptions(
-        urlTemplate: "https://api.tiles.mapbox.com/v4/"
-            "{id}/{z}/{x}/{y}@2x.png?access_token={accessToken}",
-        additionalOptions: {
-          'accessToken':
-              'pk.eyJ1IjoibGFyaXMxMiIsImEiOiJjazgzNHBtajcxNWRyM2twZ3NyeTFndDZuIn0.8-PMlKszRh8ixNyP3u2jrA',
-          'id': 'mapbox.streets',
-        },
-      ),
+          urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          subdomains: ['a', 'b', 'c']),
       MarkerLayerOptions(markers: markers),
       MarkerLayerOptions(
           markers: [buildPlainMarker(flightData.planeCoordinates)]),

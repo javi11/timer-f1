@@ -48,6 +48,8 @@ class FlightData {
     'planeDistanceFromUser'
   ];
 
+  FlightData();
+
   parseTimmerData(String data) {
     if (data.length > 0) {
       List<String> line = data.split(',');
@@ -140,8 +142,6 @@ class FlightData {
 
     return map;
   }
-
-  FlightData();
 
   FlightData.fromMap(Map map) {
     id = map['id'];

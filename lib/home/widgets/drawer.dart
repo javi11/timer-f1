@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:timmer/offline_maps/offline_maps_list.dart';
 import 'package:timmer/widgets/app_title.dart';
 
-Widget buildDrawer() {
+Widget buildDrawer(BuildContext context) {
   final Widget logo = SvgPicture.asset(
     'assets/images/logo.svg',
     semanticsLabel: 'Logo',
@@ -32,6 +34,17 @@ Widget buildDrawer() {
           decoration: BoxDecoration(
             color: Colors.blue,
           ),
+        ),
+        ListTile(
+          leading: Icon(Icons.cloud_off),
+          title: Text('Offline maps'),
+          onTap: () {
+            Navigator.push(
+                context,
+                PageTransition(
+                    type: PageTransitionType.downToUp,
+                    child: OfflineMapsPage()));
+          },
         ),
         ListTile(
           leading: Icon(Icons.settings),

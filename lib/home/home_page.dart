@@ -81,7 +81,7 @@ class _HomePageState extends State<HomePage> {
     ]);
 
     return Scaffold(
-        drawer: buildDrawer(),
+        drawer: buildDrawer(context),
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.blue[400],

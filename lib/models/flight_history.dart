@@ -45,19 +45,22 @@ class FlightHistory {
   }
 
   void addData(FlightData timmerData) {
-    if (this.flightStartCoordinates == null &&
-        timmerData.planeCoordinates != null) {
-      this.flightStartCoordinates = timmerData.planeCoordinates;
+    // There is no point on add the history if there is no plain coordinates to show
+    if (timmerData.planeCoordinates != null) {
+      if (this.flightStartCoordinates == null &&
+          timmerData.planeCoordinates != null) {
+        this.flightStartCoordinates = timmerData.planeCoordinates;
+      }
+      this.planeId = timmerData.planeId;
+      this._data.add(FlightData.fromMap(timmerData.toMap()));
     }
-    this.planeId = timmerData.planeId;
-    this._data.add(FlightData.fromMap(timmerData.toMap()));
   }
 
   void start() {
     this.startTimestamp = DateTime.now().millisecondsSinceEpoch;
   }
 
-  void end() {
+  int end() {
     this.endTimestamp = DateTime.now().millisecondsSinceEpoch;
     this.durationInMs = this.endTimestamp - this.startTimestamp;
     this._data.forEach((element) {
@@ -89,6 +92,8 @@ class FlightHistory {
         .lastWhere((element) => element.planeCoordinates != null,
             orElse: () => null)
         ?.planeCoordinates;
+
+    return this.durationInMs;
   }
 
   Map<String, dynamic> toMap() {
