@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:timmer/models/flight_history.dart';
 import 'package:timmer/util/compute_centroid.dart';
+import 'package:timmer/widgets/map_provider.dart';
 import 'package:timmer/widgets/plain_end_point_marker.dart';
 import 'package:timmer/widgets/plain_starting_point_marker.dart';
 
@@ -89,15 +90,7 @@ class _HistoryMapState extends State<HistoryMap> {
             mapController: mapController,
             options: MapOptions(zoom: 30, interactive: true, center: centroid),
             layers: [
-              TileLayerOptions(
-                urlTemplate: "https://api.tiles.mapbox.com/v4/"
-                    "{id}/{z}/{x}/{y}@2x.png?access_token={accessToken}",
-                additionalOptions: {
-                  'accessToken':
-                      'pk.eyJ1IjoibGFyaXMxMiIsImEiOiJjazgzNHBtajcxNWRyM2twZ3NyeTFndDZuIn0.8-PMlKszRh8ixNyP3u2jrA',
-                  'id': 'mapbox.streets',
-                },
-              ),
+              mapProvider,
               MarkerLayerOptions(markers: markers),
               PolylineLayerOptions(
                 polylines: [

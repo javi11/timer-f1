@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:timmer/models/flight_data.dart';
 import 'package:timmer/tracking/widgets/plain_marker.dart';
+import 'package:timmer/widgets/map_provider.dart';
 import 'package:user_location/user_location.dart';
 
 Widget buildMap(List<Marker> markers, FlightData flightData,
@@ -17,9 +18,7 @@ Widget buildMap(List<Marker> markers, FlightData flightData,
       ],
     ),
     layers: [
-      TileLayerOptions(
-          urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-          subdomains: ['a', 'b', 'c']),
+      mapProvider,
       MarkerLayerOptions(markers: markers),
       MarkerLayerOptions(
           markers: [buildPlainMarker(flightData.planeCoordinates)]),
