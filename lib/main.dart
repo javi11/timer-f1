@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:timmer/home/home_page.dart';
-import 'package:timmer/models/bluetooth.dart';
+import 'package:timmer/providers/bluetooth_provider.dart';
 import 'package:timmer/providers/history_provider.dart';
 
 void main() {
@@ -10,7 +10,8 @@ void main() {
       providers: [
         ChangeNotifierProvider<HistoryProvider>(
             create: (_) => HistoryProvider()..loadHistoryItems(0)),
-        ChangeNotifierProvider<Bluetooth>(create: (_) => Bluetooth()),
+        ChangeNotifierProvider<BluetoothProvider>(
+            create: (_) => BluetoothProvider()),
       ],
       child: MyApp(),
     ),

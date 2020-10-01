@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:provider/provider.dart';
+import 'package:timmer/bluetooth-connection/bluetooth_connection_page.dart';
 import 'package:timmer/offline_maps/offline_maps_list.dart';
+import 'package:timmer/providers/bluetooth_provider.dart';
+import 'package:timmer/types.dart';
 import 'package:timmer/widgets/app_title.dart';
 
 Widget buildDrawer(BuildContext context) {
@@ -46,17 +50,56 @@ Widget buildDrawer(BuildContext context) {
                     child: OfflineMapsPage()));
           },
         ),
+        Consumer<BluetoothProvider>(
+            builder: (context, bluetoothProvider, child) {
+          if (bluetoothProvider.connectionStatus ==
+              ConnectionStatus.CONNECTED) {
+            return Container(
+                decoration: BoxDecoration(color: Colors.green[50]),
+                child: ListTile(
+                  leading: Icon(Icons.bluetooth_connected),
+                  title: Text(bluetoothProvider.pairedDevice.name != null
+                      ? bluetoothProvider.pairedDevice.name
+                      : bluetoothProvider.pairedDevice.id.id),
+                  onTap: () {},
+                ));
+          }
+
+          if (bluetoothProvider.pairedDevice != null &&
+              bluetoothProvider.connectionStatus ==
+                  ConnectionStatus.DISSCONNECTED) {
+            return Container(
+                decoration: BoxDecoration(color: Colors.red[50]),
+                child: ListTile(
+                  leading: Icon(Icons.bluetooth_disabled),
+                  title: Text(bluetoothProvider.pairedDevice.name != null
+                      ? bluetoothProvider.pairedDevice.name
+                      : bluetoothProvider.pairedDevice.id.id + ' disconnected'),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        PageTransition(
+                            type: PageTransitionType.downToUp,
+                            child: BluetoothConnectionPage()));
+                  },
+                ));
+          }
+
+          return ListTile(
+            leading: Icon(Icons.bluetooth),
+            title: Text('Pair a device'),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  PageTransition(
+                      type: PageTransitionType.downToUp,
+                      child: BluetoothConnectionPage()));
+            },
+          );
+        }),
         ListTile(
           leading: Icon(Icons.settings),
           title: Text('Settings'),
-          onTap: () {
-            // Update the state of the app.
-            // ...
-          },
-        ),
-        ListTile(
-          leading: Icon(Icons.bluetooth_searching),
-          title: Text('Pair device'),
           onTap: () {
             // Update the state of the app.
             // ...
