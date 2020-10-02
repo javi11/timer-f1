@@ -1,3 +1,4 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:page_transition/page_transition.dart';
@@ -61,13 +62,24 @@ Widget buildDrawer(BuildContext context) {
                   title: Text(bluetoothProvider.pairedDevice.name != null
                       ? bluetoothProvider.pairedDevice.name
                       : bluetoothProvider.pairedDevice.id.id),
-                  onTap: () {},
+                  onTap: () {
+                    AwesomeDialog(
+                        context: context,
+                        dialogType: DialogType.INFO,
+                        animType: AnimType.BOTTOMSLIDE,
+                        tittle: 'Do you want to delete this device?',
+                        desc: 'The device will be unpair from the phone',
+                        btnCancelOnPress: () {},
+                        btnOkOnPress: () async {
+                          await bluetoothProvider.deletePairedDevice();
+                        }).show();
+                  },
                 ));
           }
 
           if (bluetoothProvider.pairedDevice != null &&
-              bluetoothProvider.connectionStatus ==
-                  ConnectionStatus.DISSCONNECTED) {
+              bluetoothProvider.connectionStatus !=
+                  ConnectionStatus.CONNECTED) {
             return Container(
                 decoration: BoxDecoration(color: Colors.red[50]),
                 child: ListTile(

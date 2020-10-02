@@ -7,8 +7,17 @@ import 'package:timmer/bluetooth-connection/widgets/devices_list.dart';
 import 'package:timmer/bluetooth-connection/widgets/connecting_device.dart';
 import 'package:timmer/providers/bluetooth_provider.dart';
 
+Function _defaultOnConnected(ctx) {
+  return () {
+    Navigator.of(ctx).pop();
+  };
+}
+
 class BluetoothConnectionPage extends StatefulWidget {
-  BluetoothConnectionPage({Key key}) : super(key: key);
+  final Function onConnected;
+
+  BluetoothConnectionPage({Key key, this.onConnected = _defaultOnConnected})
+      : super(key: key);
   @override
   _BluetoothConnectionPageState createState() =>
       _BluetoothConnectionPageState();
@@ -35,7 +44,7 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
   }
 
   void _onRetry() {
-    _startScan(timeout: Duration(seconds: 20));
+    _bluetoothProvider.startScan(timeout: Duration(seconds: 20));
   }
 
   void _onPair(BluetoothDevice device) {
@@ -44,12 +53,6 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
 
   void _onConnect() {
     _bluetoothProvider.connectToPairedDevice();
-  }
-
-  Function _onConnected(ctx) {
-    return () {
-      Navigator.of(ctx).pop();
-    };
   }
 
   @override
@@ -74,7 +77,7 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
               builder: (context, bluetoothProvider, child) {
             if (bluetoothProvider.pairedDevice != null) {
               return ConnectingDevice(
-                  onConnected: _onConnected(context),
+                  onConnected: widget.onConnected(context),
                   connectionStatus: bluetoothProvider.connectionStatus,
                   deviceName: bluetoothProvider.pairedDevice.name != null
                       ? bluetoothProvider.pairedDevice.name

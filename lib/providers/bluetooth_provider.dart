@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:timmer/types.dart';
+import 'package:timmer/util/timmer_data_transformer.dart';
 
 const Duration tenSeconds = Duration(seconds: 10);
 const TIMER_NAME = 'DSD TECH';
+const CUSTOM_SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
+const CUSTOM_CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
 
 class BluetoothProvider extends ChangeNotifier {
   FlutterBlue flutterBlue = FlutterBlue.instance;
@@ -22,8 +26,11 @@ class BluetoothProvider extends ChangeNotifier {
 
   Future<void> startScan({dynamic timeout}) async {
     _connectionStatus = ConnectionStatus.SCANNING;
+    notifyListeners();
     await flutterBlue.stopScan();
-    await this.disconnectPairedDevice();
+    if (_pairedDevice != null) {
+      await _pairedDevice.disconnect();
+    }
     subscription = flutterBlue.scanResults.listen((results) {
       _devicesList = results
           .where((element) => element.device.name.contains(TIMER_NAME))
@@ -36,7 +43,7 @@ class BluetoothProvider extends ChangeNotifier {
     } catch (e) {}
     if (_devicesList.length == 0) {
       _connectionStatus = ConnectionStatus.NO_DEVICES_FOUND;
-    } else {
+    } else if (_connectionStatus != ConnectionStatus.CONNECTED) {
       _connectionStatus = ConnectionStatus.DISSCONNECTED;
     }
 
@@ -85,6 +92,37 @@ class BluetoothProvider extends ChangeNotifier {
         }
         notifyListeners();
       });
+    }
+  }
+
+  Future<Stream<String>> start() async {
+    Stream<String> stream;
+    if (_connectionStatus == ConnectionStatus.CONNECTED) {
+      List<BluetoothService> services = await _pairedDevice.discoverServices();
+      BluetoothService service = services.firstWhere(
+          (service) => service.uuid.toString() == CUSTOM_SERVICE_UUID);
+      if (service != null) {
+        BluetoothCharacteristic characteristic = service.characteristics
+            .firstWhere((element) =>
+                element.uuid.toString() == CUSTOM_CHARACTERISTIC_UUID);
+        if (characteristic != null) {
+          characteristic.setNotifyValue(true);
+          stream = characteristic.value
+              .map<String>((val) => Utf8Decoder().convert(val))
+              .transform(TimmerDataTransformer());
+        }
+      }
+    }
+
+    return stream;
+  }
+
+  Future<void> deletePairedDevice() async {
+    if (_pairedDevice != null) {
+      await _pairedDevice.disconnect();
+      _connectionStatus = ConnectionStatus.DISSCONNECTED;
+      _pairedDevice = null;
+      notifyListeners();
     }
   }
 
