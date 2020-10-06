@@ -7,11 +7,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animator/flutter_animator.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
+import 'package:timmer/bluetooth-connection/bluetooth_connection_page.dart';
 import 'package:timmer/home/widgets/clipped_parts.dart';
 import 'package:timmer/home/widgets/drawer.dart';
 import 'package:timmer/home/widgets/history.dart';
+import 'package:timmer/providers/bluetooth_provider.dart';
 import 'package:timmer/providers/history_provider.dart';
 import 'package:timmer/tracking/tracking_page.dart';
+import 'package:timmer/types.dart';
 import 'package:timmer/widgets/app_title.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,7 +26,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final GlobalKey<InOutAnimationState> _fabAnimationController =
       GlobalKey<InOutAnimationState>();
+  BluetoothProvider _bluetoothProvider;
   int currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _bluetoothProvider = Provider.of<BluetoothProvider>(context, listen: false);
+  }
 
   bool _handleScrollNotification(ScrollNotification notification) {
     if (notification.depth == 0) {
@@ -59,11 +69,28 @@ class _HomePageState extends State<HomePage> {
     return false;
   }
 
-  void _onStartFlight() {
-    Navigator.push(
-        context,
-        PageTransition(
-            type: PageTransitionType.downToUp, child: TrackingPage()));
+  void _onStartFlight(ConnectionStatus connectionStatus) {
+    if (connectionStatus != ConnectionStatus.CONNECTED) {
+      Navigator.push(
+          context,
+          PageTransition(
+              type: PageTransitionType.downToUp,
+              child: BluetoothConnectionPage(onConnected: (ctx) {
+                return () {
+                  Navigator.of(ctx).pop();
+                  Navigator.push(
+                      ctx,
+                      PageTransition(
+                          type: PageTransitionType.downToUp,
+                          child: TrackingPage()));
+                };
+              })));
+    } else {
+      Navigator.push(
+          context,
+          PageTransition(
+              type: PageTransitionType.downToUp, child: TrackingPage()));
+    }
   }
 
   @override
@@ -123,15 +150,16 @@ class _HomePageState extends State<HomePage> {
                 preferences: AnimationPreferences(
                     duration: Duration(milliseconds: 500))),
             key: _fabAnimationController,
-            child: Consumer<HistoryProvider>(
-                builder: (context, historyProvider, child) {
+            child: Consumer2<HistoryProvider, BluetoothProvider>(
+                builder: (context, historyProvider, bluetoothProvider, child) {
               return Visibility(
                 visible: historyProvider.isLoading == false &&
                     historyProvider.total > 0,
                 child: FloatingActionButton.extended(
                     backgroundColor: Colors.green,
                     icon: Icon(Icons.flight_takeoff),
-                    onPressed: _onStartFlight,
+                    onPressed: () =>
+                        _onStartFlight(bluetoothProvider.connectionStatus),
                     label: AutoSizeText(
                       'Start a flight',
                       maxFontSize: 30,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flushbar/flushbar.dart';
@@ -8,9 +9,9 @@ import 'package:flutter_animator/flutter_animator.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:location/location.dart';
 import 'package:provider/provider.dart';
-import 'package:timmer/models/bluetooth.dart';
 import 'package:timmer/models/flight_data.dart';
 import 'package:timmer/models/flight_history.dart';
+import 'package:timmer/providers/bluetooth_provider.dart';
 import 'package:timmer/providers/history_provider.dart';
 import 'package:timmer/tracking/widgets/bottom_bar.dart';
 import 'package:timmer/tracking/widgets/map.dart';
@@ -51,7 +52,8 @@ class _TrackingPageState extends State<TrackingPage> {
   bool isExpanded = false;
 
   FlightData flightData;
-  Bluetooth bluetoothProvider;
+  BluetoothProvider bluetoothProvider;
+  StreamSubscription<String> bluetoothDataSubscription;
 
   _focusOnUser() {
     if (focusOn == FixedLocation.UserLocation) {
@@ -80,9 +82,9 @@ class _TrackingPageState extends State<TrackingPage> {
     }
   }
 
-  void _onReceiveBluetoothData() {
+  void _onReceiveBluetoothData(String data) {
     setState(() {
-      flightData.parseTimmerData(bluetoothProvider.chunk);
+      flightData.parseTimmerData(data);
       currentFlightHistory.addData(flightData);
       _checkBatteryWarning();
 
@@ -129,16 +131,17 @@ class _TrackingPageState extends State<TrackingPage> {
     _watchLocationEnabled();
 
     // Listen bluetooth events
-    bluetoothProvider = Provider.of<Bluetooth>(context, listen: false);
-    bluetoothProvider.addListener(_onReceiveBluetoothData);
+    bluetoothProvider = Provider.of<BluetoothProvider>(context, listen: false);
     // Start the bluetooth sniffer
-    bluetoothProvider.start();
+    bluetoothProvider.start().then((stream) {
+      bluetoothDataSubscription = stream.listen(_onReceiveBluetoothData);
+    });
   }
 
   @override
   void dispose() {
     super.dispose();
-    bluetoothProvider.stop(_onReceiveBluetoothData);
+    bluetoothDataSubscription?.cancel();
     checkLocationServiceTimer?.cancel();
   }
 
