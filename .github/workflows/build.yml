@@ -3,7 +3,7 @@
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 name: Test, Build and Release apk
 jobs:
   build:
@@ -13,13 +13,13 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions/setup-java@v1
         with:
-          java-version: '12.x'
+          java-version: "12.x"
       - run: echo $SIGNING_KEY | base64 -d > android/app/key.jks
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
       - uses: subosito/flutter-action@v1
         with:
-          flutter-version: '1.x'
+          flutter-version: "1.20.4"
       - run: flutter pub get
       - run: flutter test
       - run: flutter build apk --split-per-abi
@@ -31,5 +31,5 @@ jobs:
       - name: Create a Release APK
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 'build/app/outputs/apk/release/*.apk'
+          artifacts: "build/app/outputs/apk/release/*.apk"
           token: ${{ secrets.TOKEN }}
