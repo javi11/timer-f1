@@ -1,14 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
-import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animator/flutter_animator.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:location/location.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
+import 'package:timmer/bluetooth-connection/bluetooth_connection_page.dart';
 import 'package:timmer/models/flight_data.dart';
 import 'package:timmer/models/flight_history.dart';
 import 'package:timmer/providers/bluetooth_provider.dart';
@@ -17,7 +17,6 @@ import 'package:timmer/tracking/widgets/bottom_bar.dart';
 import 'package:timmer/tracking/widgets/map.dart';
 import 'package:timmer/tracking/widgets/map_info.dart';
 import 'package:timmer/widgets/plain_starting_point_marker.dart';
-import 'package:timmer/tracking/widgets/voltage_warning.dart';
 import 'package:timmer/types.dart';
 import 'package:timmer/util/compute_centroid.dart';
 import 'package:user_location/user_location.dart';
@@ -33,8 +32,6 @@ class TrackingPage extends StatefulWidget {
 class _TrackingPageState extends State<TrackingPage> {
   final GlobalKey<ExpandableBottomSheetState> expandibleController =
       new GlobalKey();
-  final GlobalKey<AnimatorWidgetState> plainIdController =
-      GlobalKey<AnimatorWidgetState>();
   Timer checkLocationServiceTimer;
 
   Location location = Location();
@@ -47,8 +44,6 @@ class _TrackingPageState extends State<TrackingPage> {
   bool locationServiceEnabled = true;
   bool startMarkerSet = false;
 
-  bool voltageWarningIsShowing = false;
-  Flushbar voltageWarningPopUp = buildVoltageWarningPopup();
   bool isExpanded = false;
 
   FlightData flightData;
@@ -71,33 +66,14 @@ class _TrackingPageState extends State<TrackingPage> {
     }
   }
 
-  void _checkBatteryWarning() {
-    if (flightData.voltageAlert == true && voltageWarningIsShowing == false) {
-      voltageWarningIsShowing = true;
-      voltageWarningPopUp.show(context);
-    } else if (flightData.voltageAlert == false &&
-        voltageWarningPopUp.isShowing()) {
-      voltageWarningIsShowing = false;
-      voltageWarningPopUp.dismiss();
-    }
-  }
-
   void _onReceiveBluetoothData(String data) {
     setState(() {
       flightData.parseTimmerData(data);
       currentFlightHistory.addData(flightData);
-      _checkBatteryWarning();
 
       if (!startMarkerSet) {
         markers.add(buildPlainStartingPointMarker(flightData.planeCoordinates));
         startMarkerSet = true;
-      }
-      if (!plainIdController.currentState.mounted &&
-          flightData.planeId.length > 0) {
-        plainIdController.currentState.forward();
-      } else if (plainIdController.currentState.mounted &&
-          flightData.planeId.length == 0) {
-        plainIdController.currentState.stop();
       }
 
       if (focusOn == FixedLocation.PlaneLocation) {
@@ -123,6 +99,7 @@ class _TrackingPageState extends State<TrackingPage> {
   @override
   void initState() {
     super.initState();
+
     // No info
     flightData = new FlightData();
     currentFlightHistory = new FlightHistory();
@@ -133,7 +110,7 @@ class _TrackingPageState extends State<TrackingPage> {
     // Listen bluetooth events
     bluetoothProvider = Provider.of<BluetoothProvider>(context, listen: false);
     // Start the bluetooth sniffer
-    bluetoothProvider.start().then((stream) {
+    bluetoothProvider.getGenericServiceDataStream().then((stream) {
       bluetoothDataSubscription = stream.listen(_onReceiveBluetoothData);
     });
   }
@@ -148,7 +125,6 @@ class _TrackingPageState extends State<TrackingPage> {
   Future<void> _saveFlight(FlightHistory flightHistory) async {
     await Provider.of<HistoryProvider>(context, listen: false)
         .addFlightHistory(flightHistory);
-    await voltageWarningPopUp?.dismiss();
     Navigator.pop(context);
   }
 
@@ -174,7 +150,6 @@ class _TrackingPageState extends State<TrackingPage> {
                 btnCancelText: 'No',
                 btnOkText: 'Yes',
                 btnCancelOnPress: () async {
-                  await voltageWarningPopUp?.dismiss();
                   Navigator.pop(context);
                 },
                 btnOkOnPress: () async {
@@ -271,8 +246,8 @@ class _TrackingPageState extends State<TrackingPage> {
         ),
         onLocationUpdate: _updatePoints);
 
-    return Material(
-        child: ExpandableBottomSheet(
+    return Scaffold(
+        body: ExpandableBottomSheet(
       key: expandibleController,
       expandableContent: MapInfo(flightData: flightData),
       persistentHeader: BottomBar(
@@ -304,23 +279,86 @@ class _TrackingPageState extends State<TrackingPage> {
                 ),
                 backgroundColor: Colors.white,
               )),
-          SlideInDown(
-              key: plainIdController,
-              child: Padding(
-                padding: EdgeInsetsDirectional.only(
-                    top: voltageWarningIsShowing == true ? 110 : 40),
-                child: Chip(
-                  backgroundColor: Colors.white,
-                  avatar: CircleAvatar(
-                    backgroundColor: Colors.grey.shade800,
-                    child: Text('ID'),
-                  ),
-                  label: Text(
-                    flightData.planeId,
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ),
-              )),
+          Padding(
+              padding: EdgeInsetsDirectional.only(top: 30, end: 5, start: 5),
+              child: Card(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15)),
+                  color: Colors.blue[400],
+                  elevation: 10,
+                  child: SizedBox(
+                      height: 60,
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.only(end: 10, start: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  child: Text('ID'),
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Text(
+                                  flightData.planeId,
+                                  style: TextStyle(
+                                      fontSize: 30, color: Colors.white),
+                                )
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                flightData.voltageAlert == true
+                                    ? Tooltip(
+                                        waitDuration: Duration(seconds: 0),
+                                        message: "Voltage is below 3.20 V",
+                                        child: CircleAvatar(
+                                          backgroundColor: Colors.red,
+                                          child: Icon(Icons.battery_alert,
+                                              color: Colors.white),
+                                        ))
+                                    : CircleAvatar(
+                                        child: Icon(Icons.battery_full,
+                                            color: Colors.white),
+                                      ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Consumer<BluetoothProvider>(builder:
+                                    (context, bluetoothProvider, child) {
+                                  if (bluetoothProvider.connectionStatus ==
+                                      ConnectionStatus.CONNECTED) {
+                                    return CircleAvatar(
+                                      child: Icon(Icons.bluetooth_connected,
+                                          color: Colors.white),
+                                    );
+                                  }
+
+                                  return InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          PageTransition(
+                                              type: PageTransitionType.downToUp,
+                                              child:
+                                                  BluetoothConnectionPage()));
+                                    },
+                                    child: CircleAvatar(
+                                      backgroundColor: Colors.orangeAccent,
+                                      child: Icon(
+                                        Icons.bluetooth_searching,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  );
+                                })
+                              ],
+                            )
+                          ],
+                        ),
+                      ))))
         ],
       ),
     ));

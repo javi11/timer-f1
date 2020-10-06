@@ -69,7 +69,9 @@ class _HomePageState extends State<HomePage> {
     return false;
   }
 
-  void _onStartFlight(ConnectionStatus connectionStatus) {
+  Function _onStartFlight() {
+    ConnectionStatus connectionStatus =
+        Provider.of<BluetoothProvider>(context, listen: false).connectionStatus;
     if (connectionStatus != ConnectionStatus.CONNECTED) {
       Navigator.push(
           context,
@@ -158,8 +160,7 @@ class _HomePageState extends State<HomePage> {
                 child: FloatingActionButton.extended(
                     backgroundColor: Colors.green,
                     icon: Icon(Icons.flight_takeoff),
-                    onPressed: () =>
-                        _onStartFlight(bluetoothProvider.connectionStatus),
+                    onPressed: _onStartFlight,
                     label: AutoSizeText(
                       'Start a flight',
                       maxFontSize: 30,

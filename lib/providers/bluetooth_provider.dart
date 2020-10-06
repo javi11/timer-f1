@@ -95,7 +95,7 @@ class BluetoothProvider extends ChangeNotifier {
     }
   }
 
-  Future<Stream<String>> start() async {
+  Future<Stream<String>> getGenericServiceDataStream() async {
     Stream<String> stream;
     if (_connectionStatus == ConnectionStatus.CONNECTED) {
       List<BluetoothService> services = await _pairedDevice.discoverServices();
