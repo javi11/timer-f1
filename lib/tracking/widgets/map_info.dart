@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_grid/responsive_grid.dart';
 import 'package:timmer/models/flight_data.dart';
+import 'package:timmer/util/no_data.dart';
 
 class MapInfo extends StatelessWidget {
   final FlightData flightData;
@@ -26,6 +27,17 @@ class MapInfo extends StatelessWidget {
       );
     }
 
+    Widget voltageWidget = _buildBox('Voltage', Icons.battery_full,
+        flightData.voltage.toStringAsFixed(2) + ' V');
+    if (isNullVoltage(flightData.voltage)) {
+      voltageWidget = _buildBox(
+          'Voltage', Icons.battery_unknown, 'Waiting for data...',
+          bgColor: Colors.orange[300]);
+    } else if (flightData.voltageAlert == true) {
+      voltageWidget = _buildBox('Voltage', Icons.battery_alert,
+          flightData.voltage.toStringAsFixed(2) + ' V',
+          bgColor: const Color(0x8Cba122b));
+    }
     return Padding(
         padding: EdgeInsetsDirectional.only(bottom: 10),
         child: Card(
@@ -39,12 +51,7 @@ class MapInfo extends StatelessWidget {
                   desiredItemWidth: 120,
                   minSpacing: 10,
                   children: [
-                    flightData.voltageAlert == true
-                        ? _buildBox('Voltage', Icons.battery_alert,
-                            flightData.voltage.toStringAsFixed(2) + ' V',
-                            bgColor: const Color(0x8Cba122b))
-                        : _buildBox('Voltage', Icons.battery_full,
-                            flightData.voltage.toStringAsFixed(2) + ' V'),
+                    voltageWidget,
                     _buildBox('Temperature', Icons.ac_unit,
                         flightData.temperature.toStringAsFixed(2) + ' º'),
                     _buildBox('Pressure', Icons.av_timer,

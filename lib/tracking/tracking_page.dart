@@ -3,7 +3,6 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animator/flutter_animator.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:location/location.dart';
 import 'package:page_transition/page_transition.dart';
@@ -16,6 +15,9 @@ import 'package:timmer/providers/history_provider.dart';
 import 'package:timmer/tracking/widgets/bottom_bar.dart';
 import 'package:timmer/tracking/widgets/map.dart';
 import 'package:timmer/tracking/widgets/map_info.dart';
+import 'package:timmer/tracking/widgets/no_data_dialog.dart';
+import 'package:timmer/tracking/widgets/voltage_indicator.dart';
+import 'package:timmer/tracking/widgets/waiting_for_data_dialog.dart';
 import 'package:timmer/widgets/plain_starting_point_marker.dart';
 import 'package:timmer/types.dart';
 import 'package:timmer/util/compute_centroid.dart';
@@ -44,11 +46,12 @@ class _TrackingPageState extends State<TrackingPage> {
   bool locationServiceEnabled = true;
   bool startMarkerSet = false;
 
-  bool isExpanded = false;
+  bool moreInfoIsExpanded = false;
+  bool timerDataAvailable = false;
 
   FlightData flightData;
   BluetoothProvider bluetoothProvider;
-  StreamSubscription<String> bluetoothDataSubscription;
+  StreamSubscription<List<String>> bluetoothDataSubscription;
 
   _focusOnUser() {
     if (focusOn == FixedLocation.UserLocation) {
@@ -66,9 +69,15 @@ class _TrackingPageState extends State<TrackingPage> {
     }
   }
 
-  void _onReceiveBluetoothData(String data) {
+  void _onReceiveBluetoothData(List<String> data) {
     setState(() {
       flightData.parseTimmerData(data);
+
+      if (flightData.planeId != null && timerDataAvailable == false) {
+        Navigator.of(context).pop();
+        timerDataAvailable = true;
+      }
+
       currentFlightHistory.addData(flightData);
 
       if (!startMarkerSet) {
@@ -99,19 +108,37 @@ class _TrackingPageState extends State<TrackingPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder: (_) => buildWaitingForDataDialog(context));
+    });
+    Future.delayed(Duration(seconds: 10), () {
+      if (timerDataAvailable == false) {
+        Navigator.of(context).pop();
+        showDialog(
+            barrierDismissible: false,
+            context: context,
+            builder: (_) => buildNoDataDialog(context));
+      }
+    });
 
     // No info
-    flightData = new FlightData();
-    currentFlightHistory = new FlightHistory();
-    currentFlightHistory.start();
+    setState(() {
+      flightData = new FlightData();
+      currentFlightHistory = new FlightHistory();
+      currentFlightHistory.start();
 
-    _watchLocationEnabled();
+      _watchLocationEnabled();
 
-    // Listen bluetooth events
-    bluetoothProvider = Provider.of<BluetoothProvider>(context, listen: false);
-    // Start the bluetooth sniffer
-    bluetoothProvider.getGenericServiceDataStream().then((stream) {
-      bluetoothDataSubscription = stream.listen(_onReceiveBluetoothData);
+      // Listen bluetooth events
+      bluetoothProvider =
+          Provider.of<BluetoothProvider>(context, listen: false);
+      // Start the bluetooth sniffer
+      bluetoothProvider.getGenericServiceDataStream().then((stream) {
+        bluetoothDataSubscription = stream.listen(_onReceiveBluetoothData);
+      });
     });
   }
 
@@ -119,6 +146,7 @@ class _TrackingPageState extends State<TrackingPage> {
   void dispose() {
     super.dispose();
     bluetoothDataSubscription?.cancel();
+    bluetoothProvider.stopCharacteristicNotifications();
     checkLocationServiceTimer?.cancel();
   }
 
@@ -129,43 +157,59 @@ class _TrackingPageState extends State<TrackingPage> {
   }
 
   void _onExit() {
-    AwesomeDialog(
-        context: context,
-        dialogType: DialogType.INFO,
-        animType: AnimType.BOTTOMSLIDE,
-        tittle: 'Do you want to end the fly?',
-        desc: 'The fly will be saved on your history',
-        btnCancelOnPress: () {},
-        btnOkOnPress: () async {
-          int durationInMs = currentFlightHistory.end();
-          if (durationInMs > 30000) {
-            await _saveFlight(currentFlightHistory);
-          } else {
-            AwesomeDialog(
-                context: context,
-                dialogType: DialogType.WARNING,
-                animType: AnimType.BOTTOMSLIDE,
-                tittle: 'Flight is to short',
-                desc: 'Do you still want to save it?',
-                btnCancelText: 'No',
-                btnOkText: 'Yes',
-                btnCancelOnPress: () async {
-                  Navigator.pop(context);
-                },
-                btnOkOnPress: () async {
-                  await _saveFlight(currentFlightHistory);
-                }).show();
-          }
-        }).show();
+    if (currentFlightHistory.flightStartCoordinates == null) {
+      AwesomeDialog(
+          context: context,
+          dialogType: DialogType.WARNING,
+          animType: AnimType.BOTTOMSLIDE,
+          tittle: 'No data to save',
+          desc: 'No data will be saved because there is no plane coordinates.',
+          btnOkText: 'Exit',
+          btnCancelOnPress: () async {
+            Navigator.pop(context);
+          },
+          btnOkOnPress: () async {
+            Navigator.pop(context);
+          }).show();
+    } else {
+      AwesomeDialog(
+          context: context,
+          dialogType: DialogType.INFO,
+          animType: AnimType.BOTTOMSLIDE,
+          tittle: 'Do you want to end the fly?',
+          desc: 'The fly will be saved on your history',
+          btnCancelOnPress: () {},
+          btnOkOnPress: () async {
+            int durationInMs = currentFlightHistory.end();
+            if (durationInMs > 30000) {
+              await _saveFlight(currentFlightHistory);
+            } else {
+              AwesomeDialog(
+                  context: context,
+                  dialogType: DialogType.WARNING,
+                  animType: AnimType.BOTTOMSLIDE,
+                  tittle: 'Flight is to short',
+                  desc: 'Do you still want to save it?',
+                  btnCancelText: 'No',
+                  btnOkText: 'Yes',
+                  btnCancelOnPress: () async {
+                    Navigator.pop(context);
+                  },
+                  btnOkOnPress: () async {
+                    await _saveFlight(currentFlightHistory);
+                  }).show();
+            }
+          }).show();
+    }
   }
 
   void _onMoreInfo() {
     setState(() {
-      if (!isExpanded) {
-        isExpanded = true;
+      if (!moreInfoIsExpanded) {
+        moreInfoIsExpanded = true;
         expandibleController.currentState.expand();
       } else {
-        isExpanded = false;
+        moreInfoIsExpanded = false;
         expandibleController.currentState.contract();
       }
     });
@@ -257,7 +301,7 @@ class _TrackingPageState extends State<TrackingPage> {
         onZoom: _onZoom,
         onMoreInfo: _onMoreInfo,
         focusOn: focusOn,
-        expanded: isExpanded,
+        expanded: moreInfoIsExpanded,
       ),
       background: Stack(
         alignment: Alignment.topCenter,
@@ -310,19 +354,9 @@ class _TrackingPageState extends State<TrackingPage> {
                             ),
                             Row(
                               children: [
-                                flightData.voltageAlert == true
-                                    ? Tooltip(
-                                        waitDuration: Duration(seconds: 0),
-                                        message: "Voltage is below 3.20 V",
-                                        child: CircleAvatar(
-                                          backgroundColor: Colors.red,
-                                          child: Icon(Icons.battery_alert,
-                                              color: Colors.white),
-                                        ))
-                                    : CircleAvatar(
-                                        child: Icon(Icons.battery_full,
-                                            color: Colors.white),
-                                      ),
+                                VoltageIndicator(
+                                    voltageAlert: flightData.voltageAlert,
+                                    voltage: flightData.voltage),
                                 SizedBox(
                                   width: 10,
                                 ),

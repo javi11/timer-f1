@@ -8,6 +8,13 @@ import 'package:user_location/user_location.dart';
 
 Widget buildMap(List<Marker> markers, FlightData flightData,
     UserLocationOptions userLocationOptions, MapController mapController) {
+  List<Polyline> polylines = [];
+
+  if (flightData.route != null) {
+    polylines.add(Polyline(
+        points: flightData.route, strokeWidth: 4.0, color: Colors.blue));
+  }
+
   return FlutterMap(
     options: MapOptions(
       interactive: true,
@@ -23,10 +30,7 @@ Widget buildMap(List<Marker> markers, FlightData flightData,
       MarkerLayerOptions(
           markers: [buildPlainMarker(flightData.planeCoordinates)]),
       PolylineLayerOptions(
-        polylines: [
-          Polyline(
-              points: flightData.route, strokeWidth: 4.0, color: Colors.blue),
-        ],
+        polylines: polylines,
       ),
       userLocationOptions,
     ],

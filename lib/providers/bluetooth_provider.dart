@@ -18,6 +18,7 @@ class BluetoothProvider extends ChangeNotifier {
   List<ScanResult> _devicesList = [];
   ConnectionStatus _connectionStatus = ConnectionStatus.DISSCONNECTED;
   BluetoothDevice _pairedDevice;
+  BluetoothCharacteristic _characteristic;
 
   BluetoothDevice get pairedDevice => _pairedDevice;
   ConnectionStatus get connectionStatus => _connectionStatus;
@@ -95,19 +96,18 @@ class BluetoothProvider extends ChangeNotifier {
     }
   }
 
-  Future<Stream<String>> getGenericServiceDataStream() async {
-    Stream<String> stream;
+  Future<Stream<List<String>>> getGenericServiceDataStream() async {
+    Stream<List<String>> stream;
     if (_connectionStatus == ConnectionStatus.CONNECTED) {
       List<BluetoothService> services = await _pairedDevice.discoverServices();
       BluetoothService service = services.firstWhere(
           (service) => service.uuid.toString() == CUSTOM_SERVICE_UUID);
       if (service != null) {
-        BluetoothCharacteristic characteristic = service.characteristics
-            .firstWhere((element) =>
-                element.uuid.toString() == CUSTOM_CHARACTERISTIC_UUID);
-        if (characteristic != null) {
-          characteristic.setNotifyValue(true);
-          stream = characteristic.value
+        _characteristic = service.characteristics.firstWhere(
+            (element) => element.uuid.toString() == CUSTOM_CHARACTERISTIC_UUID);
+        if (_characteristic != null) {
+          await _characteristic.setNotifyValue(true);
+          stream = _characteristic.value
               .map<String>((val) => Utf8Decoder().convert(val))
               .transform(TimmerDataTransformer());
         }
@@ -117,9 +117,18 @@ class BluetoothProvider extends ChangeNotifier {
     return stream;
   }
 
+  Future<void> stopCharacteristicNotifications() async {
+    if (_characteristic != null) {
+      await _characteristic.setNotifyValue(false);
+    }
+  }
+
   Future<void> deletePairedDevice() async {
     if (_pairedDevice != null) {
-      await _pairedDevice.disconnect();
+      if (_connectionStatus == ConnectionStatus.CONNECTED) {
+        await this.stopCharacteristicNotifications();
+        await _pairedDevice.disconnect();
+      }
       _connectionStatus = ConnectionStatus.DISSCONNECTED;
       _pairedDevice = null;
       notifyListeners();
@@ -129,6 +138,7 @@ class BluetoothProvider extends ChangeNotifier {
   Future<void> disconnectPairedDevice() async {
     if (_pairedDevice != null) {
       await _pairedDevice.disconnect();
+      await this.stopCharacteristicNotifications();
     }
 
     _connectionStatus = ConnectionStatus.DISSCONNECTED;

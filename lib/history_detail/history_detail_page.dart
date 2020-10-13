@@ -27,18 +27,24 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
       floatingActionButton: Align(
           child: FloatingActionButton(
-              backgroundColor: Color.fromRGBO(255, 255, 255, 0.7),
+              elevation: 0,
+              splashColor: Color.fromRGBO(255, 255, 255, 0),
+              backgroundColor: Color.fromRGBO(255, 255, 255, 0),
               onPressed: () => Navigator.of(context).pop(),
               child: Icon(
                 Icons.arrow_back,
                 color: Colors.black,
               )),
-          alignment: Alignment(-1, 0.17)),
+          alignment: Alignment(-1.1, -0.98)),
       body: Column(
         children: <Widget>[
-          HistoryMap(
-            flightHistory: widget.flightHistory,
-          ),
+          widget.flightHistory.flightStartCoordinates != null
+              ? HistoryMap(
+                  flightHistory: widget.flightHistory,
+                )
+              : SizedBox(
+                  height: 29,
+                ),
           SizedBox(
             height: 20,
           ),
