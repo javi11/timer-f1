@@ -146,7 +146,7 @@ class _TrackingPageState extends State<TrackingPage> {
   void dispose() {
     super.dispose();
     bluetoothDataSubscription?.cancel();
-    bluetoothProvider.stopCharacteristicNotifications();
+    bluetoothProvider.stopListening();
     checkLocationServiceTimer?.cancel();
   }
 
@@ -360,34 +360,38 @@ class _TrackingPageState extends State<TrackingPage> {
                                 SizedBox(
                                   width: 10,
                                 ),
-                                Consumer<BluetoothProvider>(builder:
-                                    (context, bluetoothProvider, child) {
-                                  if (bluetoothProvider.connectionStatus ==
-                                      ConnectionStatus.CONNECTED) {
-                                    return CircleAvatar(
-                                      child: Icon(Icons.bluetooth_connected,
-                                          color: Colors.white),
-                                    );
-                                  }
+                                Selector<BluetoothProvider, ConnectionStatus>(
+                                    selector: (_, bluetoothProvider) =>
+                                        bluetoothProvider.connectionStatus,
+                                    builder:
+                                        (context, connectionStatus, child) {
+                                      if (connectionStatus ==
+                                          ConnectionStatus.CONNECTED) {
+                                        return CircleAvatar(
+                                          child: Icon(Icons.bluetooth_connected,
+                                              color: Colors.white),
+                                        );
+                                      }
 
-                                  return InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          PageTransition(
-                                              type: PageTransitionType.downToUp,
-                                              child:
-                                                  BluetoothConnectionPage()));
-                                    },
-                                    child: CircleAvatar(
-                                      backgroundColor: Colors.orangeAccent,
-                                      child: Icon(
-                                        Icons.bluetooth_searching,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  );
-                                })
+                                      return InkWell(
+                                        onTap: () {
+                                          Navigator.push(
+                                              context,
+                                              PageTransition(
+                                                  type: PageTransitionType
+                                                      .downToUp,
+                                                  child:
+                                                      BluetoothConnectionPage()));
+                                        },
+                                        child: CircleAvatar(
+                                          backgroundColor: Colors.orangeAccent,
+                                          child: Icon(
+                                            Icons.bluetooth_searching,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      );
+                                    })
                               ],
                             )
                           ],

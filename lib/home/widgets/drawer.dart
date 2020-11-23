@@ -1,12 +1,11 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 import 'package:timmer/bluetooth-connection/bluetooth_connection_page.dart';
+import 'package:timmer/home/widgets/paired_device_list_item.dart';
 import 'package:timmer/offline_maps/offline_maps_list.dart';
 import 'package:timmer/providers/bluetooth_provider.dart';
-import 'package:timmer/types.dart';
 import 'package:timmer/widgets/app_title.dart';
 
 Widget buildDrawer(BuildContext context) {
@@ -53,61 +52,22 @@ Widget buildDrawer(BuildContext context) {
         ),
         Consumer<BluetoothProvider>(
             builder: (context, bluetoothProvider, child) {
-          if (bluetoothProvider.connectionStatus ==
-              ConnectionStatus.CONNECTED) {
-            return Container(
-                decoration: BoxDecoration(color: Colors.green[50]),
-                child: ListTile(
-                  leading: Icon(Icons.bluetooth_connected),
-                  title: Text(bluetoothProvider.pairedDevice.name != null
-                      ? bluetoothProvider.pairedDevice.name
-                      : bluetoothProvider.pairedDevice.id.id),
-                  onTap: () {
-                    AwesomeDialog(
-                        context: context,
-                        dialogType: DialogType.INFO,
-                        animType: AnimType.BOTTOMSLIDE,
-                        tittle: 'Do you want to delete this device?',
-                        desc: 'The device will be unpair from the phone',
-                        btnCancelOnPress: () {},
-                        btnOkOnPress: () async {
-                          await bluetoothProvider.deletePairedDevice();
-                        }).show();
-                  },
-                ));
-          }
+          var onConnectedPress = () async {
+            await bluetoothProvider.deletePairedDevice();
+          };
+          var onDisconnectedPress = () {
+            Navigator.push(
+                context,
+                PageTransition(
+                    type: PageTransitionType.downToUp,
+                    child: BluetoothConnectionPage()));
+          };
 
-          if (bluetoothProvider.pairedDevice != null &&
-              bluetoothProvider.connectionStatus !=
-                  ConnectionStatus.CONNECTED) {
-            return Container(
-                decoration: BoxDecoration(color: Colors.red[50]),
-                child: ListTile(
-                  leading: Icon(Icons.bluetooth_disabled),
-                  title: Text(bluetoothProvider.pairedDevice.name != null
-                      ? bluetoothProvider.pairedDevice.name
-                      : bluetoothProvider.pairedDevice.id.id + ' disconnected'),
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        PageTransition(
-                            type: PageTransitionType.downToUp,
-                            child: BluetoothConnectionPage()));
-                  },
-                ));
-          }
-
-          return ListTile(
-            leading: Icon(Icons.bluetooth),
-            title: Text('Pair a device'),
-            onTap: () {
-              Navigator.push(
-                  context,
-                  PageTransition(
-                      type: PageTransitionType.downToUp,
-                      child: BluetoothConnectionPage()));
-            },
-          );
+          return PairedDeviceListItem(
+              bluetoothProvider.connectionStatus,
+              bluetoothProvider.pairedDevice,
+              onConnectedPress,
+              onDisconnectedPress);
         }),
         ListTile(
           leading: Icon(Icons.settings),

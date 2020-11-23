@@ -75,13 +75,13 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
           height: MediaQuery.of(context).size.height,
           child: Consumer<BluetoothProvider>(
               builder: (context, bluetoothProvider, child) {
-            if (bluetoothProvider.pairedDevice != null) {
+            if (bluetoothProvider.connection != null) {
               return ConnectingDevice(
                   onConnected: widget.onConnected(context),
                   connectionStatus: bluetoothProvider.connectionStatus,
-                  deviceName: bluetoothProvider.pairedDevice.name != null
-                      ? bluetoothProvider.pairedDevice.name
-                      : bluetoothProvider.pairedDevice.id.id,
+                  deviceName: bluetoothProvider.connection.name != null
+                      ? bluetoothProvider.connection.name
+                      : bluetoothProvider.connection.id.id,
                   onConnect: _onConnect);
             }
 

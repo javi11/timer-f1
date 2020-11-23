@@ -1,6 +1,6 @@
 enum FixedLocation { UserLocation, PlaneLocation }
 enum ConnectionStatus {
-  DISSCONNECTED,
+  DISCONNECTED,
   SCANNING,
   CONNECTING,
   CONNECTED,

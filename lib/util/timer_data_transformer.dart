@@ -1,6 +1,6 @@
 import 'dart:async';
 
-class TimmerDataTransformer<S, T> implements StreamTransformer<S, T> {
+class TimerDataTransformer<S, T> implements StreamTransformer<S, T> {
   StreamController _controller = StreamController<T>();
   String _acc = '';
 
