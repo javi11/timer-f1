@@ -1,22 +1,22 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
-import 'package:timmer/providers/bluetooth_provider.dart';
+import 'package:timmer/models/bluetooth_device.dart';
+import 'package:timmer/models/device.dart';
 import 'package:timmer/types.dart';
 
 class PairedDeviceListItem extends StatelessWidget {
-  final ConnectionType _connectionType;
   final ConnectionStatus _connectionStatus;
+  final Device _connectedDevice;
   final BluetoothDevice _pairedDevice;
-  final Function _onConnectedPress;
-  final Function _onDisconnectedPress;
+  final Function _onConnectionPress;
+  final Function _onDisconnectionPress;
 
-  PairedDeviceListItem(this._connectionType, this._connectionStatus,
-      this._pairedDevice, this._onConnectedPress, this._onDisconnectedPress);
+  PairedDeviceListItem(this._connectionStatus, this._connectedDevice,
+      this._pairedDevice, this._onConnectionPress, this._onDisconnectionPress);
 
   @override
   Widget build(BuildContext context) {
-    if (_connectionType == ConnectionType.USB) {
+    if (_connectedDevice != null && _connectedDevice.type == DeviceType.USB) {
       return Container(
           decoration: BoxDecoration(color: Colors.green[50]),
           child: ListTile(
@@ -33,7 +33,7 @@ class PairedDeviceListItem extends StatelessWidget {
             leading: Icon(Icons.bluetooth_connected),
             title: Text(_pairedDevice.name != null
                 ? _pairedDevice.name
-                : _pairedDevice.id.id),
+                : _pairedDevice.id),
             onTap: () {
               AwesomeDialog(
                       context: context,
@@ -42,7 +42,7 @@ class PairedDeviceListItem extends StatelessWidget {
                       tittle: 'Do you want to delete this device?',
                       desc: 'The device will be unpair from the phone',
                       btnCancelOnPress: () {},
-                      btnOkOnPress: _onConnectedPress)
+                      btnOkOnPress: _onDisconnectionPress)
                   .show();
             },
           ));
@@ -56,15 +56,15 @@ class PairedDeviceListItem extends StatelessWidget {
             leading: Icon(Icons.bluetooth_disabled),
             title: Text(_pairedDevice.name != null
                 ? _pairedDevice.name
-                : _pairedDevice.id.id + ' disconnected'),
-            onTap: _onDisconnectedPress,
+                : _pairedDevice.id + ' disconnected'),
+            onTap: _onConnectionPress,
           ));
     }
 
     return ListTile(
       leading: Icon(Icons.bluetooth),
       title: Text('Pair a device'),
-      onTap: _onDisconnectedPress,
+      onTap: _onConnectionPress,
     );
   }
 }

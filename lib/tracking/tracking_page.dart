@@ -4,13 +4,14 @@ import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/plugin_api.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:location/location.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 import 'package:timmer/bluetooth-connection/bluetooth_connection_page.dart';
 import 'package:timmer/models/flight_data.dart';
 import 'package:timmer/models/flight_history.dart';
-import 'package:timmer/providers/bluetooth_provider.dart';
+import 'package:timmer/providers/connection_provider.dart';
 import 'package:timmer/providers/history_provider.dart';
 import 'package:timmer/tracking/widgets/bottom_bar.dart';
 import 'package:timmer/tracking/widgets/map.dart';
@@ -21,7 +22,6 @@ import 'package:timmer/tracking/widgets/waiting_for_data_dialog.dart';
 import 'package:timmer/widgets/plain_starting_point_marker.dart';
 import 'package:timmer/types.dart';
 import 'package:timmer/util/compute_centroid.dart';
-import 'package:user_location/user_location.dart';
 import 'package:latlong/latlong.dart';
 
 class TrackingPage extends StatefulWidget {
@@ -35,11 +35,13 @@ class _TrackingPageState extends State<TrackingPage> {
   final GlobalKey<ExpandableBottomSheetState> expandibleController =
       new GlobalKey();
   Timer checkLocationServiceTimer;
+  StreamController<double> _centerCurrentLocationStreamController;
+  CenterOnLocationUpdate _centerOnLocationUpdate;
 
   Location location = Location();
   FlightHistory currentFlightHistory;
   MapController mapController = MapController();
-  UserLocationOptions userLocationOptions;
+  LocationMarkerLayerOptions userLocationOptions;
   List<Marker> markers = [];
   FixedLocation focusOn = FixedLocation.UserLocation;
 
@@ -50,14 +52,17 @@ class _TrackingPageState extends State<TrackingPage> {
   bool timerDataAvailable = false;
 
   FlightData flightData;
-  BluetoothProvider bluetoothProvider;
+  ConnectionProvider _connectionProvider;
   StreamSubscription<List<String>> bluetoothDataSubscription;
+  StreamSubscription<LocationData> _locationSubscription;
 
   _focusOnUser() {
     if (focusOn == FixedLocation.UserLocation) {
       focusOn = null;
+      _centerOnLocationUpdate = CenterOnLocationUpdate.never;
     } else {
       focusOn = FixedLocation.UserLocation;
+      _centerOnLocationUpdate = CenterOnLocationUpdate.always;
     }
   }
 
@@ -66,6 +71,7 @@ class _TrackingPageState extends State<TrackingPage> {
       focusOn = null;
     } else {
       focusOn = FixedLocation.PlaneLocation;
+      _centerOnLocationUpdate = CenterOnLocationUpdate.never;
     }
   }
 
@@ -105,9 +111,21 @@ class _TrackingPageState extends State<TrackingPage> {
     }
   }
 
+  void _updatePoints(LatLng postion) {
+    setState(() {
+      flightData.addUserCoordinates(postion);
+      if (focusOn == FixedLocation.UserLocation) {
+        mapController.move(flightData.userCoordinates, 15.0);
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _centerOnLocationUpdate = CenterOnLocationUpdate.always;
+    _centerCurrentLocationStreamController = StreamController<double>();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await showDialog(
           barrierDismissible: false,
@@ -124,6 +142,10 @@ class _TrackingPageState extends State<TrackingPage> {
       }
     });
 
+    _locationSubscription = location.onLocationChanged.listen((event) {
+      this._updatePoints(LatLng(event.latitude, event.longitude));
+    });
+
     // No info
     setState(() {
       flightData = new FlightData();
@@ -133,10 +155,10 @@ class _TrackingPageState extends State<TrackingPage> {
       _watchLocationEnabled();
 
       // Listen bluetooth events
-      bluetoothProvider =
-          Provider.of<BluetoothProvider>(context, listen: false);
+      _connectionProvider =
+          Provider.of<ConnectionProvider>(context, listen: false);
       // Start the bluetooth sniffer
-      bluetoothProvider.getGenericServiceDataStream().then((stream) {
+      _connectionProvider.connectedDevice.getDataStream().then((stream) {
         bluetoothDataSubscription = stream.listen(_onReceiveBluetoothData);
       });
     });
@@ -146,8 +168,9 @@ class _TrackingPageState extends State<TrackingPage> {
   void dispose() {
     super.dispose();
     bluetoothDataSubscription?.cancel();
-    bluetoothProvider.stopListening();
+    _connectionProvider.stopDataStream();
     checkLocationServiceTimer?.cancel();
+    _locationSubscription?.cancel();
   }
 
   Future<void> _saveFlight(FlightHistory flightHistory) async {
@@ -235,6 +258,7 @@ class _TrackingPageState extends State<TrackingPage> {
     setState(() {
       _focusOnPlane();
       mapController.move(flightData.planeCoordinates, 15.0);
+      _centerOnLocationUpdate = CenterOnLocationUpdate.never;
     });
   }
 
@@ -246,49 +270,11 @@ class _TrackingPageState extends State<TrackingPage> {
       DeviceOrientation.portraitDown,
     ]);
 
-    void _updatePoints(LatLng postion) {
-      setState(() {
-        flightData.addUserCoordinates(postion);
-        if (focusOn == FixedLocation.UserLocation) {
-          mapController.move(flightData.userCoordinates, 15.0);
-        }
-      });
-    }
-
-    userLocationOptions = UserLocationOptions(
-        context: context,
-        mapController: mapController,
-        markers: markers,
-        updateMapLocationOnPositionChange: false,
-        zoomToCurrentLocationOnLoad: true,
-        fabWidth: 60,
-        fabHeight: 60,
-        fabBottom: 140,
-        fabRight: 8,
-        moveToCurrentLocationFloatingActionButton: FloatingActionButton(
-          heroTag: 'userLocation',
-          onPressed: () async {
-            if (locationServiceEnabled) {
-              setState(() {
-                _focusOnUser();
-                mapController.move(flightData.userCoordinates, 15.0);
-              });
-            } else {
-              await location.requestService();
-            }
-          },
-          child: Icon(
-            locationServiceEnabled
-                ? Icons.my_location
-                : Icons.location_disabled,
-            color:
-                focusOn == FixedLocation.UserLocation && locationServiceEnabled
-                    ? Colors.blue
-                    : Colors.black45,
-          ),
-          backgroundColor: Colors.white,
-        ),
-        onLocationUpdate: _updatePoints);
+    LocationMarkerPlugin locationMarkerPlugin = LocationMarkerPlugin(
+      centerCurrentLocationStream:
+          _centerCurrentLocationStreamController.stream,
+      centerOnLocationUpdate: _centerOnLocationUpdate,
+    );
 
     return Scaffold(
         body: ExpandableBottomSheet(
@@ -297,7 +283,6 @@ class _TrackingPageState extends State<TrackingPage> {
       persistentHeader: BottomBar(
         flightData: flightData,
         onExit: _onExit,
-        onFixPlane: _onFixPlane,
         onZoom: _onZoom,
         onMoreInfo: _onMoreInfo,
         focusOn: focusOn,
@@ -306,7 +291,7 @@ class _TrackingPageState extends State<TrackingPage> {
       background: Stack(
         alignment: Alignment.topCenter,
         children: <Widget>[
-          buildMap(markers, flightData, userLocationOptions, mapController),
+          buildMap(locationMarkerPlugin, markers, flightData, mapController),
           Positioned(
               height: 60,
               width: 60,
@@ -318,6 +303,34 @@ class _TrackingPageState extends State<TrackingPage> {
                 child: Icon(
                   Icons.airplanemode_active,
                   color: focusOn == FixedLocation.PlaneLocation
+                      ? Colors.blue
+                      : Colors.black45,
+                ),
+                backgroundColor: Colors.white,
+              )),
+          Positioned(
+              height: 60,
+              width: 60,
+              bottom: 140,
+              right: 8,
+              child: FloatingActionButton(
+                heroTag: 'userLocation',
+                onPressed: () async {
+                  if (locationServiceEnabled) {
+                    setState(() {
+                      _focusOnUser();
+                      mapController.move(flightData.userCoordinates, 15.0);
+                    });
+                  } else {
+                    await location.requestService();
+                  }
+                },
+                child: Icon(
+                  locationServiceEnabled
+                      ? Icons.my_location
+                      : Icons.location_disabled,
+                  color: focusOn == FixedLocation.UserLocation &&
+                          locationServiceEnabled
                       ? Colors.blue
                       : Colors.black45,
                 ),
@@ -360,9 +373,9 @@ class _TrackingPageState extends State<TrackingPage> {
                                 SizedBox(
                                   width: 10,
                                 ),
-                                Selector<BluetoothProvider, ConnectionStatus>(
-                                    selector: (_, bluetoothProvider) =>
-                                        bluetoothProvider.connectionStatus,
+                                Selector<ConnectionProvider, ConnectionStatus>(
+                                    selector: (_, connectionProvider) =>
+                                        connectionProvider.connectionStatus,
                                     builder:
                                         (context, connectionStatus, child) {
                                       if (connectionStatus ==

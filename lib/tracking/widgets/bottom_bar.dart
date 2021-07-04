@@ -8,7 +8,6 @@ import 'package:timmer/widgets/round_button.dart';
 class BottomBar extends StatelessWidget {
   final FlightData flightData;
   final Function onExit;
-  final Function onFixPlane;
   final Function onZoom;
   final Function onMoreInfo;
   final FixedLocation focusOn;
@@ -18,7 +17,6 @@ class BottomBar extends StatelessWidget {
       {Key key,
       @required this.flightData,
       @required this.onExit,
-      @required this.onFixPlane,
       @required this.onZoom,
       @required this.onMoreInfo,
       @required this.focusOn,

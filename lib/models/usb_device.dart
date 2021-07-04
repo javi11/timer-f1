@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:timmer/models/device.dart';
 import 'package:timmer/util/timer_data_transformer.dart';
 import 'package:usb_serial/usb_serial.dart';
+
+const USB_DEVICE_NAME = 'DSD';
 
 class USBDevice implements Device {
   final DeviceType type = DeviceType.USB;
@@ -18,7 +21,9 @@ class USBDevice implements Device {
     return _usbDevice.deviceId.toString();
   }
 
-  Future<void> connect(onTimeout) async {
+  Future<void> connect(
+      {Duration timeout: const Duration(seconds: 20),
+      FutureOr<void> Function() onTimeout}) async {
     _usbPort = await _usbDevice.create();
 
     bool openResult = await _usbPort.open();

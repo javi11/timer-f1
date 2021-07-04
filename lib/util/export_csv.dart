@@ -19,7 +19,7 @@ Future<File> getFile(String name) async {
 }
 
 Future<String> generateCsv(FlightHistory flightHistory) async {
-  List<List<dynamic>> rows = List<List<dynamic>>();
+  List<List<dynamic>> rows = List<dynamic>();
   rows.add([
     "id",
     "timestamp",

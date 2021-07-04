@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:timmer/bluetooth-connection/bluetooth_connection_page.dart';
 import 'package:timmer/home/widgets/paired_device_list_item.dart';
 import 'package:timmer/offline_maps/offline_maps_list.dart';
-import 'package:timmer/providers/bluetooth_provider.dart';
+import 'package:timmer/providers/connection_provider.dart';
 import 'package:timmer/widgets/app_title.dart';
 
 Widget buildDrawer(BuildContext context) {
@@ -50,12 +50,12 @@ Widget buildDrawer(BuildContext context) {
                     child: OfflineMapsPage()));
           },
         ),
-        Consumer<BluetoothProvider>(
-            builder: (context, bluetoothProvider, child) {
-          var onConnectedPress = () async {
-            await bluetoothProvider.deletePairedDevice();
+        Consumer<ConnectionProvider>(
+            builder: (context, connectionProvider, child) {
+          var onDisconnectionPress = () async {
+            await connectionProvider.deletePairedDevice();
           };
-          var onDisconnectedPress = () {
+          var onConnectionPress = () {
             Navigator.push(
                 context,
                 PageTransition(
@@ -64,10 +64,11 @@ Widget buildDrawer(BuildContext context) {
           };
 
           return PairedDeviceListItem(
-              bluetoothProvider.connectionStatus,
-              bluetoothProvider.pairedDevice,
-              onConnectedPress,
-              onDisconnectedPress);
+              connectionProvider.connectionStatus,
+              connectionProvider.connectedDevice,
+              connectionProvider.pariedBTDevice,
+              onConnectionPress,
+              onDisconnectionPress);
         }),
         ListTile(
           leading: Icon(Icons.settings),

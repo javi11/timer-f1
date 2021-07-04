@@ -11,7 +11,7 @@ import 'package:timmer/bluetooth-connection/bluetooth_connection_page.dart';
 import 'package:timmer/home/widgets/clipped_parts.dart';
 import 'package:timmer/home/widgets/drawer.dart';
 import 'package:timmer/home/widgets/history.dart';
-import 'package:timmer/providers/bluetooth_provider.dart';
+import 'package:timmer/providers/connection_provider.dart';
 import 'package:timmer/providers/history_provider.dart';
 import 'package:timmer/tracking/tracking_page.dart';
 import 'package:timmer/types.dart';
@@ -64,9 +64,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onStartFlight() {
-    var bluetoothProvider =
-        Provider.of<BluetoothProvider>(context, listen: false);
-    ConnectionStatus connectionStatus = bluetoothProvider.connectionStatus;
+    var connectionProvider =
+        Provider.of<ConnectionProvider>(context, listen: false);
+    ConnectionStatus connectionStatus = connectionProvider.connectionStatus;
     if (connectionStatus != ConnectionStatus.CONNECTED) {
       Navigator.push(
           context,

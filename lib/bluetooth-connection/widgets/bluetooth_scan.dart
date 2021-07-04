@@ -36,9 +36,9 @@ class _ScanViewState extends State<ScanView> with TickerProviderStateMixin {
     return Container(
         decoration: BoxDecoration(
             gradient: LinearGradient(
+                colors: [Colors.blue, Colors.blue[300]],
                 begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.blue, Colors.blue[300]])),
+                end: Alignment.bottomCenter)),
         child: Column(children: [
           Center(
               child: SizedBox(

@@ -11,10 +11,9 @@ class Settings {
     var id = prefs.getString(_pairedDeviceMACKey);
 
     if (name != null && id != null) {
-      var btDevice = BluetoothDevice.createBluetoothDevice(
+      return BluetoothDevice.createBluetoothDevice(
           deviceName: prefs.getString(_pairedDeviceNameKey),
           deviceIdentifier: prefs.getString(_pairedDeviceMACKey));
-      return BluetoothDevice(btDevice);
     }
 
     return null;

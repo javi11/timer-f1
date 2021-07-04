@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_blue/flutter_blue.dart' as fb;
 import 'package:timmer/models/bluetooth_device.dart';
 import 'package:timmer/models/usb_device.dart';
@@ -19,7 +20,7 @@ abstract class Device {
     return USBDevice(usbDevice);
   }
 
-  Future<void> connect(onTimeout) async {}
+  Future<void> connect({Duration timeout, FutureOr<void> Function() onTimeout}) async {}
 
   Future<Stream<List<String>>> getDataStream();
 

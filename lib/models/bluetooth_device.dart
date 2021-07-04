@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_blue/flutter_blue.dart' as bt;
 import 'package:flutter_blue/gen/flutterblue.pb.dart' as proto;
@@ -13,7 +14,7 @@ class BluetoothDevice implements Device {
   bt.BluetoothDevice _btDevice;
   bt.BluetoothCharacteristic _characteristic;
 
-  static bt.BluetoothDevice createBluetoothDevice(
+  static BluetoothDevice createBluetoothDevice(
       {String deviceName, String deviceIdentifier, DeviceBtType deviceType}) {
     proto.BluetoothDevice p = proto.BluetoothDevice.create();
     p.name = deviceName != null ? deviceName : '';
@@ -28,10 +29,10 @@ class BluetoothDevice implements Device {
       p.type = proto.BluetoothDevice_Type.UNKNOWN;
     }
 
-    return bt.BluetoothDevice.fromProto(p);
+    return BluetoothDevice(bt.BluetoothDevice.fromProto(p));
   }
 
-  BluetoothDevice(bt.BluetoothDevice _btDevice);
+  BluetoothDevice(this._btDevice);
 
   String get name {
     return _btDevice.name;
@@ -41,10 +42,14 @@ class BluetoothDevice implements Device {
     return _btDevice.id.id;
   }
 
-  Future<void> connect(onTimeout) async {
-    await _btDevice
-        .connect()
-        .timeout(Duration(seconds: 20), onTimeout: onTimeout);
+  Stream<bt.BluetoothDeviceState> get state {
+    return _btDevice.state;
+  }
+
+  Future<void> connect(
+      {Duration timeout: const Duration(seconds: 20),
+      FutureOr<void> Function() onTimeout}) async {
+    await _btDevice.connect().timeout(timeout, onTimeout: onTimeout);
   }
 
   Future<Stream<List<String>>> getDataStream() async {
@@ -66,10 +71,16 @@ class BluetoothDevice implements Device {
     return stream;
   }
 
-  Future<void> disconnect() async {
-    bt.BluetoothDeviceState lastState = await _btDevice.state.last;
-    if (lastState == bt.BluetoothDeviceState.connected) {
-      _btDevice.disconnect();
+  Future<void> stopDataStream() async {
+    if (_characteristic != null) {
+      await _characteristic.setNotifyValue(false);
     }
+  }
+
+  Future<void> disconnect() async {
+    if (_characteristic != null) {
+      await _characteristic.setNotifyValue(false);
+    }
+    await _btDevice.disconnect();
   }
 }
