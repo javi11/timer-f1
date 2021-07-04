@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:timmer/home/home_page.dart';
-import 'package:timmer/providers/bluetooth_provider.dart';
+import 'package:timmer/providers/connection_provider.dart';
 import 'package:timmer/providers/history_provider.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider<ConnectionProvider>(
+            create: (_) => ConnectionProvider()..init()),
         ChangeNotifierProvider<HistoryProvider>(
             create: (_) => HistoryProvider()..loadHistoryItems(0)),
-        ChangeNotifierProvider<BluetoothProvider>(
-            create: (_) => BluetoothProvider()),
       ],
       child: MyApp(),
     ),

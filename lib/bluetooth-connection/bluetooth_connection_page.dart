@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:timmer/models/bluetooth_device.dart';
 import 'package:provider/provider.dart';
 import 'package:timmer/bluetooth-connection/widgets/bluetooth_scan.dart';
 import 'package:timmer/bluetooth-connection/widgets/devices_list.dart';
 import 'package:timmer/bluetooth-connection/widgets/connecting_device.dart';
-import 'package:timmer/providers/bluetooth_provider.dart';
+import 'package:timmer/providers/connection_provider.dart';
 
 Function _defaultOnConnected(ctx) {
   return () {
@@ -24,35 +24,36 @@ class BluetoothConnectionPage extends StatefulWidget {
 }
 
 class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
-  BluetoothProvider _bluetoothProvider;
+  ConnectionProvider _connectionProvider;
   BluetoothDevice selectedDevice;
 
   @override
   void initState() {
     super.initState();
-    _bluetoothProvider = Provider.of<BluetoothProvider>(context, listen: false);
+    _connectionProvider =
+        Provider.of<ConnectionProvider>(context, listen: false);
   }
 
   @override
   void dispose() {
-    _bluetoothProvider.stopScan();
+    _connectionProvider.stopScan();
     super.dispose();
   }
 
   void _startScan({Duration timeout}) {
-    _bluetoothProvider.startScan(timeout: timeout);
+    _connectionProvider.startScan(timeout: timeout);
   }
 
   void _onRetry() {
-    _bluetoothProvider.startScan(timeout: Duration(seconds: 20));
+    _connectionProvider.startScan(timeout: Duration(seconds: 20));
   }
 
   void _onPair(BluetoothDevice device) {
-    _bluetoothProvider.pairADevice(device);
+    _connectionProvider.pairADevice(device);
   }
 
   void _onConnect() {
-    _bluetoothProvider.connectToPairedDevice();
+    _connectionProvider.connect(_connectionProvider.pariedBTDevice);
   }
 
   @override
@@ -73,28 +74,28 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
         body: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
-          child: Consumer<BluetoothProvider>(
-              builder: (context, bluetoothProvider, child) {
-            if (bluetoothProvider.pairedDevice != null) {
+          child: Consumer<ConnectionProvider>(
+              builder: (context, connectionProvider, child) {
+            if (connectionProvider.pariedBTDevice != null) {
               return ConnectingDevice(
                   onConnected: widget.onConnected(context),
-                  connectionStatus: bluetoothProvider.connectionStatus,
-                  deviceName: bluetoothProvider.pairedDevice.name != null
-                      ? bluetoothProvider.pairedDevice.name
-                      : bluetoothProvider.pairedDevice.id.id,
+                  connectionStatus: connectionProvider.connectionStatus,
+                  deviceName: connectionProvider.pariedBTDevice.name != null
+                      ? connectionProvider.pariedBTDevice.name
+                      : connectionProvider.pariedBTDevice.id,
                   onConnect: _onConnect);
             }
 
-            if (bluetoothProvider.devicesList.length == 0) {
+            if (connectionProvider.devicesList.length == 0) {
               return ScanView(
-                connectionStatus: bluetoothProvider.connectionStatus,
+                connectionStatus: connectionProvider.connectionStatus,
                 startScan: _startScan,
               );
             }
 
             return DeviceList(
-              deviceList: bluetoothProvider.devicesList,
-              connectionStatus: bluetoothProvider.connectionStatus,
+              deviceList: connectionProvider.devicesList,
+              connectionStatus: connectionProvider.connectionStatus,
               onPair: _onPair,
               onRetry: _onRetry,
             );

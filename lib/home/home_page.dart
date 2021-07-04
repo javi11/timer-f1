@@ -11,11 +11,12 @@ import 'package:timmer/bluetooth-connection/bluetooth_connection_page.dart';
 import 'package:timmer/home/widgets/clipped_parts.dart';
 import 'package:timmer/home/widgets/drawer.dart';
 import 'package:timmer/home/widgets/history.dart';
-import 'package:timmer/providers/bluetooth_provider.dart';
+import 'package:timmer/providers/connection_provider.dart';
 import 'package:timmer/providers/history_provider.dart';
 import 'package:timmer/tracking/tracking_page.dart';
 import 'package:timmer/types.dart';
 import 'package:timmer/widgets/app_title.dart';
+import 'package:tuple/tuple.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key key}) : super(key: key);
@@ -26,14 +27,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final GlobalKey<InOutAnimationState> _fabAnimationController =
       GlobalKey<InOutAnimationState>();
-  BluetoothProvider _bluetoothProvider;
   int currentPage = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _bluetoothProvider = Provider.of<BluetoothProvider>(context, listen: false);
-  }
 
   bool _handleScrollNotification(ScrollNotification notification) {
     if (notification.depth == 0) {
@@ -69,9 +63,10 @@ class _HomePageState extends State<HomePage> {
     return false;
   }
 
-  Function _onStartFlight() {
-    ConnectionStatus connectionStatus =
-        Provider.of<BluetoothProvider>(context, listen: false).connectionStatus;
+  void _onStartFlight() {
+    var connectionProvider =
+        Provider.of<ConnectionProvider>(context, listen: false);
+    ConnectionStatus connectionStatus = connectionProvider.connectionStatus;
     if (connectionStatus != ConnectionStatus.CONNECTED) {
       Navigator.push(
           context,
@@ -152,21 +147,22 @@ class _HomePageState extends State<HomePage> {
                 preferences: AnimationPreferences(
                     duration: Duration(milliseconds: 500))),
             key: _fabAnimationController,
-            child: Consumer2<HistoryProvider, BluetoothProvider>(
-                builder: (context, historyProvider, bluetoothProvider, child) {
-              return Visibility(
-                visible: historyProvider.isLoading == false &&
-                    historyProvider.total > 0,
-                child: FloatingActionButton.extended(
-                    backgroundColor: Colors.green,
-                    icon: Icon(Icons.flight_takeoff),
-                    onPressed: _onStartFlight,
-                    label: AutoSizeText(
-                      'Start a flight',
-                      maxFontSize: 30,
-                      style: TextStyle(fontSize: 20),
-                    )),
-              );
-            })));
+            child: Selector<HistoryProvider, Tuple2<bool, int>>(
+                selector: (_, historyProvider) =>
+                    Tuple2(historyProvider.isLoading, historyProvider.total),
+                builder: (context, data, child) {
+                  return Visibility(
+                    visible: data.item1 == false && data.item2 > 0,
+                    child: FloatingActionButton.extended(
+                        backgroundColor: Colors.green,
+                        icon: Icon(Icons.flight_takeoff),
+                        onPressed: _onStartFlight,
+                        label: AutoSizeText(
+                          'Start a flight',
+                          maxFontSize: 30,
+                          style: TextStyle(fontSize: 20),
+                        )),
+                  );
+                })));
   }
 }

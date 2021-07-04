@@ -14,7 +14,12 @@ double parseHeight(String timmerHeight) {
 }
 
 double parseVoltage(String voltage) {
-  return double.parse(voltage) * toVolts;
+  int vInt = int.tryParse(voltage);
+  if (vInt == null) {
+    double vDouble = double.tryParse(voltage);
+    return vDouble * toVolts;
+  }
+  return vInt * toVolts;
 }
 
 class FlightData {
@@ -30,7 +35,7 @@ class FlightData {
   bool voltageAlert = false;
   List<LatLng> route = [LatLng(0, 0), LatLng(0, 0)];
   LatLng userCoordinates = LatLng(0, 0);
-  double planeDistanceFromUser = 0;
+  double planeDistanceFromUser;
 
   static final columns = [
     'id',
@@ -50,39 +55,52 @@ class FlightData {
 
   FlightData();
 
-  parseTimmerData(String data) {
-    if (data.length > 0) {
-      List<String> line = data.split(',');
-
+  parseTimmerData(List<String> line) {
+    if (line.length > 0) {
       this.planeId = line[0];
       this.timestamp = new DateTime(
-              int.parse(line[1]),
-              int.parse(line[2]),
               int.parse(line[3]),
               int.parse(line[4]),
               int.parse(line[5]),
-              int.parse(line[6]))
+              int.parse(line[6]),
+              int.parse(line[7]),
+              int.parse(line[8]))
           .millisecondsSinceEpoch;
 
       this.planeCoordinates =
-          LatLng(parseLatLng(line[7]), parseLatLng(line[8]));
-      this.route = <LatLng>[this.planeCoordinates, this.userCoordinates];
-      this.planeDistanceFromUser =
-          calculateDistance(this.planeCoordinates, this.userCoordinates);
+          LatLng(parseLatLng(line[9]), parseLatLng(line[10]));
+
+      if (this.planeCoordinates.latitude == 0 &&
+          this.planeCoordinates.longitude == 0) {
+        this.planeCoordinates = null;
+      }
+
+      if (this.planeCoordinates == null) {
+        this.planeDistanceFromUser = null;
+        this.route = null;
+      } else {
+        this.route = <LatLng>[this.planeCoordinates, this.userCoordinates];
+        this.planeDistanceFromUser =
+            calculateDistance(this.planeCoordinates, this.userCoordinates);
+      }
       // Convert height from mm to meters.
-      this.height = parseHeight(line[9]);
-      this.temperature = double.parse(line[10]);
-      this.pressure = double.parse(line[11]);
-      this.voltage = parseVoltage(line[12]);
+      this.height = parseHeight(line[11]);
+      this.temperature = double.parse(line[12]);
+      this.pressure = double.parse(line[13]);
+      this.voltage = parseVoltage(line[14]);
       this.voltageAlert = this.voltage < 3.20;
     }
   }
 
   addUserCoordinates(LatLng userCoordinates) {
     this.userCoordinates = userCoordinates;
-    this.route = <LatLng>[this.planeCoordinates, this.userCoordinates];
-    this.planeDistanceFromUser =
-        calculateDistance(this.planeCoordinates, this.userCoordinates);
+    if (this.planeCoordinates == null) {
+      this.planeDistanceFromUser = null;
+      this.route = null;
+    } else {
+      this.planeDistanceFromUser =
+          calculateDistance(this.planeCoordinates, this.userCoordinates);
+    }
   }
 
   Map<String, dynamic> toRAW() {

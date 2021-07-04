@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:timmer/models/flight_data.dart';
 import 'package:timmer/types.dart';
@@ -7,7 +8,6 @@ import 'package:timmer/widgets/round_button.dart';
 class BottomBar extends StatelessWidget {
   final FlightData flightData;
   final Function onExit;
-  final Function onFixPlane;
   final Function onZoom;
   final Function onMoreInfo;
   final FixedLocation focusOn;
@@ -17,7 +17,6 @@ class BottomBar extends StatelessWidget {
       {Key key,
       @required this.flightData,
       @required this.onExit,
-      @required this.onFixPlane,
       @required this.onZoom,
       @required this.onMoreInfo,
       @required this.focusOn,
@@ -54,14 +53,26 @@ class BottomBar extends StatelessWidget {
                             height: 24,
                             width: 5,
                           ),
-                          Text(
-                            distanceToString(flightData.planeDistanceFromUser),
-                            textAlign: TextAlign.justify,
-                            style: TextStyle(
-                                color: Colors.green,
-                                fontSize: 25.5,
-                                fontWeight: FontWeight.bold),
-                          ),
+                          Expanded(
+                              child: flightData.planeDistanceFromUser != null
+                                  ? AutoSizeText(
+                                      distanceToString(
+                                          flightData.planeDistanceFromUser),
+                                      textAlign: TextAlign.justify,
+                                      style: TextStyle(
+                                          color: Colors.green,
+                                          fontSize: 25.5,
+                                          fontWeight: FontWeight.bold),
+                                      maxLines: 2,
+                                    )
+                                  : AutoSizeText(
+                                      'Getting plain GPS location...',
+                                      style: TextStyle(
+                                          color: Colors.green,
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold),
+                                      maxLines: 2,
+                                    )),
                           SizedBox(
                             height: 24,
                             width: 5,

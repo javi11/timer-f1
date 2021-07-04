@@ -89,8 +89,10 @@ class _HistoryMapState extends State<HistoryMap> {
         child: FlutterMap(
             mapController: mapController,
             options: MapOptions(zoom: 30, interactive: true, center: centroid),
+            children: [
+              mapProvider
+            ],
             layers: [
-              mapProvider,
               MarkerLayerOptions(markers: markers),
               PolylineLayerOptions(
                 polylines: [

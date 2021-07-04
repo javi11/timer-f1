@@ -1,10 +1,11 @@
 import 'dart:collection';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue/flutter_blue.dart' as bt;
+import 'package:timmer/models/bluetooth_device.dart';
 import 'package:timmer/types.dart';
 
 class DeviceList extends StatelessWidget {
-  final UnmodifiableListView<ScanResult> deviceList;
+  final UnmodifiableListView<bt.ScanResult> deviceList;
   final ConnectionStatus connectionStatus;
   final Function onPair;
   final Function onRetry;
@@ -53,11 +54,11 @@ class DeviceList extends StatelessWidget {
                 physics: BouncingScrollPhysics(),
                 itemCount: deviceList.length,
                 itemBuilder: (BuildContext ctxt, int index) {
-                  ScanResult scanResult = deviceList[index];
+                  bt.ScanResult scanResult = deviceList[index];
 
                   return ListTile(
                     onTap: () {
-                      onPair(scanResult.device);
+                      onPair(BluetoothDevice(scanResult.device));
                     },
                     leading: Icon(Icons.bluetooth),
                     isThreeLine: true,

@@ -73,18 +73,21 @@ class FlightHistory {
       if (element.temperature > this.maxTemperature) {
         this.maxTemperature = element.temperature;
       }
-      if (element.planeDistanceFromUser > this.maxDistanceFromUser) {
+      if (element.planeDistanceFromUser != null &&
+          element.planeDistanceFromUser > this.maxDistanceFromUser) {
         this.maxDistanceFromUser = element.planeDistanceFromUser;
       }
       if (this.farPlaneDistanceCoordinates == null &&
           element.planeCoordinates != null) {
         this.farPlaneDistanceCoordinates = element.planeCoordinates;
       }
-      double distanceFromStart = calculateDistance(
-          element.planeCoordinates, this.flightStartCoordinates);
-      if (distanceFromStart > this.maxPlaneDistanceFromStart) {
-        this.maxPlaneDistanceFromStart = distanceFromStart;
-        this.farPlaneDistanceCoordinates = element.planeCoordinates;
+      if (element.planeCoordinates != null) {
+        double distanceFromStart = calculateDistance(
+            element.planeCoordinates, this.flightStartCoordinates);
+        if (distanceFromStart > this.maxPlaneDistanceFromStart) {
+          this.maxPlaneDistanceFromStart = distanceFromStart;
+          this.farPlaneDistanceCoordinates = element.planeCoordinates;
+        }
       }
     });
     this.flightEndCoordinates = this
