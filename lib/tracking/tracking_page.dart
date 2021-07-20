@@ -22,7 +22,7 @@ import 'package:timerf1c/tracking/widgets/waiting_for_data_dialog.dart';
 import 'package:timerf1c/widgets/plain_starting_point_marker.dart';
 import 'package:timerf1c/types.dart';
 import 'package:timerf1c/util/compute_centroid.dart';
-import 'package:latlong/latlong.dart';
+import 'package:latlong2/latlong.dart';
 
 class TrackingPage extends StatefulWidget {
   @override
@@ -185,7 +185,7 @@ class _TrackingPageState extends State<TrackingPage> {
           context: context,
           dialogType: DialogType.WARNING,
           animType: AnimType.BOTTOMSLIDE,
-          tittle: 'No data to save',
+          title: 'No data to save',
           desc: 'No data will be saved because there is no plane coordinates.',
           btnOkText: 'Exit',
           btnCancelOnPress: () async {
@@ -199,7 +199,7 @@ class _TrackingPageState extends State<TrackingPage> {
           context: context,
           dialogType: DialogType.INFO,
           animType: AnimType.BOTTOMSLIDE,
-          tittle: 'Do you want to end the fly?',
+          title: 'Do you want to end the fly?',
           desc: 'The fly will be saved on your history',
           btnCancelOnPress: () {},
           btnOkOnPress: () async {
@@ -211,7 +211,7 @@ class _TrackingPageState extends State<TrackingPage> {
                   context: context,
                   dialogType: DialogType.WARNING,
                   animType: AnimType.BOTTOMSLIDE,
-                  tittle: 'Flight is to short',
+                  title: 'Flight is to short',
                   desc: 'Do you still want to save it?',
                   btnCancelText: 'No',
                   btnOkText: 'Yes',
@@ -392,7 +392,7 @@ class _TrackingPageState extends State<TrackingPage> {
                                               context,
                                               PageTransition(
                                                   type: PageTransitionType
-                                                      .downToUp,
+                                                      .bottomToTop,
                                                   child:
                                                       BluetoothConnectionPage()));
                                         },

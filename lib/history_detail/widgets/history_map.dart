@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong/latlong.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:timerf1c/models/flight_history.dart';
 import 'package:timerf1c/util/compute_centroid.dart';
 import 'package:timerf1c/widgets/map_provider.dart';
@@ -88,7 +88,10 @@ class _HistoryMapState extends State<HistoryMap> {
         height: MediaQuery.of(context).size.height / 3,
         child: FlutterMap(
             mapController: mapController,
-            options: MapOptions(zoom: 30, interactive: true, center: centroid),
+            options: MapOptions(
+                zoom: 30,
+                interactiveFlags: InteractiveFlag.all,
+                center: centroid),
             children: [
               mapProvider
             ],

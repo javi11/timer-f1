@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
-import 'package:latlong/latlong.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:timerf1c/models/flight_data.dart';
 import 'package:timerf1c/tracking/widgets/plain_marker.dart';
 import 'package:timerf1c/widgets/map_provider.dart';
@@ -16,7 +16,10 @@ Widget buildMap(LocationMarkerPlugin locationMarkerPlugin, List<Marker> markers,
   }
 
   return FlutterMap(
-    options: MapOptions(interactive: true, center: LatLng(0, 0), zoom: 15.0),
+    options: MapOptions(
+        interactiveFlags: InteractiveFlag.all,
+        center: LatLng(0, 0),
+        zoom: 15.0),
     children: [
       mapProvider,
       MarkerLayerWidget(

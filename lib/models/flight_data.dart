@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:latlong/latlong.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:timerf1c/util/distance_calculator.dart';
 
 num toLatLng = pow(10, -7);

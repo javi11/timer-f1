@@ -46,7 +46,7 @@ Widget buildDrawer(BuildContext context) {
             Navigator.push(
                 context,
                 PageTransition(
-                    type: PageTransitionType.downToUp,
+                    type: PageTransitionType.bottomToTop,
                     child: OfflineMapsPage()));
           },
         ),
@@ -59,7 +59,7 @@ Widget buildDrawer(BuildContext context) {
             Navigator.push(
                 context,
                 PageTransition(
-                    type: PageTransitionType.downToUp,
+                    type: PageTransitionType.bottomToTop,
                     child: BluetoothConnectionPage()));
           };
 

@@ -71,14 +71,14 @@ class _HomePageState extends State<HomePage> {
       Navigator.push(
           context,
           PageTransition(
-              type: PageTransitionType.downToUp,
+              type: PageTransitionType.bottomToTop,
               child: BluetoothConnectionPage(onConnected: (ctx) {
                 return () {
                   Navigator.of(ctx).pop();
                   Navigator.push(
                       ctx,
                       PageTransition(
-                          type: PageTransitionType.downToUp,
+                          type: PageTransitionType.bottomToTop,
                           child: TrackingPage()));
                 };
               })));
@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
       Navigator.push(
           context,
           PageTransition(
-              type: PageTransitionType.downToUp, child: TrackingPage()));
+              type: PageTransitionType.bottomToTop, child: TrackingPage()));
     }
   }
 

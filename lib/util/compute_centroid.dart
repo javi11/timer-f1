@@ -1,4 +1,4 @@
-import 'package:latlong/latlong.dart';
+import 'package:latlong2/latlong.dart';
 
 LatLng computeCentroid(Iterable<LatLng> points) {
   double latitude = 0;

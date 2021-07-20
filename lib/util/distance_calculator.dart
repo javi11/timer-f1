@@ -1,4 +1,4 @@
-import 'package:latlong/latlong.dart';
+import 'package:latlong2/latlong.dart';
 
 double calculateDistance(LatLng point1, LatLng point2) {
   final Distance distance = Distance();

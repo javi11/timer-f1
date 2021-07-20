@@ -39,7 +39,7 @@ class PairedDeviceListItem extends StatelessWidget {
                       context: context,
                       dialogType: DialogType.INFO,
                       animType: AnimType.BOTTOMSLIDE,
-                      tittle: 'Do you want to delete this device?',
+                      title: 'Do you want to delete this device?',
                       desc: 'The device will be unpair from the phone',
                       btnCancelOnPress: () {},
                       btnOkOnPress: _onDisconnectionPress)

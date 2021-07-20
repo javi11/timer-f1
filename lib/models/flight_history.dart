@@ -1,5 +1,5 @@
 import 'dart:collection';
-import 'package:latlong/latlong.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:timerf1c/models/flight_data.dart';
 import 'package:timerf1c/util/distance_calculator.dart';
 

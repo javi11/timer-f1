@@ -41,7 +41,7 @@ class History extends StatelessWidget {
         Navigator.push(
             context,
             PageTransition(
-                type: PageTransitionType.downToUp,
+                type: PageTransitionType.bottomToTop,
                 child: HistoryDetailPage(flightHistory: history)));
       },
       // inkwell color
