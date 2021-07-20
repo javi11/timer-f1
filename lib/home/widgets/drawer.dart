@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
-import 'package:timmer/bluetooth-connection/bluetooth_connection_page.dart';
-import 'package:timmer/home/widgets/paired_device_list_item.dart';
-import 'package:timmer/offline_maps/offline_maps_list.dart';
-import 'package:timmer/providers/connection_provider.dart';
-import 'package:timmer/widgets/app_title.dart';
+import 'package:timerf1c/bluetooth-connection/bluetooth_connection_page.dart';
+import 'package:timerf1c/home/widgets/paired_device_list_item.dart';
+import 'package:timerf1c/offline_maps/offline_maps_list.dart';
+import 'package:timerf1c/providers/connection_provider.dart';
+import 'package:timerf1c/widgets/app_title.dart';
 
 Widget buildDrawer(BuildContext context) {
   final Widget logo = SvgPicture.asset(

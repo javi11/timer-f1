@@ -1,5 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timmer/models/bluetooth_device.dart';
+import 'package:timerf1c/models/bluetooth_device.dart';
 
 final String _pairedDeviceMACKey = 'pairedDeviceMACKey';
 final String _pairedDeviceNameKey = 'pairedDeviceNameKey';

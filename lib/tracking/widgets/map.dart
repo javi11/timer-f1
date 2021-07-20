@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:latlong/latlong.dart';
-import 'package:timmer/models/flight_data.dart';
-import 'package:timmer/tracking/widgets/plain_marker.dart';
-import 'package:timmer/widgets/map_provider.dart';
+import 'package:timerf1c/models/flight_data.dart';
+import 'package:timerf1c/tracking/widgets/plain_marker.dart';
+import 'package:timerf1c/widgets/map_provider.dart';
 
 Widget buildMap(LocationMarkerPlugin locationMarkerPlugin, List<Marker> markers,
     FlightData flightData, MapController mapController) {

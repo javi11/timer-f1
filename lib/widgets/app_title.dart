@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 Widget appTitle() {
-  return Text('Timmer',
+  return Text('timerf1c',
       style: TextStyle(
           fontSize: 30, color: Colors.white, fontWeight: FontWeight.w300));
 }

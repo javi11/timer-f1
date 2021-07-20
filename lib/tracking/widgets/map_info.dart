@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_grid/responsive_grid.dart';
-import 'package:timmer/models/flight_data.dart';
-import 'package:timmer/util/no_data.dart';
+import 'package:timerf1c/models/flight_data.dart';
+import 'package:timerf1c/util/no_data.dart';
 
 class MapInfo extends StatelessWidget {
   final FlightData flightData;

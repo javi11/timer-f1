@@ -1,5 +1,5 @@
-name: timmer
-description: A new Flutter project.
+name: timerf1c
+description: A f1c timer controller.
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -25,7 +25,7 @@ dependencies:
   flutter_blue: ^0.7.3
   flutter_map_location_marker: any
   flutter_map: any
-  provider: ^4.0.0
+  provider: ^5.0.0
   tuple: ^1.0.3
   auto_size_text: ^2.1.0
   lottie: ^0.6.0
@@ -73,7 +73,7 @@ flutter:
     - assets/icons/plain_marker.svg
     - assets/icons/plain_start.svg
     - assets/icons/plain_end.svg
-    - assets/animations/turn-on-timmer.json
+    - assets/animations/turn-on-timerf1c.json
     - assets/animations/loading.json
   #  - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see

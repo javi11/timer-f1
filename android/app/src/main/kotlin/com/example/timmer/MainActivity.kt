@@ -1,4 +1,4 @@
-package com.example.timmer
+package com.example.timerf1c
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity

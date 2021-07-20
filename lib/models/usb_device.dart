@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:timmer/models/device.dart';
-import 'package:timmer/util/timer_data_transformer.dart';
+import 'package:timerf1c/models/device.dart';
+import 'package:timerf1c/util/timer_data_transformer.dart';
 import 'package:usb_serial/usb_serial.dart';
 
 const USB_DEVICE_NAME = 'DSD';

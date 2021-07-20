@@ -3,7 +3,7 @@ import 'package:csv/csv.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:share_extend/share_extend.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:timmer/models/flight_history.dart';
+import 'package:timerf1c/models/flight_history.dart';
 
 String filePath;
 
@@ -45,7 +45,7 @@ Future<String> generateCsv(FlightHistory flightHistory) async {
     rows.add(row);
   }
 
-  String fileName = 'timmer_' +
+  String fileName = 'timerf1c_' +
       flightHistory.planeId +
       '_' +
       flightHistory.endTimestamp.toString();
@@ -65,5 +65,5 @@ Future<void> exportFlight2Csv(FlightHistory flightHistory) async {
 
 Future<void> shareFligth(FlightHistory flightHistory) async {
   String filePath = await generateCsv(flightHistory);
-  await ShareExtend.share(filePath, "Timmer flight");
+  await ShareExtend.share(filePath, "timerf1c flight");
 }

@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_blue/flutter_blue.dart' as bt;
 import 'package:flutter_blue/gen/flutterblue.pb.dart' as proto;
-import 'package:timmer/models/device.dart';
-import 'package:timmer/util/timer_data_transformer.dart';
+import 'package:timerf1c/models/device.dart';
+import 'package:timerf1c/util/timer_data_transformer.dart';
 
 enum DeviceBtType { LE, CLASSIC, DUAL, UNKNOWN }
 const CUSTOM_SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:timmer/history_detail/widgets/history_map.dart';
-import 'package:timmer/models/flight_history.dart';
-import 'package:timmer/util/display_distance.dart';
-import 'package:timmer/util/export_csv.dart';
+import 'package:timerf1c/history_detail/widgets/history_map.dart';
+import 'package:timerf1c/models/flight_history.dart';
+import 'package:timerf1c/util/display_distance.dart';
+import 'package:timerf1c/util/export_csv.dart';
 
 class HistoryDetailPage extends StatefulWidget {
   final FlightHistory flightHistory;

@@ -1,8 +1,8 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:timmer/models/bluetooth_device.dart';
-import 'package:timmer/models/device.dart';
-import 'package:timmer/types.dart';
+import 'package:timerf1c/models/bluetooth_device.dart';
+import 'package:timerf1c/models/device.dart';
+import 'package:timerf1c/types.dart';
 
 class PairedDeviceListItem extends StatelessWidget {
   final ConnectionStatus _connectionStatus;

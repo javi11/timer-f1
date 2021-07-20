@@ -1,7 +1,7 @@
 import 'dart:collection';
 import 'package:latlong/latlong.dart';
-import 'package:timmer/models/flight_data.dart';
-import 'package:timmer/util/distance_calculator.dart';
+import 'package:timerf1c/models/flight_data.dart';
+import 'package:timerf1c/util/distance_calculator.dart';
 
 class FlightHistory {
   int id;
@@ -44,15 +44,15 @@ class FlightHistory {
     this._data.addAll(iterable);
   }
 
-  void addData(FlightData timmerData) {
+  void addData(FlightData timerf1cData) {
     // There is no point on add the history if there is no plain coordinates to show
-    if (timmerData.planeCoordinates != null) {
+    if (timerf1cData.planeCoordinates != null) {
       if (this.flightStartCoordinates == null &&
-          timmerData.planeCoordinates != null) {
-        this.flightStartCoordinates = timmerData.planeCoordinates;
+          timerf1cData.planeCoordinates != null) {
+        this.flightStartCoordinates = timerf1cData.planeCoordinates;
       }
-      this.planeId = timmerData.planeId;
-      this._data.add(FlightData.fromMap(timmerData.toMap()));
+      this.planeId = timerf1cData.planeId;
+      this._data.add(FlightData.fromMap(timerf1cData.toMap()));
     }
   }
 

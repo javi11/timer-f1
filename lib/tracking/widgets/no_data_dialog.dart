@@ -13,7 +13,7 @@ Widget buildNoDataDialog(context) {
       child: SimpleDialog(
         title: Text('Is the timer turned ON?'),
         children: [
-          Lottie.asset("assets/animations/turn-on-timmer.json", repeat: true),
+          Lottie.asset("assets/animations/turn-on-timerf1c.json", repeat: true),
           Container(
               padding: EdgeInsets.all(25),
               child: Column(

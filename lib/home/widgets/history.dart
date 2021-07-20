@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
-import 'package:timmer/history_detail/history_detail_page.dart';
-import 'package:timmer/home/widgets/day_avatar.dart';
-import 'package:timmer/home/widgets/empty_list.dart';
-import 'package:timmer/models/flight_history.dart';
-import 'package:timmer/providers/history_provider.dart';
-import 'package:timmer/util/display_distance.dart';
+import 'package:timerf1c/history_detail/history_detail_page.dart';
+import 'package:timerf1c/home/widgets/day_avatar.dart';
+import 'package:timerf1c/home/widgets/empty_list.dart';
+import 'package:timerf1c/models/flight_history.dart';
+import 'package:timerf1c/providers/history_provider.dart';
+import 'package:timerf1c/util/display_distance.dart';
 
 class History extends StatelessWidget {
   final bool Function(ScrollNotification) handleScrollNotification;

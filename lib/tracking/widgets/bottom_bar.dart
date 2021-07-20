@@ -1,9 +1,9 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:timmer/models/flight_data.dart';
-import 'package:timmer/types.dart';
-import 'package:timmer/util/display_distance.dart';
-import 'package:timmer/widgets/round_button.dart';
+import 'package:timerf1c/models/flight_data.dart';
+import 'package:timerf1c/types.dart';
+import 'package:timerf1c/util/display_distance.dart';
+import 'package:timerf1c/widgets/round_button.dart';
 
 class BottomBar extends StatelessWidget {
   final FlightData flightData;

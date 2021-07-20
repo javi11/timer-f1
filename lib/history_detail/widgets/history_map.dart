@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
-import 'package:timmer/models/flight_history.dart';
-import 'package:timmer/util/compute_centroid.dart';
-import 'package:timmer/widgets/map_provider.dart';
-import 'package:timmer/widgets/plain_end_point_marker.dart';
-import 'package:timmer/widgets/plain_starting_point_marker.dart';
+import 'package:timerf1c/models/flight_history.dart';
+import 'package:timerf1c/util/compute_centroid.dart';
+import 'package:timerf1c/widgets/map_provider.dart';
+import 'package:timerf1c/widgets/plain_end_point_marker.dart';
+import 'package:timerf1c/widgets/plain_starting_point_marker.dart';
 
 class HistoryMap extends StatefulWidget {
   final FlightHistory flightHistory;

@@ -7,12 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animator/flutter_animator.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
-import 'package:timmer/home/widgets/clipped_parts.dart';
-import 'package:timmer/home/widgets/drawer.dart';
-import 'package:timmer/home/widgets/history.dart';
-import 'package:timmer/providers/history_provider.dart';
-import 'package:timmer/tracking/tracking_page.dart';
-import 'package:timmer/widgets/app_title.dart';
+import 'package:timerf1c/home/widgets/clipped_parts.dart';
+import 'package:timerf1c/home/widgets/drawer.dart';
+import 'package:timerf1c/home/widgets/history.dart';
+import 'package:timerf1c/providers/history_provider.dart';
+import 'package:timerf1c/tracking/tracking_page.dart';
+import 'package:timerf1c/widgets/app_title.dart';
 
 class OfflineMapsPage extends StatefulWidget {
   OfflineMapsPage({Key key}) : super(key: key);

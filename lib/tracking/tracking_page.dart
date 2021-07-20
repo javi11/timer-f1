@@ -8,20 +8,20 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:location/location.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
-import 'package:timmer/bluetooth-connection/bluetooth_connection_page.dart';
-import 'package:timmer/models/flight_data.dart';
-import 'package:timmer/models/flight_history.dart';
-import 'package:timmer/providers/connection_provider.dart';
-import 'package:timmer/providers/history_provider.dart';
-import 'package:timmer/tracking/widgets/bottom_bar.dart';
-import 'package:timmer/tracking/widgets/map.dart';
-import 'package:timmer/tracking/widgets/map_info.dart';
-import 'package:timmer/tracking/widgets/no_data_dialog.dart';
-import 'package:timmer/tracking/widgets/voltage_indicator.dart';
-import 'package:timmer/tracking/widgets/waiting_for_data_dialog.dart';
-import 'package:timmer/widgets/plain_starting_point_marker.dart';
-import 'package:timmer/types.dart';
-import 'package:timmer/util/compute_centroid.dart';
+import 'package:timerf1c/bluetooth-connection/bluetooth_connection_page.dart';
+import 'package:timerf1c/models/flight_data.dart';
+import 'package:timerf1c/models/flight_history.dart';
+import 'package:timerf1c/providers/connection_provider.dart';
+import 'package:timerf1c/providers/history_provider.dart';
+import 'package:timerf1c/tracking/widgets/bottom_bar.dart';
+import 'package:timerf1c/tracking/widgets/map.dart';
+import 'package:timerf1c/tracking/widgets/map_info.dart';
+import 'package:timerf1c/tracking/widgets/no_data_dialog.dart';
+import 'package:timerf1c/tracking/widgets/voltage_indicator.dart';
+import 'package:timerf1c/tracking/widgets/waiting_for_data_dialog.dart';
+import 'package:timerf1c/widgets/plain_starting_point_marker.dart';
+import 'package:timerf1c/types.dart';
+import 'package:timerf1c/util/compute_centroid.dart';
 import 'package:latlong/latlong.dart';
 
 class TrackingPage extends StatefulWidget {
@@ -77,7 +77,7 @@ class _TrackingPageState extends State<TrackingPage> {
 
   void _onReceiveBluetoothData(List<String> data) {
     setState(() {
-      flightData.parseTimmerData(data);
+      flightData.parsetimerf1cData(data);
 
       if (flightData.planeId != null && timerDataAvailable == false) {
         Navigator.of(context).pop();

@@ -1,16 +1,16 @@
 import 'dart:math';
 import 'package:latlong/latlong.dart';
-import 'package:timmer/util/distance_calculator.dart';
+import 'package:timerf1c/util/distance_calculator.dart';
 
 num toLatLng = pow(10, -7);
 num toVolts = pow(10, -2);
 
-double parseLatLng(String timmerLatLng) {
-  return double.parse(timmerLatLng) * toLatLng;
+double parseLatLng(String timerf1cLatLng) {
+  return double.parse(timerf1cLatLng) * toLatLng;
 }
 
-double parseHeight(String timmerHeight) {
-  return double.parse(timmerHeight) / 1000;
+double parseHeight(String timerf1cHeight) {
+  return double.parse(timerf1cHeight) / 1000;
 }
 
 double parseVoltage(String voltage) {
@@ -55,7 +55,7 @@ class FlightData {
 
   FlightData();
 
-  parseTimmerData(List<String> line) {
+  parsetimerf1cData(List<String> line) {
     if (line.length > 0) {
       this.planeId = line[0];
       this.timestamp = new DateTime(

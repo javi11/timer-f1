@@ -1,8 +1,8 @@
 import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart' as bt;
-import 'package:timmer/models/bluetooth_device.dart';
-import 'package:timmer/types.dart';
+import 'package:timerf1c/models/bluetooth_device.dart';
+import 'package:timerf1c/types.dart';
 
 class DeviceList extends StatelessWidget {
   final UnmodifiableListView<bt.ScanResult> deviceList;

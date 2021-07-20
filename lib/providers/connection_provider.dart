@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart' as bt;
-import 'package:timmer/models/bluetooth_device.dart';
-import 'package:timmer/models/device.dart';
-import 'package:timmer/models/settings.dart';
-import 'package:timmer/models/usb_device.dart';
+import 'package:timerf1c/models/bluetooth_device.dart';
+import 'package:timerf1c/models/device.dart';
+import 'package:timerf1c/models/settings.dart';
+import 'package:timerf1c/models/usb_device.dart';
 import 'package:usb_serial/usb_serial.dart';
 import '../types.dart';
 

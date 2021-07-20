@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:timmer/models/bluetooth_device.dart';
+import 'package:timerf1c/models/bluetooth_device.dart';
 import 'package:provider/provider.dart';
-import 'package:timmer/bluetooth-connection/widgets/bluetooth_scan.dart';
-import 'package:timmer/bluetooth-connection/widgets/devices_list.dart';
-import 'package:timmer/bluetooth-connection/widgets/connecting_device.dart';
-import 'package:timmer/providers/connection_provider.dart';
+import 'package:timerf1c/bluetooth-connection/widgets/bluetooth_scan.dart';
+import 'package:timerf1c/bluetooth-connection/widgets/devices_list.dart';
+import 'package:timerf1c/bluetooth-connection/widgets/connecting_device.dart';
+import 'package:timerf1c/providers/connection_provider.dart';
 
 Function _defaultOnConnected(ctx) {
   return () {

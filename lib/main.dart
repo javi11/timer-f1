@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:timmer/home/home_page.dart';
-import 'package:timmer/providers/connection_provider.dart';
-import 'package:timmer/providers/history_provider.dart';
+import 'package:timerf1c/home/home_page.dart';
+import 'package:timerf1c/providers/connection_provider.dart';
+import 'package:timerf1c/providers/history_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Timmer',
+        title: 'timerf1c',
         theme: ThemeData(
           // This is the theme of your application.
           //

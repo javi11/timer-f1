@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:timmer/types.dart';
+import 'package:timerf1c/types.dart';
 
 class ConnectingDevice extends StatefulWidget {
   final String deviceName;

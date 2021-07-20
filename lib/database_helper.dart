@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:timmer/models/flight_data.dart';
-import 'package:timmer/models/flight_history.dart';
-import 'package:timmer/models/settings.dart';
+import 'package:timerf1c/models/flight_data.dart';
+import 'package:timerf1c/models/flight_history.dart';
+import 'package:timerf1c/models/settings.dart';
 
 class DBProvider {
   DBProvider._();
@@ -24,7 +24,7 @@ class DBProvider {
 
   initDB() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, 'timmerDB.db');
+    String path = join(documentsDirectory.path, 'timerf1cDB.db');
     return await openDatabase(path, version: 1, onOpen: (db) {},
         onCreate: (Database db, int version) async {
       await db.execute('CREATE TABLE FlightHistory ('

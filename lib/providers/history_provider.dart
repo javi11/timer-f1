@@ -1,7 +1,7 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:timmer/models/flight_history.dart';
+import 'package:timerf1c/models/flight_history.dart';
 
 import '../database_helper.dart';
 
