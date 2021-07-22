@@ -1,11 +1,11 @@
 import 'dart:async';
 
-class TimerDataTransformer<S, T> implements StreamTransformer<S, T> {
+class TimerDataTransformer<S, T> implements StreamTransformer<S, T?> {
   StreamController _controller = StreamController<T>();
   String _acc = '';
 
   @override
-  Stream<T> bind(Stream<S> stream) {
+  Stream<T?> bind(Stream<S> stream) {
     stream.listen((value) {
       String data = value as String;
 
@@ -25,7 +25,7 @@ class TimerDataTransformer<S, T> implements StreamTransformer<S, T> {
         }
       }
     });
-    return _controller.stream;
+    return _controller.stream as Stream<T?>;
   }
 
   @override

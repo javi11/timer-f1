@@ -11,11 +11,11 @@ class DeviceList extends StatelessWidget {
   final Function onRetry;
 
   DeviceList({
-    Key key,
-    @required this.deviceList,
-    @required this.connectionStatus,
-    @required this.onPair,
-    @required this.onRetry,
+    Key? key,
+    required this.deviceList,
+    required this.connectionStatus,
+    required this.onPair,
+    required this.onRetry,
   }) : super(key: key);
 
   Widget build(BuildContext context) {
@@ -41,7 +41,7 @@ class DeviceList extends StatelessWidget {
                       textColor: Colors.white,
                       padding: EdgeInsets.all(8.0),
                       splashColor: Colors.blueAccent,
-                      onPressed: onRetry,
+                      onPressed: onRetry as void Function()?,
                       child: Text(
                         "Scan",
                         style: TextStyle(fontSize: 20.0),

@@ -4,7 +4,7 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:timerf1c/models/flight_data.dart';
 import 'package:timerf1c/tracking/widgets/plain_marker.dart';
-import 'package:timerf1c/widgets/map_provider.dart';
+import 'package:timerf1c/providers/map_provider.dart';
 
 Widget buildMap(LocationMarkerPlugin locationMarkerPlugin, List<Marker> markers,
     FlightData flightData, MapController mapController) {
@@ -12,7 +12,9 @@ Widget buildMap(LocationMarkerPlugin locationMarkerPlugin, List<Marker> markers,
 
   if (flightData.route != null) {
     polylines.add(Polygon(
-        points: flightData.route, borderStrokeWidth: 4.0, color: Colors.blue));
+        points: flightData.route as List<LatLng>,
+        borderStrokeWidth: 4.0,
+        color: Colors.blue));
   }
 
   return FlutterMap(

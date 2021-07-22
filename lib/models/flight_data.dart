@@ -14,28 +14,28 @@ double parseHeight(String timerf1cHeight) {
 }
 
 double parseVoltage(String voltage) {
-  int vInt = int.tryParse(voltage);
+  int? vInt = int.tryParse(voltage);
   if (vInt == null) {
-    double vDouble = double.tryParse(voltage);
+    double vDouble = double.tryParse(voltage)!;
     return vDouble * toVolts;
   }
-  return vInt * toVolts;
+  return vInt * (toVolts as double);
 }
 
 class FlightData {
-  int id;
-  int flightHistoryId;
-  String planeId = '';
-  int timestamp = 0;
-  LatLng planeCoordinates;
-  double height = 0;
-  double temperature = 0;
-  double pressure = 0;
-  double voltage = 0;
+  int? id;
+  int? flightHistoryId;
+  String? planeId = '';
+  int? timestamp = 0;
+  LatLng? planeCoordinates;
+  double? height = 0;
+  double? temperature = 0;
+  double? pressure = 0;
+  double? voltage = 0;
   bool voltageAlert = false;
-  List<LatLng> route = [LatLng(0, 0), LatLng(0, 0)];
+  List<LatLng?>? route = [LatLng(0, 0), LatLng(0, 0)];
   LatLng userCoordinates = LatLng(0, 0);
-  double planeDistanceFromUser;
+  double? planeDistanceFromUser;
 
   static final columns = [
     'id',
@@ -70,8 +70,8 @@ class FlightData {
       this.planeCoordinates =
           LatLng(parseLatLng(line[9]), parseLatLng(line[10]));
 
-      if (this.planeCoordinates.latitude == 0 &&
-          this.planeCoordinates.longitude == 0) {
+      if (this.planeCoordinates!.latitude == 0 &&
+          this.planeCoordinates!.longitude == 0) {
         this.planeCoordinates = null;
       }
 
@@ -79,7 +79,7 @@ class FlightData {
         this.planeDistanceFromUser = null;
         this.route = null;
       } else {
-        this.route = <LatLng>[this.planeCoordinates, this.userCoordinates];
+        this.route = <LatLng?>[this.planeCoordinates, this.userCoordinates];
         this.planeDistanceFromUser =
             calculateDistance(this.planeCoordinates, this.userCoordinates);
       }
@@ -88,7 +88,7 @@ class FlightData {
       this.temperature = double.parse(line[12]);
       this.pressure = double.parse(line[13]);
       this.voltage = parseVoltage(line[14]);
-      this.voltageAlert = this.voltage < 3.20;
+      this.voltageAlert = this.voltage! < 3.20;
     }
   }
 
@@ -104,18 +104,14 @@ class FlightData {
   }
 
   Map<String, dynamic> toRAW() {
-    String planeLan = planeCoordinates?.latitude != null
-        ? (planeCoordinates.latitude / toLatLng).toString()
+    String? planeLan = planeCoordinates?.latitude != null
+        ? (planeCoordinates!.latitude / toLatLng).toString()
         : null;
-    String planeLng = planeCoordinates?.longitude != null
-        ? (planeCoordinates.longitude / toLatLng).toString()
+    String? planeLng = planeCoordinates?.longitude != null
+        ? (planeCoordinates!.longitude / toLatLng).toString()
         : null;
-    String userLan = userCoordinates?.latitude != null
-        ? (userCoordinates.latitude / toLatLng).toString()
-        : null;
-    String userLng = userCoordinates?.longitude != null
-        ? (userCoordinates.longitude / toLatLng).toString()
-        : null;
+    String? userLan = (userCoordinates.latitude / toLatLng).toString();
+    String? userLng = (userCoordinates.longitude / toLatLng).toString();
 
     Map<String, dynamic> map = {
       'id': id,
@@ -124,10 +120,10 @@ class FlightData {
       'timestamp': timestamp,
       'planeLat': planeLan,
       'planeLng': planeLng,
-      'height': (height * 1000).toString(),
+      'height': (height! * 1000).toString(),
       'temperature': temperature,
       'pressure': pressure,
-      'voltage': (voltage / toVolts).toString(),
+      'voltage': (voltage! / toVolts).toString(),
       'userLng': userLan,
       'userLat': userLng,
       'planeDistanceFromUser': planeDistanceFromUser
@@ -149,8 +145,8 @@ class FlightData {
     };
 
     if (planeCoordinates != null) {
-      map['planeLat'] = planeCoordinates.latitude.toString();
-      map['planeLng'] = planeCoordinates.longitude.toString();
+      map['planeLat'] = planeCoordinates!.latitude.toString();
+      map['planeLng'] = planeCoordinates!.longitude.toString();
     }
 
     if (userCoordinates != null) {

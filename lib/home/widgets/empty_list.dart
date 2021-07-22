@@ -10,7 +10,7 @@ class EmptyList extends StatelessWidget {
     width: 100,
     height: 100,
   );
-  EmptyList({Key key, @required this.onStartFlight}) : super(key: key);
+  EmptyList({Key? key, required this.onStartFlight}) : super(key: key);
 
   Widget build(BuildContext context) {
     return Container(
@@ -58,7 +58,7 @@ class EmptyList extends StatelessWidget {
                     style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800),
                   ),
                   color: Colors.green[50],
-                  onPressed: onStartFlight))
+                  onPressed: onStartFlight as void Function()?))
         ]));
   }
 }

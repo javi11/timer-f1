@@ -1,12 +1,12 @@
 import 'package:latlong2/latlong.dart';
 
-LatLng computeCentroid(Iterable<LatLng> points) {
+LatLng computeCentroid(Iterable<LatLng?> points) {
   double latitude = 0;
   double longitude = 0;
   int n = points.length;
 
-  for (LatLng point in points) {
-    latitude += point.latitude;
+  for (LatLng? point in points) {
+    latitude += point!.latitude;
     longitude += point.longitude;
   }
 

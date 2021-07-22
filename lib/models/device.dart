@@ -7,12 +7,12 @@ import 'package:usb_serial/usb_serial.dart';
 enum DeviceType { Bluetooth, USB }
 
 abstract class Device {
-  final DeviceType type;
-  String get name;
+  late final DeviceType type;
+  String? get name;
   String get id;
 
   factory Device(DeviceType deviceType,
-      {fb.BluetoothDevice btDevice, UsbDevice usbDevice}) {
+      {fb.BluetoothDevice? btDevice, UsbDevice? usbDevice}) {
     if (deviceType == DeviceType.Bluetooth) {
       return BluetoothDevice(btDevice);
     }
@@ -21,9 +21,9 @@ abstract class Device {
   }
 
   Future<void> connect(
-      {Duration timeout, FutureOr<void> Function() onTimeout}) async {}
+      {Duration? timeout, FutureOr<void> Function()? onTimeout}) async {}
 
-  Future<Stream<List<String>>> getDataStream();
+  Future<Stream<List<String>?>?> getDataStream();
 
   Future<void> disconnect() async {}
 }

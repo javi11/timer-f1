@@ -3,44 +3,44 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:timerf1c/models/flight_history.dart';
 import 'package:timerf1c/util/compute_centroid.dart';
-import 'package:timerf1c/widgets/map_provider.dart';
+import 'package:timerf1c/providers/map_provider.dart';
 import 'package:timerf1c/widgets/plain_end_point_marker.dart';
 import 'package:timerf1c/widgets/plain_starting_point_marker.dart';
 
 class HistoryMap extends StatefulWidget {
   final FlightHistory flightHistory;
 
-  HistoryMap({Key key, @required this.flightHistory}) : super(key: key);
+  HistoryMap({Key? key, required this.flightHistory}) : super(key: key);
   @override
   _HistoryMapState createState() => _HistoryMapState();
 }
 
 class _HistoryMapState extends State<HistoryMap> {
-  MapController mapController;
-  List<LatLng> route;
+  MapController? mapController;
+  late List<LatLng?> route;
 
   void initState() {
     super.initState();
     mapController = MapController();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      LatLng flightStartCoordinates =
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      LatLng? flightStartCoordinates =
           widget.flightHistory.flightStartCoordinates;
-      LatLng farPlaneDistanceCoordinates =
+      LatLng? farPlaneDistanceCoordinates =
           widget.flightHistory.farPlaneDistanceCoordinates;
 
       if (flightStartCoordinates != null &&
           farPlaneDistanceCoordinates != null &&
-          (!mapController.bounds.contains(flightStartCoordinates) ||
-              !mapController.bounds.contains(farPlaneDistanceCoordinates))) {
+          (!mapController!.bounds!.contains(flightStartCoordinates) ||
+              !mapController!.bounds!.contains(farPlaneDistanceCoordinates))) {
         setState(() {
-          mapController.bounds.extend(flightStartCoordinates);
-          mapController.bounds.extend(farPlaneDistanceCoordinates);
-          mapController.fitBounds(mapController.bounds,
+          mapController!.bounds!.extend(flightStartCoordinates);
+          mapController!.bounds!.extend(farPlaneDistanceCoordinates);
+          mapController!.fitBounds(mapController!.bounds!,
               options: FitBoundsOptions(padding: EdgeInsets.all(100)));
         });
       } else {
         setState(() {
-          mapController.fitBounds(mapController.bounds,
+          mapController!.fitBounds(mapController!.bounds!,
               options: FitBoundsOptions(padding: EdgeInsets.all(100)));
         });
       }
@@ -55,9 +55,10 @@ class _HistoryMapState extends State<HistoryMap> {
   }
 
   Widget build(BuildContext context) {
-    LatLng centroid;
-    LatLng flightStartCoordinates = widget.flightHistory.flightStartCoordinates;
-    LatLng flightEndCoordinates = widget.flightHistory.flightEndCoordinates;
+    LatLng? centroid;
+    LatLng? flightStartCoordinates =
+        widget.flightHistory.flightStartCoordinates;
+    LatLng? flightEndCoordinates = widget.flightHistory.flightEndCoordinates;
     List<Marker> markers = [];
 
     if (flightStartCoordinates == null && flightEndCoordinates == null) {
@@ -71,7 +72,7 @@ class _HistoryMapState extends State<HistoryMap> {
     }
 
     if (flightStartCoordinates == null) {
-      markers.add(buildPlainEndPointMarker(flightEndCoordinates));
+      markers.add(buildPlainEndPointMarker(flightEndCoordinates!));
       centroid = flightEndCoordinates;
     } else if (flightEndCoordinates == null) {
       markers.add(buildPlainStartingPointMarker(flightStartCoordinates));
@@ -100,7 +101,7 @@ class _HistoryMapState extends State<HistoryMap> {
               PolylineLayerOptions(
                 polylines: [
                   Polyline(
-                      points: route,
+                      points: route as List<LatLng>,
                       strokeWidth: 6.0,
                       color: Colors.blue,
                       isDotted: true),

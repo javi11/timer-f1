@@ -3,10 +3,10 @@ import 'package:timerf1c/util/no_data.dart';
 
 class VoltageIndicator extends StatelessWidget {
   final bool voltageAlert;
-  final double voltage;
+  final double? voltage;
 
   VoltageIndicator(
-      {Key key, @required this.voltageAlert, @required this.voltage})
+      {Key? key, required this.voltageAlert, required this.voltage})
       : super(key: key);
 
   Widget build(BuildContext context) {

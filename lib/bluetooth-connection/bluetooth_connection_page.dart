@@ -16,7 +16,7 @@ Function _defaultOnConnected(ctx) {
 class BluetoothConnectionPage extends StatefulWidget {
   final Function onConnected;
 
-  BluetoothConnectionPage({Key key, this.onConnected = _defaultOnConnected})
+  BluetoothConnectionPage({Key? key, this.onConnected = _defaultOnConnected})
       : super(key: key);
   @override
   _BluetoothConnectionPageState createState() =>
@@ -24,8 +24,8 @@ class BluetoothConnectionPage extends StatefulWidget {
 }
 
 class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
-  ConnectionProvider _connectionProvider;
-  BluetoothDevice selectedDevice;
+  late ConnectionProvider _connectionProvider;
+  BluetoothDevice? selectedDevice;
 
   @override
   void initState() {
@@ -40,7 +40,7 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
     super.dispose();
   }
 
-  void _startScan({Duration timeout}) {
+  void _startScan({Duration? timeout}) {
     _connectionProvider.startScan(timeout: timeout);
   }
 
@@ -80,9 +80,9 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
               return ConnectingDevice(
                   onConnected: widget.onConnected(context),
                   connectionStatus: connectionProvider.connectionStatus,
-                  deviceName: connectionProvider.pariedBTDevice.name != null
-                      ? connectionProvider.pariedBTDevice.name
-                      : connectionProvider.pariedBTDevice.id,
+                  deviceName: connectionProvider.pariedBTDevice!.name != null
+                      ? connectionProvider.pariedBTDevice!.name
+                      : connectionProvider.pariedBTDevice!.id,
                   onConnect: _onConnect);
             }
 

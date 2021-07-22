@@ -10,7 +10,7 @@ Widget roundButton(Widget child, Function onPressed,
       child: InkWell(
         splashColor: Colors.grey, // inkwell color
         child: SizedBox(width: size, height: size, child: child),
-        onTap: onPressed,
+        onTap: onPressed as void Function()?,
       ),
     ),
   );

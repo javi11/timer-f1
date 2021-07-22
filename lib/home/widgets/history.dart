@@ -14,9 +14,9 @@ class History extends StatelessWidget {
   final Function onStartFlight;
 
   History(
-      {Key key,
-      @required this.handleScrollNotification,
-      @required this.onStartFlight})
+      {Key? key,
+      required this.handleScrollNotification,
+      required this.onStartFlight})
       : super(key: key);
 
   Widget _buildBox(String text, IconData icon, String data,
@@ -35,7 +35,7 @@ class History extends StatelessWidget {
   }
 
   Widget _listItem(FlightHistory history, BuildContext context) {
-    String duration = ((history.durationInMs / 1000) / 60).toStringAsFixed(2);
+    String duration = ((history.durationInMs! / 1000) / 60).toStringAsFixed(2);
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -55,7 +55,7 @@ class History extends StatelessWidget {
                 Row(
                   children: <Widget>[
                     getDayAvatar(DateTime.fromMillisecondsSinceEpoch(
-                            history.startTimestamp)
+                            history.startTimestamp!)
                         .weekday),
                     SizedBox(
                       height: 24,
@@ -66,12 +66,12 @@ class History extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          'Plane Id: ' + history.planeId,
+                          'Plane Id: ' + history.planeId!,
                           style: TextStyle(fontSize: 18),
                         ),
                         Text(DateFormat('dd-MM-yyyy kk:mm:ss').format(
                             DateTime.fromMillisecondsSinceEpoch(
-                                history.startTimestamp)))
+                                history.startTimestamp!)))
                       ],
                     )
                   ],
@@ -85,13 +85,13 @@ class History extends StatelessWidget {
                       width: 5,
                     ),
                     _buildBox('Distance', Icons.transfer_within_a_station,
-                        distanceToString(history.maxDistanceFromUser)),
+                        distanceToString(history.maxDistanceFromUser!)),
                     SizedBox(
                       height: 24,
                       width: 5,
                     ),
                     _buildBox('Height', Icons.line_weight,
-                        distanceToString(history.maxHeight)),
+                        distanceToString(history.maxHeight!)),
                     SizedBox(
                       height: 24,
                       width: 5,

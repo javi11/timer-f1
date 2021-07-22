@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart' as bt;
 import 'package:timerf1c/models/bluetooth_device.dart';
@@ -13,14 +14,14 @@ const TIMER_NAME = 'DSD TECH';
 const Duration tenSeconds = Duration(seconds: 10);
 
 class ConnectionProvider extends ChangeNotifier {
-  BluetoothDevice _pairedBTDevice;
-  Device connectedDevice;
+  BluetoothDevice? _pairedBTDevice;
+  Device? connectedDevice;
   ConnectionStatus _connectionStatus = ConnectionStatus.DISCONNECTED;
   ConnectionStatus get connectionStatus => _connectionStatus;
-  BluetoothDevice get pariedBTDevice => _pairedBTDevice;
+  BluetoothDevice? get pariedBTDevice => _pairedBTDevice;
   bt.FlutterBlue flutterBlue = bt.FlutterBlue.instance;
-  StreamSubscription<List<bt.ScanResult>> _scanSubscription;
-  StreamSubscription<bt.BluetoothDeviceState> _btSubscription;
+  StreamSubscription<List<bt.ScanResult>>? _scanSubscription;
+  StreamSubscription<bt.BluetoothDeviceState>? _btSubscription;
 
   List<bt.ScanResult> _devicesList = [];
   UnmodifiableListView<bt.ScanResult> get devicesList =>
@@ -29,11 +30,11 @@ class ConnectionProvider extends ChangeNotifier {
   Future<void> init() async {
     await this.loadPairedDeviceFromSettings();
 
-    UsbSerial.usbEventStream.listen((event) {
-      if (event.event.contains(UsbEvent.ACTION_USB_ATTACHED) &&
-          event.device.manufacturerName == USB_DEVICE_NAME) {
+    UsbSerial.usbEventStream!.listen((event) {
+      if (event.event!.contains(UsbEvent.ACTION_USB_ATTACHED) &&
+          event.device!.manufacturerName == USB_DEVICE_NAME) {
         connectedDevice = Device(DeviceType.USB, usbDevice: event.device);
-      } else if (event.event.contains(UsbEvent.ACTION_USB_DETACHED) &&
+      } else if (event.event!.contains(UsbEvent.ACTION_USB_DETACHED) &&
           connectedDevice != null) {
         this.disconnect();
       }
@@ -55,7 +56,7 @@ class ConnectionProvider extends ChangeNotifier {
   Future<void> _disconnect() async {
     await _btSubscription?.cancel();
     if (_connectionStatus == ConnectionStatus.CONNECTED) {
-      await connectedDevice.disconnect();
+      await connectedDevice!.disconnect();
     }
     _connectionStatus = ConnectionStatus.DISCONNECTED;
     connectedDevice = null;
@@ -80,17 +81,17 @@ class ConnectionProvider extends ChangeNotifier {
   }
 
   Future<void> stopDataStream() async {
-    if (connectedDevice.type == DeviceType.Bluetooth) {
+    if (connectedDevice!.type == DeviceType.Bluetooth) {
       await (connectedDevice as BluetoothDevice).stopDataStream();
     }
   }
 
-  Future<void> connect(Device device) async {
+  Future<void> connect(Device? device) async {
     if (device != null) {
       // Force disconnect bluetooth in case that usb is connected
       if (device.type == DeviceType.USB &&
           _connectionStatus == ConnectionStatus.CONNECTED) {
-        await connectedDevice.disconnect();
+        await connectedDevice!.disconnect();
         _connectionStatus = ConnectionStatus.DISCONNECTED;
       }
 
@@ -112,7 +113,7 @@ class ConnectionProvider extends ChangeNotifier {
         }
         connectedDevice = device;
 
-        if (connectedDevice.type == DeviceType.Bluetooth) {
+        if (connectedDevice!.type == DeviceType.Bluetooth) {
           _btSubscription =
               (connectedDevice as BluetoothDevice).state.listen((event) {
             if (event == bt.BluetoothDeviceState.connected) {
@@ -144,13 +145,12 @@ class ConnectionProvider extends ChangeNotifier {
     notifyListeners();
     await flutterBlue.stopScan();
     if (connectedDevice != null) {
-      await connectedDevice.disconnect();
+      await connectedDevice!.disconnect();
     }
     _scanSubscription = flutterBlue.scanResults.listen((results) async {
       if (_pairedBTDevice != null) {
-        var found = results.firstWhere(
-            (element) => element.device.id.id == _pairedBTDevice.id,
-            orElse: () => null);
+        var found = results.firstWhereOrNull(
+            (element) => element.device.id.id == _pairedBTDevice!.id);
 
         if (found != null) {
           _scanSubscription?.cancel();

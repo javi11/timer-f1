@@ -6,9 +6,9 @@ class ClippedPartsWidget extends StatelessWidget {
   final double Function(Size, double) splitFunction;
 
   ClippedPartsWidget({
-    @required this.top,
-    @required this.bottom,
-    @required this.splitFunction,
+    required this.top,
+    required this.bottom,
+    required this.splitFunction,
   });
 
   @override
@@ -33,7 +33,7 @@ class ClippedPartsWidget extends StatelessWidget {
 class FunctionClipper extends CustomClipper<Path> {
   final double Function(Size, double) splitFunction;
 
-  FunctionClipper({@required this.splitFunction}) : super();
+  FunctionClipper({required this.splitFunction}) : super();
 
   Path getClip(Size size) {
     final path = Path();

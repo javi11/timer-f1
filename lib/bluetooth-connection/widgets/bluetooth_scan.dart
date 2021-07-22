@@ -6,26 +6,26 @@ class ScanView extends StatefulWidget {
   final ConnectionStatus connectionStatus;
   final Function startScan;
 
-  ScanView({Key key, @required this.connectionStatus, @required this.startScan})
+  ScanView({Key? key, required this.connectionStatus, required this.startScan})
       : super(key: key);
   @override
   _ScanViewState createState() => _ScanViewState();
 }
 
 class _ScanViewState extends State<ScanView> with TickerProviderStateMixin {
-  AnimationController _controller;
+  AnimationController? _controller;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this);
-    _controller.reset();
+    _controller!.reset();
   }
 
   @override
   void dispose() {
-    _controller.stop();
-    _controller.dispose();
+    _controller!.stop();
+    _controller!.dispose();
     super.dispose();
   }
 
@@ -36,7 +36,7 @@ class _ScanViewState extends State<ScanView> with TickerProviderStateMixin {
     return Container(
         decoration: BoxDecoration(
             gradient: LinearGradient(
-                colors: [Colors.blue, Colors.blue[300]],
+                colors: [Colors.blue, Colors.blue[300]!],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter)),
         child: Column(children: [
@@ -47,8 +47,8 @@ class _ScanViewState extends State<ScanView> with TickerProviderStateMixin {
             child: Lottie.asset("assets/animations/start-scanning.json",
                 controller: this._controller,
                 repeat: true, onLoaded: (composition) {
-              _controller.duration = composition.duration;
-              _controller.repeat();
+              _controller!.duration = composition.duration;
+              _controller!.repeat();
               if (widget.connectionStatus != ConnectionStatus.SCANNING) {
                 widget.startScan();
               }
@@ -73,7 +73,7 @@ class _ScanViewState extends State<ScanView> with TickerProviderStateMixin {
                   splashColor: Colors.blueAccent,
                   onPressed: () {
                     widget.startScan(timeout: Duration(seconds: 20));
-                    _controller.repeat();
+                    _controller!.repeat();
                   },
                   child: Text(
                     "Retry",

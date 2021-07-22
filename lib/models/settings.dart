@@ -5,7 +5,7 @@ final String _pairedDeviceMACKey = 'pairedDeviceMACKey';
 final String _pairedDeviceNameKey = 'pairedDeviceNameKey';
 
 class Settings {
-  static Future<BluetoothDevice> get pairedBTDevice async {
+  static Future<BluetoothDevice?> get pairedBTDevice async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var name = prefs.getString(_pairedDeviceNameKey);
     var id = prefs.getString(_pairedDeviceMACKey);
@@ -13,7 +13,7 @@ class Settings {
     if (name != null && id != null) {
       return BluetoothDevice.createBluetoothDevice(
           deviceName: prefs.getString(_pairedDeviceNameKey),
-          deviceIdentifier: prefs.getString(_pairedDeviceMACKey));
+          deviceIdentifier: prefs.getString(_pairedDeviceMACKey)!);
     }
 
     return null;
