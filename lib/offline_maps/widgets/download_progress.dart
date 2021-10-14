@@ -1,48 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:lottie/lottie.dart';
 
-Widget getLoadProgresWidget(BuildContext context, int tileIndex, int tileAmount,
-    List<String> tilesErrored, double progress) {
+Widget getLoadProgresWidget(
+    BuildContext context,
+    int tileIndex,
+    int tileAmount,
+    List<String> tilesErrored,
+    double progress,
+    void Function() onDownloadFinish,
+    AnimationController? _downloadController) {
   if (tileAmount == 0) {
     tileAmount = 1;
   }
   return Column(
     mainAxisSize: MainAxisSize.min,
     children: <Widget>[
-      SizedBox(
-        width: 50,
-        height: 50,
-        child: Stack(
-          children: <Widget>[
-            SizedBox(
-              width: 50,
-              height: 50,
-              child: CircularProgressIndicator(
-                backgroundColor: Colors.grey,
-                value: progress / 100,
-              ),
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Text(
-                progress == 100.0
-                    ? '100%'
-                    : (progress.toStringAsFixed(1) + '%'),
-                style: Theme.of(context).textTheme.subtitle1,
-              ),
-            )
-          ],
-        ),
-      ),
-      SizedBox(
-        height: 8,
-      ),
-      Text(
-        progress == 100.0
-            ? 'Download Finished'
-            : '${tilesErrored.length == 0 ? '' : ((tileIndex - tilesErrored.length).toString() + '/')}$tileIndex/$tileAmount\nPlease Wait',
-        style: Theme.of(context).textTheme.subtitle2,
-        textAlign: TextAlign.center,
+      Lottie.asset("assets/animations/downloading.json",
+          animate: false,
+          controller: _downloadController, onLoaded: (composition) {
+        _downloadController!
+          ..duration = composition.duration
+          ..stop();
+      }),
+      TextButton(
+        child: progress == 100.0 ? Text('OK') : Text('Cancel'),
+        onPressed: () {
+          var nav = Navigator.of(context);
+          nav.pop();
+          nav.pop();
+          onDownloadFinish();
+        },
       ),
       Visibility(
         visible: tilesErrored.length != 0,

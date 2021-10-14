@@ -1,9 +1,12 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:timerf1c/offline_maps/download_map_region.dart';
+import 'package:timerf1c/offline_maps/widgets/download_map_list.dart';
+import 'get_downloaded_maps.dart';
 
 class OfflineMapsPage extends StatefulWidget {
   OfflineMapsPage({Key? key}) : super(key: key);
@@ -12,43 +15,78 @@ class OfflineMapsPage extends StatefulWidget {
 }
 
 class _OfflineMapsPageState extends State<OfflineMapsPage> {
-  Future<List<String>> _getDownloadedMaps() async {
-    final List<String> cacheNames = [];
-    for (String cacheName in await TileStorageCachingManager.allCacheNames) {
-      cacheNames.add(cacheName);
-    }
-
-    return cacheNames;
+  void _onDeleteNewRegion(String regionName,
+      Future<void> Function(String downloadedMapName) onDeleteRegion) {
+    AwesomeDialog(
+        context: context,
+        keyboardAware: true,
+        dialogType: DialogType.QUESTION,
+        animType: AnimType.BOTTOMSLIDE,
+        headerAnimationLoop: false,
+        title: 'Delete ' + regionName,
+        desc: 'Are you sure you want to remove this region from the cache?.',
+        btnCancelOnPress: () {},
+        btnOkOnPress: () async {
+          await onDeleteRegion(regionName);
+          setState(() {});
+        }).show();
   }
 
-  Widget downloadedMapsList() {
-    return FutureBuilder(
-        future: _getDownloadedMaps(),
-        builder: (context, AsyncSnapshot<List<String>> downloadedMapsSnap) {
-          if (downloadedMapsSnap.hasData) {
-            return ListView.builder(
-              itemCount: downloadedMapsSnap.data!.length,
-              itemBuilder: (context, index) {
-                String downloadedMapName = downloadedMapsSnap.data![index];
-                return ListTile(
-                  title: Text(downloadedMapName,
-                      style: TextStyle(fontSize: 12, color: Colors.black54)),
-                );
-              },
-            );
-          } else if (downloadedMapsSnap.hasError) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Text('Error: ${downloadedMapsSnap.error}'),
-            );
-          }
+  // Update list on push region
+  void _onPushRegion() {
+    setState(() {});
+  }
 
-          return SizedBox(
-            child: CircularProgressIndicator(),
-            width: 60,
-            height: 60,
-          );
-        });
+  void _onAddNewRegion() {
+    TextEditingController controller = new TextEditingController(text: '');
+    AwesomeDialog(
+        context: context,
+        keyboardAware: true,
+        dialogType: DialogType.QUESTION,
+        animType: AnimType.BOTTOMSLIDE,
+        headerAnimationLoop: false,
+        title: 'Specify the region name',
+        desc:
+            'Specify which is the region name that you will download to be identified later.',
+        btnCancelOnPress: () {},
+        body: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(children: <Widget>[
+              Text(
+                'Specify the region name',
+                style: Theme.of(context).textTheme.headline6,
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Material(
+                elevation: 0,
+                color: Colors.blueGrey.withAlpha(40),
+                child: TextFormField(
+                  controller: controller,
+                  autofocus: true,
+                  minLines: 1,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    prefixIcon: Icon(Icons.text_fields),
+                  ),
+                ),
+              )
+            ])),
+        btnOkOnPress: () async {
+          Navigator.push(
+              context,
+              PageTransition(
+                  type: PageTransitionType.rightToLeft,
+                  child: DownloadMapRegionPage(
+                    onPushRegion: _onPushRegion,
+                    regionName: controller.text,
+                  )));
+        }).show();
+  }
+
+  Future<void> _onDeleteRegion(String downloadedMapName) async {
+    await TileStorageCachingManager.cleanCacheName(downloadedMapName);
   }
 
   @override
@@ -74,11 +112,7 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
             children: <Widget>[
               Material(
                 child: InkWell(
-                  onTap: () => Navigator.push(
-                      context,
-                      PageTransition(
-                          type: PageTransitionType.rightToLeft,
-                          child: DownloadMapRegionPage())),
+                  onTap: _onAddNewRegion,
                   child: ListTile(
                     contentPadding: EdgeInsets.only(
                         top: 10, bottom: 10, right: 20, left: 20),
@@ -95,10 +129,13 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
                 title: Text('Downloaded maps',
                     style: TextStyle(fontSize: 15, color: Colors.black54)),
               ),
-              Expanded(
-                  child: SizedBox(
-                      height: MediaQuery.of(context).size.height,
-                      child: downloadedMapsList()))
+              downloadedMapsList((downloadedMapName) => InkWell(
+                  onTap: () =>
+                      _onDeleteNewRegion(downloadedMapName, _onDeleteRegion),
+                  child: Icon(
+                    Icons.delete_forever,
+                    size: 30,
+                  )))
             ],
           ),
         ));

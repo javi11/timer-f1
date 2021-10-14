@@ -33,7 +33,7 @@ class FlightData {
   double? pressure = 0;
   double? voltage = 0;
   bool voltageAlert = false;
-  List<LatLng?>? route = [LatLng(0, 0), LatLng(0, 0)];
+  List<LatLng>? route = [LatLng(0, 0), LatLng(0, 0)];
   LatLng userCoordinates = LatLng(0, 0);
   double? planeDistanceFromUser;
 
@@ -79,7 +79,10 @@ class FlightData {
         this.planeDistanceFromUser = null;
         this.route = null;
       } else {
-        this.route = <LatLng?>[this.planeCoordinates, this.userCoordinates];
+        this.route = <LatLng>[
+          this.planeCoordinates as LatLng,
+          this.userCoordinates
+        ];
         this.planeDistanceFromUser =
             calculateDistance(this.planeCoordinates, this.userCoordinates);
       }

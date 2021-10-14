@@ -6,17 +6,20 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:lottie/lottie.dart';
+import 'package:timerf1c/offline_maps/widgets/download_popup.dart';
 import 'package:timerf1c/offline_maps/widgets/download_progress.dart';
 import 'package:timerf1c/providers/map_provider.dart';
 
 class DownloadMapRegionPage extends StatefulWidget {
-  DownloadMapRegionPage({Key? key}) : super(key: key);
+  final String regionName;
+  final void Function() onPushRegion;
+  DownloadMapRegionPage(
+      {Key? key, required this.regionName, required this.onPushRegion})
+      : super(key: key);
   @override
   _DownloadMapRegionPageState createState() => _DownloadMapRegionPageState();
 }
-
-double squareNorthThreshold = 0.001;
-double squareSouthThreshold = 0.0025;
 
 class _DownloadMapRegionPageState extends State<DownloadMapRegionPage> {
   MapController? mapController;
@@ -25,21 +28,21 @@ class _DownloadMapRegionPageState extends State<DownloadMapRegionPage> {
   RectangleRegion? _selectedBoundsSqrRegion;
   late StreamSubscription<MapEvent> _mapEventListener;
   late StorageCachingTileProvider _tileProvider;
-  late StreamController<DownloadProgress> _downloadStreamController;
+  StreamController<DownloadProgress>? _downloadStreamController;
 
   _drawDownloadArea() {
     double south = mapController!.bounds!.south > 0
-        ? mapController!.bounds!.south + squareSouthThreshold
-        : mapController!.bounds!.south - squareSouthThreshold;
+        ? mapController!.bounds!.south
+        : mapController!.bounds!.south;
     double north = mapController!.bounds!.north > 0
-        ? mapController!.bounds!.north - squareNorthThreshold
-        : mapController!.bounds!.north + squareNorthThreshold;
+        ? mapController!.bounds!.north
+        : mapController!.bounds!.north;
     double west = mapController!.bounds!.west > 0
-        ? mapController!.bounds!.west + squareNorthThreshold
-        : mapController!.bounds!.west - squareNorthThreshold;
+        ? mapController!.bounds!.west
+        : mapController!.bounds!.west;
     double east = mapController!.bounds!.east > 0
-        ? mapController!.bounds!.east - squareNorthThreshold
-        : mapController!.bounds!.east + squareNorthThreshold;
+        ? mapController!.bounds!.east
+        : mapController!.bounds!.east;
 
     final sw = LatLng(south, west);
     final ne = LatLng(north, east);
@@ -63,7 +66,7 @@ class _DownloadMapRegionPageState extends State<DownloadMapRegionPage> {
   void initState() {
     super.initState();
 
-    _tileProvider = StorageCachingTileProvider();
+    _tileProvider = StorageCachingTileProvider(cacheName: widget.regionName);
     _centerOnLocationUpdate = CenterOnLocationUpdate.first;
     _centerCurrentLocationStreamController = StreamController<double>();
     mapController = MapController();
@@ -75,7 +78,14 @@ class _DownloadMapRegionPageState extends State<DownloadMapRegionPage> {
     });
   }
 
-  _downloadRegionForeground() {
+  _onDownloadFinish(context) {
+    var nav = Navigator.of(context);
+    nav.pop();
+    nav.pop();
+    widget.onPushRegion();
+  }
+
+  void _onStartDownload() {
     _downloadStreamController = new StreamController();
     final downloableRegionStream =
         _tileProvider.downloadRegion(_selectedBoundsSqrRegion!.toDownloadable(
@@ -86,34 +96,40 @@ class _DownloadMapRegionPageState extends State<DownloadMapRegionPage> {
               urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
               subdomains: ['a', 'b', 'c'],
             )));
+    _downloadStreamController!.addStream(downloableRegionStream);
+  }
 
-    AwesomeDialog(
-      btnCancelOnPress: () {
-        if (!_downloadStreamController.isClosed) {
-          _downloadStreamController.close();
-        }
-      },
+  void _onCancelDownload(context) {
+    _downloadStreamController!.close();
+    _onDownloadFinish(context);
+  }
+
+  _downloadRegionForeground() async {
+    _onStartDownload();
+
+    await showDialog<void>(
       context: context,
-      animType: AnimType.SCALE,
-      dialogType: DialogType.NO_HEADER,
-      body: StreamBuilder<DownloadProgress>(
-        initialData: DownloadProgress.placeholder(),
-        stream: _downloadStreamController.stream.asBroadcastStream(),
-        builder: (ctx, snapshot) {
-          if (snapshot.hasError) {
-            return Text('error: ${snapshot.error.toString()}');
-          }
-          final tileIndex = snapshot.data?.completedTiles ?? 0;
-          final tilesAmount = snapshot.data?.totalTiles ?? 0;
-          final tilesErrored = snapshot.data?.erroredTiles ?? [];
-          final progressPercentage = snapshot.data?.percentageProgress ?? 0;
-          return getLoadProgresWidget(
-              ctx, tileIndex, tilesAmount, tilesErrored, progressPercentage);
-        },
-      ),
-      title: 'Downloading Area...',
-    )..show();
-    _downloadStreamController.addStream(downloableRegionStream);
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+            title: Text('Downloading Area...'),
+            content: StreamBuilder<DownloadProgress>(
+              initialData: DownloadProgress.placeholder(),
+              stream: _downloadStreamController!.stream.asBroadcastStream(),
+              builder: (ctx, snapshot) {
+                if (snapshot.hasError) {
+                  return Text('error: ${snapshot.error.toString()}');
+                }
+                final progressPercentage =
+                    snapshot.data?.percentageProgress ?? 0;
+                return DownloadPopUp(
+                    percentage: progressPercentage,
+                    onCancel: _onCancelDownload,
+                    onDownloadFinish: _onDownloadFinish);
+              },
+            ));
+      },
+    );
   }
 
   Future<void> _onDownloadRegion() async {
@@ -147,7 +163,7 @@ class _DownloadMapRegionPageState extends State<DownloadMapRegionPage> {
     super.dispose();
     _mapEventListener.cancel();
     _centerCurrentLocationStreamController.close();
-    _downloadStreamController.close();
+    _downloadStreamController!.close();
   }
 
   @override
@@ -170,10 +186,17 @@ class _DownloadMapRegionPageState extends State<DownloadMapRegionPage> {
         title: Text('Download map region'),
         automaticallyImplyLeading: true,
       ),
-      bottomSheet: TextButton.icon(
-          onPressed: _onDownloadRegion,
-          icon: Icon(Icons.download_for_offline),
-          label: Text('Download Region')),
+      bottomSheet: Container(
+          alignment: Alignment.center,
+          width: MediaQuery.of(context).size.width,
+          height: 70,
+          child: TextButton.icon(
+              style: ButtonStyle(
+                  fixedSize: MaterialStateProperty.all(
+                      Size.fromWidth(MediaQuery.of(context).size.width))),
+              onPressed: _onDownloadRegion,
+              icon: Icon(Icons.download_for_offline),
+              label: Text('Download Region'))),
       body: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height - 140,
