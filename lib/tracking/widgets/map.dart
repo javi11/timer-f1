@@ -4,14 +4,11 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:timerf1c/models/flight_data.dart';
+import 'package:timerf1c/providers/map_provider.dart';
 import 'package:timerf1c/tracking/widgets/plain_marker.dart';
 
-Widget buildMap(
-    LocationMarkerPlugin locationMarkerPlugin,
-    List<Marker> markers,
-    FlightData flightData,
-    MapController mapController,
-    TileProvider? mapProvider) {
+Widget buildMap(LocationMarkerPlugin locationMarkerPlugin, List<Marker> markers,
+    FlightData flightData, MapController mapController) {
   List<Polygon> polylines = [];
 
   if (flightData.route != null) {
@@ -26,17 +23,10 @@ Widget buildMap(
         zoom: 15.0),
     children: [
       TileLayerWidget(
-          options: mapProvider != null
-              ? TileLayerOptions(
-                  tileProvider: mapProvider,
-                  urlTemplate:
-                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  subdomains: ['a', 'b', 'c'])
-              : TileLayerOptions(
-                  tileProvider: StorageCachingTileProvider(),
-                  urlTemplate:
-                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  subdomains: ['a', 'b', 'c'])),
+          options: TileLayerOptions(
+              tileProvider: tileProvider,
+              urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+              subdomains: ['a', 'b', 'c'])),
       MarkerLayerWidget(
           options: MarkerLayerOptions(
         markers: markers,

@@ -136,47 +136,20 @@ class _TrackingPageState extends State<TrackingPage> {
     _centerCurrentLocationStreamController = StreamController<double>();
 
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
-      if (await hasNetwork() == false) {
-        await showDialog(
-            context: context,
-            builder: (_) => buildOfflineListDialogDialog(
-                context,
-                (String downloadedMapName) => () async {
-                      setState(() {
-                        _selectedMapProvider = StorageCachingTileProvider(
-                            cacheName: downloadedMapName);
-                      });
-                      await showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          builder: (_) => buildWaitingForDataDialog(context));
+      await showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder: (_) => buildWaitingForDataDialog(context));
 
-                      Future.delayed(Duration(seconds: 10), () {
-                        if (timerDataAvailable == false) {
-                          Navigator.of(context).pop();
-                          showDialog(
-                              barrierDismissible: false,
-                              context: context,
-                              builder: (_) => buildNoDataDialog(context));
-                        }
-                      });
-                    }));
-      } else {
-        await showDialog(
-            barrierDismissible: false,
-            context: context,
-            builder: (_) => buildWaitingForDataDialog(context));
-
-        Future.delayed(Duration(seconds: 10), () {
-          if (timerDataAvailable == false) {
-            Navigator.of(context).pop();
-            showDialog(
-                barrierDismissible: false,
-                context: context,
-                builder: (_) => buildNoDataDialog(context));
-          }
-        });
-      }
+      Future.delayed(Duration(seconds: 10), () {
+        if (timerDataAvailable == false) {
+          Navigator.of(context).pop();
+          showDialog(
+              barrierDismissible: false,
+              context: context,
+              builder: (_) => buildNoDataDialog(context));
+        }
+      });
     });
 
     _locationSubscription = location.onLocationChanged.listen((event) {
@@ -332,8 +305,7 @@ class _TrackingPageState extends State<TrackingPage> {
       background: Stack(
         alignment: Alignment.topCenter,
         children: <Widget>[
-          buildMap(locationMarkerPlugin, markers, flightData!, mapController,
-              _selectedMapProvider),
+          buildMap(locationMarkerPlugin, markers, flightData!, mapController),
           Positioned(
               height: 60,
               width: 60,

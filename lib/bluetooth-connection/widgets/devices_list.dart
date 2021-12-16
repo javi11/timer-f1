@@ -1,11 +1,11 @@
 import 'dart:collection';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart' as bt;
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart' as bt;
 import 'package:timerf1c/models/bluetooth_device.dart';
 import 'package:timerf1c/types.dart';
 
 class DeviceList extends StatelessWidget {
-  final UnmodifiableListView<bt.ScanResult> deviceList;
+  final UnmodifiableListView<bt.DiscoveredDevice> deviceList;
   final ConnectionStatus connectionStatus;
   final Function onPair;
   final Function onRetry;
@@ -54,19 +54,17 @@ class DeviceList extends StatelessWidget {
                 physics: BouncingScrollPhysics(),
                 itemCount: deviceList.length,
                 itemBuilder: (BuildContext ctxt, int index) {
-                  bt.ScanResult scanResult = deviceList[index];
+                  bt.DiscoveredDevice device = deviceList[index];
 
                   return ListTile(
                     onTap: () {
-                      onPair(BluetoothDevice(scanResult.device));
+                      onPair(BluetoothDevice(device.name, device.id));
                     },
                     leading: Icon(Icons.bluetooth),
                     isThreeLine: true,
-                    subtitle: Text(
-                        'Signal: ${scanResult.rssi} mDb \n Id: ${scanResult.device.id.id}'),
-                    title: Text(scanResult.device.name.isEmpty
-                        ? scanResult.device.id.id
-                        : scanResult.device.name),
+                    subtitle:
+                        Text('Signal: ${device.rssi} mDb \n Id: ${device.id}'),
+                    title: Text(device.name.isEmpty ? device.id : device.name),
                   );
                 })),
       ],

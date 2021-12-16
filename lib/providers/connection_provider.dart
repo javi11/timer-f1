@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:collection';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart' as bt;
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart' as bt;
+import 'package:timerf1c/ble/ble.dart';
+import 'package:timerf1c/ble/ble_scanner.dart';
 import 'package:timerf1c/models/bluetooth_device.dart';
 import 'package:timerf1c/models/device.dart';
 import 'package:timerf1c/models/settings.dart';
@@ -16,15 +18,15 @@ const Duration tenSeconds = Duration(seconds: 10);
 class ConnectionProvider extends ChangeNotifier {
   BluetoothDevice? _pairedBTDevice;
   Device? connectedDevice;
+  StreamSubscription<BleScannerState>? _scanSubscription;
   ConnectionStatus _connectionStatus = ConnectionStatus.DISCONNECTED;
   ConnectionStatus get connectionStatus => _connectionStatus;
   BluetoothDevice? get pariedBTDevice => _pairedBTDevice;
-  bt.FlutterBlue flutterBlue = bt.FlutterBlue.instance;
-  StreamSubscription<List<bt.ScanResult>>? _scanSubscription;
-  StreamSubscription<bt.BluetoothDeviceState>? _btSubscription;
 
-  List<bt.ScanResult> _devicesList = [];
-  UnmodifiableListView<bt.ScanResult> get devicesList =>
+  late StreamSubscription<bt.ConnectionStateUpdate> _btSubscription;
+
+  List<bt.DiscoveredDevice> _devicesList = [];
+  UnmodifiableListView<bt.DiscoveredDevice> get devicesList =>
       UnmodifiableListView(_devicesList);
 
   Future<void> init() async {
@@ -54,7 +56,7 @@ class ConnectionProvider extends ChangeNotifier {
   }
 
   Future<void> _disconnect() async {
-    await _btSubscription?.cancel();
+    await scanner.stopScan();
     if (_connectionStatus == ConnectionStatus.CONNECTED) {
       await connectedDevice!.disconnect();
     }
@@ -114,11 +116,11 @@ class ConnectionProvider extends ChangeNotifier {
         connectedDevice = device;
 
         if (connectedDevice!.type == DeviceType.Bluetooth) {
-          _btSubscription =
-              (connectedDevice as BluetoothDevice).state.listen((event) {
-            if (event == bt.BluetoothDeviceState.connected) {
+          _btSubscription = connector.state.listen((event) {
+            if (event.connectionState == bt.DeviceConnectionState.connected) {
               _connectionStatus = ConnectionStatus.CONNECTED;
-            } else if (event == bt.BluetoothDeviceState.disconnected &&
+            } else if (event.connectionState ==
+                    bt.DeviceConnectionState.disconnected &&
                 _connectionStatus != ConnectionStatus.TIMEOUT_ERROR) {
               _connectionStatus = ConnectionStatus.DISCONNECTED;
             }
@@ -143,44 +145,41 @@ class ConnectionProvider extends ChangeNotifier {
   Future<void> startScan({dynamic timeout}) async {
     _connectionStatus = ConnectionStatus.SCANNING;
     notifyListeners();
-    await flutterBlue.stopScan();
+    await scanner.stopScan();
     if (connectedDevice != null) {
       await connectedDevice!.disconnect();
     }
-    _scanSubscription = flutterBlue.scanResults.listen((results) async {
-      if (_pairedBTDevice != null) {
-        var found = results.firstWhereOrNull(
-            (element) => element.device.id.id == _pairedBTDevice!.id);
-
-        if (found != null) {
-          _scanSubscription?.cancel();
-          await flutterBlue.stopScan();
-          Device device = Device(DeviceType.Bluetooth, btDevice: found.device);
-          this.connect(device);
-        }
-      } else {
-        _devicesList = results
-            .where((element) => element.device.name.contains(TIMER_NAME))
-            .toList();
+    _scanSubscription = scanner.state.listen((results) async {
+      if (results.scanIsInProgress == false && _devicesList.length == 0) {
+        _connectionStatus = ConnectionStatus.NO_DEVICES_FOUND;
         notifyListeners();
+      } else {
+        if (_pairedBTDevice != null) {
+          var found = results.discoveredDevices
+              .firstWhereOrNull((element) => element.id == _pairedBTDevice!.id);
+
+          if (found != null) {
+            _scanSubscription?.cancel();
+            await scanner.stopScan();
+            Device device = Device(DeviceType.Bluetooth, btDevice: found);
+            this.connect(device);
+          }
+        } else {
+          _devicesList = results.discoveredDevices
+              .where((element) => element.name.contains(TIMER_NAME))
+              .toList();
+          notifyListeners();
+        }
       }
     });
-    try {
-      await flutterBlue.startScan(
-          timeout: timeout == null ? tenSeconds : timeout);
-    } catch (e) {}
-    if (_devicesList.length == 0) {
-      _connectionStatus = ConnectionStatus.NO_DEVICES_FOUND;
-    } else if (_connectionStatus != ConnectionStatus.CONNECTED) {
-      _connectionStatus = ConnectionStatus.DISCONNECTED;
-    }
+    scanner.startScan([bt.Uuid.parse(CUSTOM_SERVICE_UUID)]);
 
     notifyListeners();
   }
 
   Future<void> stopScan() async {
     _scanSubscription?.cancel();
-    await flutterBlue.stopScan();
+    await scanner.stopScan();
     if (_connectionStatus != ConnectionStatus.CONNECTED) {
       _connectionStatus = ConnectionStatus.DISCONNECTED;
     }

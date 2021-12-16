@@ -7,6 +7,7 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lottie/lottie.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:timerf1c/offline_maps/widgets/download_popup.dart';
 import 'package:timerf1c/offline_maps/widgets/download_progress.dart';
 import 'package:timerf1c/providers/map_provider.dart';
@@ -65,8 +66,12 @@ class _DownloadMapRegionPageState extends State<DownloadMapRegionPage> {
 
   void initState() {
     super.initState();
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+      var directory = await getApplicationSupportDirectory();
+      _tileProvider = StorageCachingTileProvider(
+          parentDirectory: directory, storeName: widget.regionName);
+    });
 
-    _tileProvider = StorageCachingTileProvider(cacheName: widget.regionName);
     _centerOnLocationUpdate = CenterOnLocationUpdate.first;
     _centerCurrentLocationStreamController = StreamController<double>();
     mapController = MapController();
@@ -87,15 +92,17 @@ class _DownloadMapRegionPageState extends State<DownloadMapRegionPage> {
 
   void _onStartDownload() {
     _downloadStreamController = new StreamController();
-    final downloableRegionStream =
-        _tileProvider.downloadRegion(_selectedBoundsSqrRegion!.toDownloadable(
+    final downloableRegionStream = _tileProvider.downloadRegion(
+        _selectedBoundsSqrRegion!.toDownloadable(
             8,
             17,
             TileLayerOptions(
               tileProvider: _tileProvider,
               urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
               subdomains: ['a', 'b', 'c'],
-            )));
+            )),
+        preDownloadChecksCallback:
+            (_connectivityResult, _number, _chargingStatus) async => true);
     _downloadStreamController!.addStream(downloableRegionStream);
   }
 
@@ -114,7 +121,7 @@ class _DownloadMapRegionPageState extends State<DownloadMapRegionPage> {
         return AlertDialog(
             title: Text('Downloading Area...'),
             content: StreamBuilder<DownloadProgress>(
-              initialData: DownloadProgress.placeholder(),
+              initialData: DownloadProgress.empty(),
               stream: _downloadStreamController!.stream.asBroadcastStream(),
               builder: (ctx, snapshot) {
                 if (snapshot.hasError) {
@@ -142,20 +149,13 @@ class _DownloadMapRegionPageState extends State<DownloadMapRegionPage> {
           subdomains: ['a', 'b', 'c'],
         ));
     final approximateTileCount =
-        StorageCachingTileProvider.checkRegion(downloadableRegion);
+        await StorageCachingTileProvider.checkRegion(downloadableRegion);
     if (approximateTileCount >
         StorageCachingTileProvider.kMaxPreloadTileAreaCount) {
       _showErrorSnack('Selected area to large, please select an smaller area.');
       return;
     }
-    final isAllowBackgroundDownload =
-        await StorageCachingTileProvider.requestIgnoreBatteryOptimizations(
-            context);
-    if (!isAllowBackgroundDownload) {
-      _downloadRegionForeground();
-    } else {
-      _tileProvider.downloadRegionBackground(downloadableRegion);
-    }
+    _downloadRegionForeground();
   }
 
   @override
