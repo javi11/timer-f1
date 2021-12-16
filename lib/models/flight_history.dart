@@ -1,23 +1,24 @@
 import 'dart:collection';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:latlong2/latlong.dart';
 import 'package:timerf1c/models/flight_data.dart';
 import 'package:timerf1c/util/distance_calculator.dart';
 
 class FlightHistory {
-  int id;
+  int? id;
   List<FlightData> _data = [];
-  int durationInMs = 0;
-  int startTimestamp = 0;
-  int endTimestamp = 0;
-  String planeId = 'uknown';
-  double maxPressure = 0;
-  double maxHeight = 0;
-  double maxTemperature = 0;
-  double maxDistanceFromUser = 0;
-  double maxPlaneDistanceFromStart = 0;
-  LatLng farPlaneDistanceCoordinates;
-  LatLng flightStartCoordinates;
-  LatLng flightEndCoordinates;
+  int? durationInMs = 0;
+  int? startTimestamp = 0;
+  int? endTimestamp = 0;
+  String? planeId = 'uknown';
+  double? maxPressure = 0;
+  double? maxHeight = 0;
+  double? maxTemperature = 0;
+  double? maxDistanceFromUser = 0;
+  double? maxPlaneDistanceFromStart = 0;
+  LatLng? farPlaneDistanceCoordinates;
+  LatLng? flightStartCoordinates;
+  LatLng? flightEndCoordinates;
 
   UnmodifiableListView<FlightData> get flightData =>
       UnmodifiableListView(_data);
@@ -60,21 +61,21 @@ class FlightHistory {
     this.startTimestamp = DateTime.now().millisecondsSinceEpoch;
   }
 
-  int end() {
+  int? end() {
     this.endTimestamp = DateTime.now().millisecondsSinceEpoch;
-    this.durationInMs = this.endTimestamp - this.startTimestamp;
+    this.durationInMs = this.endTimestamp! - this.startTimestamp!;
     this._data.forEach((element) {
-      if (element.height > this.maxHeight) {
+      if (element.height! > this.maxHeight!) {
         this.maxHeight = element.height;
       }
-      if (element.pressure > this.maxPressure) {
+      if (element.pressure! > this.maxPressure!) {
         this.maxPressure = element.pressure;
       }
-      if (element.temperature > this.maxTemperature) {
+      if (element.temperature! > this.maxTemperature!) {
         this.maxTemperature = element.temperature;
       }
       if (element.planeDistanceFromUser != null &&
-          element.planeDistanceFromUser > this.maxDistanceFromUser) {
+          element.planeDistanceFromUser! > this.maxDistanceFromUser!) {
         this.maxDistanceFromUser = element.planeDistanceFromUser;
       }
       if (this.farPlaneDistanceCoordinates == null &&
@@ -83,8 +84,8 @@ class FlightHistory {
       }
       if (element.planeCoordinates != null) {
         double distanceFromStart = calculateDistance(
-            element.planeCoordinates, this.flightStartCoordinates);
-        if (distanceFromStart > this.maxPlaneDistanceFromStart) {
+            element.planeCoordinates, this.flightStartCoordinates)!;
+        if (distanceFromStart > this.maxPlaneDistanceFromStart!) {
           this.maxPlaneDistanceFromStart = distanceFromStart;
           this.farPlaneDistanceCoordinates = element.planeCoordinates;
         }
@@ -92,8 +93,7 @@ class FlightHistory {
     });
     this.flightEndCoordinates = this
         ._data
-        .lastWhere((element) => element.planeCoordinates != null,
-            orElse: () => null)
+        .lastWhereOrNull((element) => element.planeCoordinates != null)
         ?.planeCoordinates;
 
     return this.durationInMs;
@@ -114,19 +114,19 @@ class FlightHistory {
 
     if (farPlaneDistanceCoordinates != null) {
       map['farPlaneDistanceLat'] =
-          farPlaneDistanceCoordinates.latitude.toString();
+          farPlaneDistanceCoordinates!.latitude.toString();
       map['farPlaneDistanceLng'] =
-          farPlaneDistanceCoordinates.longitude.toString();
+          farPlaneDistanceCoordinates!.longitude.toString();
     }
 
     if (flightStartCoordinates != null) {
-      map['startFlightLat'] = flightStartCoordinates.latitude.toString();
-      map['startFlightLng'] = flightStartCoordinates.longitude.toString();
+      map['startFlightLat'] = flightStartCoordinates!.latitude.toString();
+      map['startFlightLng'] = flightStartCoordinates!.longitude.toString();
     }
 
     if (flightStartCoordinates != null) {
-      map['endFlightLat'] = flightEndCoordinates.latitude.toString();
-      map['endFlightLng'] = flightEndCoordinates.longitude.toString();
+      map['endFlightLat'] = flightEndCoordinates!.latitude.toString();
+      map['endFlightLng'] = flightEndCoordinates!.longitude.toString();
     }
 
     return map;

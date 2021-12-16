@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter_blue/flutter_blue.dart' as bt;
-import 'package:flutter_blue/gen/flutterblue.pb.dart' as proto;
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart' as bt;
+import 'package:timerf1c/ble/ble.dart';
 import 'package:timerf1c/models/device.dart';
 import 'package:timerf1c/util/timer_data_transformer.dart';
 
@@ -11,58 +11,46 @@ const CUSTOM_CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
 
 class BluetoothDevice implements Device {
   final DeviceType type = DeviceType.Bluetooth;
-  bt.BluetoothDevice _btDevice;
-  bt.BluetoothCharacteristic _characteristic;
+  bt.QualifiedCharacteristic? _characteristic;
+  String name;
+  String id;
 
   static BluetoothDevice createBluetoothDevice(
-      {String deviceName, String deviceIdentifier, DeviceBtType deviceType}) {
-    proto.BluetoothDevice p = proto.BluetoothDevice.create();
-    p.name = deviceName != null ? deviceName : '';
-    p.remoteId = deviceIdentifier;
-    if (deviceType == DeviceBtType.LE) {
-      p.type = proto.BluetoothDevice_Type.LE;
-    } else if (deviceType == DeviceBtType.CLASSIC) {
-      p.type = proto.BluetoothDevice_Type.CLASSIC;
-    } else if (deviceType == DeviceBtType.DUAL) {
-      p.type = proto.BluetoothDevice_Type.DUAL;
-    } else {
-      p.type = proto.BluetoothDevice_Type.UNKNOWN;
-    }
-
-    return BluetoothDevice(bt.BluetoothDevice.fromProto(p));
+      {String? deviceName, required String deviceIdentifier}) {
+    return BluetoothDevice(
+        deviceName != null ? deviceName : 'unknown', deviceIdentifier);
   }
 
-  BluetoothDevice(this._btDevice);
+  BluetoothDevice(this.name, this.id);
 
-  String get name {
-    return _btDevice.name;
-  }
-
-  String get id {
-    return _btDevice.id.id;
-  }
-
-  Stream<bt.BluetoothDeviceState> get state {
-    return _btDevice.state;
+  Stream<bt.ConnectionStateUpdate> get state {
+    return connector.state;
   }
 
   Future<void> connect(
-      {Duration timeout: const Duration(seconds: 20),
-      FutureOr<void> Function() onTimeout}) async {
-    await _btDevice.connect().timeout(timeout, onTimeout: onTimeout);
+      {Duration? timeout: const Duration(seconds: 20),
+      FutureOr<void> Function()? onTimeout}) async {
+    await connector.connect(this.id);
   }
 
-  Future<Stream<List<String>>> getDataStream() async {
-    Stream<List<String>> stream;
-    List<bt.BluetoothService> services = await _btDevice.discoverServices();
-    bt.BluetoothService service = services.firstWhere(
-        (service) => service.uuid.toString() == CUSTOM_SERVICE_UUID);
+  Future<Stream<List<String>?>?> getDataStream() async {
+    Stream<List<String>?>? stream;
+    List<bt.DiscoveredService> services =
+        await serviceDiscoverer.discoverServices(this.id);
+    bt.DiscoveredService service = services.firstWhere(
+        (service) => service.serviceId.toString() == CUSTOM_SERVICE_UUID);
     if (service != null) {
-      _characteristic = service.characteristics.firstWhere(
-          (element) => element.uuid.toString() == CUSTOM_CHARACTERISTIC_UUID);
-      if (_characteristic != null) {
-        await _characteristic.setNotifyValue(true);
-        stream = _characteristic.value
+      var characteristicId = service.characteristicIds.firstWhere(
+          (element) => element.toString() == CUSTOM_CHARACTERISTIC_UUID);
+      if (characteristicId != null) {
+        var characteristic = bt.QualifiedCharacteristic(
+            characteristicId: characteristicId,
+            serviceId: service.serviceId,
+            deviceId: this.id);
+        _characteristic = characteristic;
+
+        stream = serviceDiscoverer
+            .subScribeToCharacteristic(characteristic)
             .map<String>((val) => Utf8Decoder().convert(val))
             .transform(TimerDataTransformer());
       }
@@ -71,16 +59,14 @@ class BluetoothDevice implements Device {
     return stream;
   }
 
-  Future<void> stopDataStream() async {
-    if (_characteristic != null) {
-      await _characteristic.setNotifyValue(false);
-    }
-  }
+  Future<void> stopDataStream() async {}
 
   Future<void> disconnect() async {
-    if (_characteristic != null) {
-      await _characteristic.setNotifyValue(false);
-    }
-    await _btDevice.disconnect();
+    await connector.disconnect(this.id);
+  }
+
+  @override
+  set type(DeviceType _type) {
+    this.type = _type;
   }
 }

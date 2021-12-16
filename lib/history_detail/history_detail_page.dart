@@ -7,7 +7,7 @@ import 'package:timerf1c/util/export_csv.dart';
 
 class HistoryDetailPage extends StatefulWidget {
   final FlightHistory flightHistory;
-  HistoryDetailPage({Key key, @required this.flightHistory}) : super(key: key);
+  HistoryDetailPage({Key? key, required this.flightHistory}) : super(key: key);
   @override
   _HistoryDetailPageState createState() => _HistoryDetailPageState();
 }
@@ -21,7 +21,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
       DeviceOrientation.portraitDown,
     ]);
     String duration =
-        ((widget.flightHistory.durationInMs / 1000) / 60).toStringAsFixed(2);
+        ((widget.flightHistory.durationInMs! / 1000) / 60).toStringAsFixed(2);
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
@@ -49,7 +49,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
             height: 20,
           ),
           Text(
-            'Plain Id ' + widget.flightHistory.planeId,
+            'Plain Id ' + widget.flightHistory.planeId!,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
           ),
           SizedBox(
@@ -132,7 +132,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                         children: <TextSpan>[
                           TextSpan(
                               text: distanceToString(
-                                  widget.flightHistory.maxDistanceFromUser),
+                                  widget.flightHistory.maxDistanceFromUser!),
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.pink[700],
@@ -148,7 +148,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                         children: <TextSpan>[
                           TextSpan(
                               text: distanceToString(
-                                  widget.flightHistory.maxHeight),
+                                  widget.flightHistory.maxHeight!),
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.pink[700],
@@ -163,7 +163,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                         style: TextStyle(color: Colors.black, fontSize: 16),
                         children: <TextSpan>[
                           TextSpan(
-                              text: widget.flightHistory.maxTemperature
+                              text: widget.flightHistory.maxTemperature!
                                       .toStringAsFixed(2) +
                                   ' º',
                               style: TextStyle(

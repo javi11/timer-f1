@@ -13,9 +13,9 @@ class DBProvider {
 
   static final DBProvider db = DBProvider._();
 
-  Database _database;
+  Database? _database;
 
-  Future<Database> get database async {
+  Future<Database?> get database async {
     if (_database != null) return _database;
     // if _database is null we instantiate it
     _database = await initDB();
@@ -65,7 +65,7 @@ class DBProvider {
   }
 
   newFlightHistory(FlightHistory flightHistory) async {
-    final db = await database;
+    final db = await (database as FutureOr<Database>);
     // Prevent duplicate ID
     flightHistory.id = null;
     flightHistory.id = await db.insert('FlightHistory', flightHistory.toMap());
@@ -78,8 +78,8 @@ class DBProvider {
     return flightHistory;
   }
 
-  Future<List<FlightData>> getFlightDataFromId(int historyId) async {
-    final db = await database;
+  Future<List<FlightData>> getFlightDataFromId(int? historyId) async {
+    final db = await (database as FutureOr<Database>);
     var res = await db.query('FlightData',
         columns: FlightData.columns,
         where: "flightHistoryId = ?",
@@ -93,7 +93,7 @@ class DBProvider {
 
   Future<List<FlightHistory>> getUserHistory(
       [int limit = 10, int offset = 0]) async {
-    final db = await database;
+    final db = await (database as FutureOr<Database>);
     var res = await db.query('FlightHistory',
         columns: FlightHistory.columns,
         orderBy: 'endTimestamp DESC',
@@ -105,7 +105,7 @@ class DBProvider {
     if (res.isNotEmpty) {
       Iterable<Future<FlightHistory>> populateData = res.map((c) async {
         FlightHistory history = FlightHistory.fromMap(c);
-        history.addAll(await getFlightDataFromId(c['id']));
+        history.addAll(await getFlightDataFromId(c['id'] as int?));
         return history;
       });
       Iterable<FlightHistory> flightDataList = await Future.wait(populateData);
@@ -115,9 +115,9 @@ class DBProvider {
     return list;
   }
 
-  Future<int> getTotalCountHistory() async {
-    final db = await database;
-    int count = Sqflite.firstIntValue(
+  Future<int?> getTotalCountHistory() async {
+    final db = await (database as FutureOr<Database>);
+    int? count = Sqflite.firstIntValue(
         await db.rawQuery('SELECT COUNT(*) FROM FlightHistory'));
 
     return count;

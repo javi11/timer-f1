@@ -4,12 +4,12 @@ import 'package:timerf1c/models/flight_data.dart';
 import 'package:timerf1c/util/no_data.dart';
 
 class MapInfo extends StatelessWidget {
-  final FlightData flightData;
-  MapInfo({Key key, @required this.flightData}) : super(key: key);
+  final FlightData? flightData;
+  MapInfo({Key? key, required this.flightData}) : super(key: key);
 
   Widget build(BuildContext context) {
     Widget _buildBox(String text, IconData icon, String data,
-        {Color bgColor = const Color(0x33C8C8C8)}) {
+        {Color? bgColor = const Color(0x33C8C8C8)}) {
       return Container(
         height: 120,
         child: Column(
@@ -28,14 +28,14 @@ class MapInfo extends StatelessWidget {
     }
 
     Widget voltageWidget = _buildBox('Voltage', Icons.battery_full,
-        flightData.voltage.toStringAsFixed(2) + ' V');
-    if (isNullVoltage(flightData.voltage)) {
+        flightData!.voltage!.toStringAsFixed(2) + ' V');
+    if (isNullVoltage(flightData!.voltage)) {
       voltageWidget = _buildBox(
           'Voltage', Icons.battery_unknown, 'Waiting for data...',
           bgColor: Colors.orange[300]);
-    } else if (flightData.voltageAlert == true) {
+    } else if (flightData!.voltageAlert == true) {
       voltageWidget = _buildBox('Voltage', Icons.battery_alert,
-          flightData.voltage.toStringAsFixed(2) + ' V',
+          flightData!.voltage!.toStringAsFixed(2) + ' V',
           bgColor: const Color(0x8Cba122b));
     }
     return Padding(
@@ -53,15 +53,15 @@ class MapInfo extends StatelessWidget {
                   children: [
                     voltageWidget,
                     _buildBox('Temperature', Icons.ac_unit,
-                        flightData.temperature.toStringAsFixed(2) + ' º'),
+                        flightData!.temperature!.toStringAsFixed(2) + ' º'),
                     _buildBox('Pressure', Icons.av_timer,
-                        flightData.pressure.toStringAsFixed(2) + ' PA'),
+                        flightData!.pressure!.toStringAsFixed(2) + ' PA'),
                     _buildBox(
                         'Height',
                         Icons.line_weight,
-                        flightData.height > 1000
-                            ? flightData.height.toString() + ' Km'
-                            : flightData.height.toString() + ' m'),
+                        flightData!.height! > 1000
+                            ? flightData!.height.toString() + ' Km'
+                            : flightData!.height.toString() + ' m'),
                   ],
                 ))));
   }

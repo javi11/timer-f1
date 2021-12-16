@@ -6,8 +6,8 @@ import 'package:timerf1c/types.dart';
 
 class PairedDeviceListItem extends StatelessWidget {
   final ConnectionStatus _connectionStatus;
-  final Device _connectedDevice;
-  final BluetoothDevice _pairedDevice;
+  final Device? _connectedDevice;
+  final BluetoothDevice? _pairedDevice;
   final Function _onConnectionPress;
   final Function _onDisconnectionPress;
 
@@ -16,7 +16,7 @@ class PairedDeviceListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_connectedDevice != null && _connectedDevice.type == DeviceType.USB) {
+    if (_connectedDevice != null && _connectedDevice!.type == DeviceType.USB) {
       return Container(
           decoration: BoxDecoration(color: Colors.green[50]),
           child: ListTile(
@@ -31,9 +31,9 @@ class PairedDeviceListItem extends StatelessWidget {
           decoration: BoxDecoration(color: Colors.green[50]),
           child: ListTile(
             leading: Icon(Icons.bluetooth_connected),
-            title: Text(_pairedDevice.name != null
-                ? _pairedDevice.name
-                : _pairedDevice.id),
+            title: Text(_pairedDevice!.name != null
+                ? _pairedDevice!.name
+                : _pairedDevice!.id),
             onTap: () {
               AwesomeDialog(
                       context: context,
@@ -54,17 +54,17 @@ class PairedDeviceListItem extends StatelessWidget {
           decoration: BoxDecoration(color: Colors.red[50]),
           child: ListTile(
             leading: Icon(Icons.bluetooth_disabled),
-            title: Text(_pairedDevice.name != null
-                ? _pairedDevice.name
-                : _pairedDevice.id + ' disconnected'),
-            onTap: _onConnectionPress,
+            title: Text(_pairedDevice!.name != null
+                ? _pairedDevice!.name
+                : _pairedDevice!.id + ' disconnected'),
+            onTap: _onConnectionPress as void Function()?,
           ));
     }
 
     return ListTile(
       leading: Icon(Icons.bluetooth),
       title: Text('Pair a device'),
-      onTap: _onConnectionPress,
+      onTap: _onConnectionPress as void Function()?,
     );
   }
 }

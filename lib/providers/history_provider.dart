@@ -13,7 +13,7 @@ class HistoryProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   UnmodifiableListView<FlightHistory> get flightHistory =>
       UnmodifiableListView(_history);
-  int get total => _total;
+  int? get total => _total;
 
   Future<void> loadHistoryItems(int page) async {
     int limit = 10;

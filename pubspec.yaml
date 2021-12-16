@@ -14,21 +14,23 @@ description: A f1c timer controller.
 version: 1.0.1+1
 
 environment:
-  sdk: ">=2.7.2 <3.0.0"
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
+  liquid_progress_indicator: ^0.4.0
   path_provider: ^2.0.2
   usb_serial: ^0.3.0
   shared_preferences: ^2.0.0
   intl: ^0.17.0
   expandable_bottom_sheet: ^1.1.0
   flutter_animator: ^3.1.2
-  flutter_blue: ^0.8.0
-  flutter_map_location_marker: "any"
-  flutter_map: ^0.13.1
-  provider: ^5.0.0
+  flutter_reactive_ble: ^5.0.2
+  flutter_map_location_marker: ^1.0.0
+  flutter_map_tile_caching: ^4.0.0-dev.8
+  flutter_map: ^0.14.0
+  provider: ^6.0.1
   tuple: ^2.0.0
-  auto_size_text: ^2.1.0
+  auto_size_text: "3.0.0-nullsafety.0"
   lottie: ^1.1.0
   flushbar: ^1.10.2
   responsive_grid: ^2.0.0
@@ -47,6 +49,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.3
+  collection: ^1.15.0-nullsafety.4
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +79,7 @@ flutter:
     - assets/icons/plain_end.svg
     - assets/animations/turn-on-timerf1c.json
     - assets/animations/loading.json
+    - assets/animations/download-success.json
   #  - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

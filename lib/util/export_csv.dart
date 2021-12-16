@@ -5,7 +5,7 @@ import 'package:share_extend/share_extend.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:timerf1c/models/flight_history.dart';
 
-String filePath;
+String? filePath;
 
 Future<String> get _localPath async {
   final directory = await getApplicationSupportDirectory();
@@ -19,7 +19,7 @@ Future<File> getFile(String name) async {
 }
 
 Future<String> generateCsv(FlightHistory flightHistory) async {
-  List<List<dynamic>> rows = List<dynamic>();
+  List<List<dynamic>> rows = [[]];
   rows.add([
     "id",
     "timestamp",
@@ -32,7 +32,7 @@ Future<String> generateCsv(FlightHistory flightHistory) async {
   ]);
 
   for (int i = 0; i < flightHistory.flightData.length; i++) {
-    List<dynamic> row = List<dynamic>();
+    List<dynamic> row = [];
     Map<dynamic, dynamic> flightData = flightHistory.flightData[i].toRAW();
     row.add(flightData['planeId']);
     row.add(flightData['timestamp']);
@@ -46,7 +46,7 @@ Future<String> generateCsv(FlightHistory flightHistory) async {
   }
 
   String fileName = 'timerf1c_' +
-      flightHistory.planeId +
+      flightHistory.planeId! +
       '_' +
       flightHistory.endTimestamp.toString();
   File f = await getFile(fileName);

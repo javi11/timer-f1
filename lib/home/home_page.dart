@@ -19,7 +19,7 @@ import 'package:timerf1c/widgets/app_title.dart';
 import 'package:tuple/tuple.dart';
 
 class HomePage extends StatefulWidget {
-  HomePage({Key key}) : super(key: key);
+  HomePage({Key? key}) : super(key: key);
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -37,13 +37,13 @@ class _HomePageState extends State<HomePage> {
           case ScrollDirection.forward:
             if (userScroll.metrics.maxScrollExtent !=
                 userScroll.metrics.minScrollExtent) {
-              _fabAnimationController.currentState.animateIn();
+              _fabAnimationController.currentState!.animateIn();
             }
             break;
           case ScrollDirection.reverse:
             if (userScroll.metrics.maxScrollExtent !=
                 userScroll.metrics.minScrollExtent) {
-              _fabAnimationController.currentState.animateOut();
+              _fabAnimationController.currentState!.animateOut();
             }
             // Load more on go to the end of the list
             if (userScroll.metrics.pixels ==
@@ -93,7 +93,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     super.dispose();
-    _fabAnimationController.currentState.dispose();
+    _fabAnimationController.currentState!.dispose();
   }
 
   @override
@@ -147,12 +147,12 @@ class _HomePageState extends State<HomePage> {
                 preferences: AnimationPreferences(
                     duration: Duration(milliseconds: 500))),
             key: _fabAnimationController,
-            child: Selector<HistoryProvider, Tuple2<bool, int>>(
+            child: Selector<HistoryProvider, Tuple2<bool, int?>>(
                 selector: (_, historyProvider) =>
                     Tuple2(historyProvider.isLoading, historyProvider.total),
                 builder: (context, data, child) {
                   return Visibility(
-                    visible: data.item1 == false && data.item2 > 0,
+                    visible: data.item1 == false && data.item2! > 0,
                     child: FloatingActionButton.extended(
                         backgroundColor: Colors.green,
                         icon: Icon(Icons.flight_takeoff),

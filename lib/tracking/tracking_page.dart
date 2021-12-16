@@ -5,20 +5,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:location/location.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 import 'package:timerf1c/bluetooth-connection/bluetooth_connection_page.dart';
 import 'package:timerf1c/models/flight_data.dart';
 import 'package:timerf1c/models/flight_history.dart';
+import 'package:timerf1c/offline_maps/get_downloaded_maps.dart';
+import 'package:timerf1c/offline_maps/widgets/download_map_list.dart';
 import 'package:timerf1c/providers/connection_provider.dart';
 import 'package:timerf1c/providers/history_provider.dart';
 import 'package:timerf1c/tracking/widgets/bottom_bar.dart';
 import 'package:timerf1c/tracking/widgets/map.dart';
 import 'package:timerf1c/tracking/widgets/map_info.dart';
 import 'package:timerf1c/tracking/widgets/no_data_dialog.dart';
+import 'package:timerf1c/tracking/widgets/offline_list_dialog.dart';
 import 'package:timerf1c/tracking/widgets/voltage_indicator.dart';
 import 'package:timerf1c/tracking/widgets/waiting_for_data_dialog.dart';
+import 'package:timerf1c/util/has_network.dart';
 import 'package:timerf1c/widgets/plain_starting_point_marker.dart';
 import 'package:timerf1c/types.dart';
 import 'package:timerf1c/util/compute_centroid.dart';
@@ -34,16 +39,18 @@ class TrackingPage extends StatefulWidget {
 class _TrackingPageState extends State<TrackingPage> {
   final GlobalKey<ExpandableBottomSheetState> expandibleController =
       new GlobalKey();
-  Timer checkLocationServiceTimer;
-  StreamController<double> _centerCurrentLocationStreamController;
-  CenterOnLocationUpdate _centerOnLocationUpdate;
+  Timer? checkLocationServiceTimer;
+  late StreamController<double> _centerCurrentLocationStreamController;
+  late CenterOnLocationUpdate _centerOnLocationUpdate;
 
   Location location = Location();
-  FlightHistory currentFlightHistory;
+  late FlightHistory currentFlightHistory;
   MapController mapController = MapController();
-  LocationMarkerLayerOptions userLocationOptions;
+  TileProvider? _selectedMapProvider;
+
+  LocationMarkerLayerOptions? userLocationOptions;
   List<Marker> markers = [];
-  FixedLocation focusOn = FixedLocation.UserLocation;
+  FixedLocation? focusOn = FixedLocation.UserLocation;
 
   bool locationServiceEnabled = true;
   bool startMarkerSet = false;
@@ -51,10 +58,10 @@ class _TrackingPageState extends State<TrackingPage> {
   bool moreInfoIsExpanded = false;
   bool timerDataAvailable = false;
 
-  FlightData flightData;
-  ConnectionProvider _connectionProvider;
-  StreamSubscription<List<String>> bluetoothDataSubscription;
-  StreamSubscription<LocationData> _locationSubscription;
+  FlightData? flightData;
+  late ConnectionProvider _connectionProvider;
+  StreamSubscription<List<String>?>? bluetoothDataSubscription;
+  StreamSubscription<LocationData>? _locationSubscription;
 
   _focusOnUser() {
     if (focusOn == FixedLocation.UserLocation) {
@@ -75,24 +82,25 @@ class _TrackingPageState extends State<TrackingPage> {
     }
   }
 
-  void _onReceiveBluetoothData(List<String> data) {
+  void _onReceiveBluetoothData(List<String>? data) {
     setState(() {
-      flightData.parsetimerf1cData(data);
+      flightData!.parsetimerf1cData(data!);
 
-      if (flightData.planeId != null && timerDataAvailable == false) {
+      if (flightData!.planeId != null && timerDataAvailable == false) {
         Navigator.of(context).pop();
         timerDataAvailable = true;
       }
 
-      currentFlightHistory.addData(flightData);
+      currentFlightHistory.addData(flightData!);
 
       if (!startMarkerSet) {
-        markers.add(buildPlainStartingPointMarker(flightData.planeCoordinates));
+        markers
+            .add(buildPlainStartingPointMarker(flightData!.planeCoordinates!));
         startMarkerSet = true;
       }
 
       if (focusOn == FixedLocation.PlaneLocation) {
-        mapController.move(flightData.planeCoordinates, 15.0);
+        mapController.move(flightData!.planeCoordinates!, 15.0);
       }
     });
   }
@@ -113,9 +121,10 @@ class _TrackingPageState extends State<TrackingPage> {
 
   void _updatePoints(LatLng postion) {
     setState(() {
-      flightData.addUserCoordinates(postion);
-      if (focusOn == FixedLocation.UserLocation) {
-        mapController.move(flightData.userCoordinates, 15.0);
+      flightData!.addUserCoordinates(postion);
+      if (focusOn == FixedLocation.UserLocation && flightData != null) {
+        LatLng userCoordinates = flightData!.userCoordinates;
+        mapController.move(userCoordinates, 15.0);
       }
     });
   }
@@ -126,24 +135,29 @@ class _TrackingPageState extends State<TrackingPage> {
     _centerOnLocationUpdate = CenterOnLocationUpdate.always;
     _centerCurrentLocationStreamController = StreamController<double>();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance!.addPostFrameCallback((_) async {
       await showDialog(
           barrierDismissible: false,
           context: context,
           builder: (_) => buildWaitingForDataDialog(context));
-    });
-    Future.delayed(Duration(seconds: 10), () {
-      if (timerDataAvailable == false) {
-        Navigator.of(context).pop();
-        showDialog(
-            barrierDismissible: false,
-            context: context,
-            builder: (_) => buildNoDataDialog(context));
-      }
+
+      Future.delayed(Duration(seconds: 10), () {
+        if (timerDataAvailable == false) {
+          Navigator.of(context).pop();
+          showDialog(
+              barrierDismissible: false,
+              context: context,
+              builder: (_) => buildNoDataDialog(context));
+        }
+      });
     });
 
     _locationSubscription = location.onLocationChanged.listen((event) {
-      this._updatePoints(LatLng(event.latitude, event.longitude));
+      double latitude = event.latitude!;
+      double longitude = event.longitude!;
+      if (latitude != null && longitude != null) {
+        this._updatePoints(LatLng(latitude, longitude));
+      }
     });
 
     // No info
@@ -158,8 +172,8 @@ class _TrackingPageState extends State<TrackingPage> {
       _connectionProvider =
           Provider.of<ConnectionProvider>(context, listen: false);
       // Start the bluetooth sniffer
-      _connectionProvider.connectedDevice.getDataStream().then((stream) {
-        bluetoothDataSubscription = stream.listen(_onReceiveBluetoothData);
+      _connectionProvider.connectedDevice!.getDataStream().then((stream) {
+        bluetoothDataSubscription = stream!.listen(_onReceiveBluetoothData);
       });
     });
   }
@@ -203,7 +217,7 @@ class _TrackingPageState extends State<TrackingPage> {
           desc: 'The fly will be saved on your history',
           btnCancelOnPress: () {},
           btnOkOnPress: () async {
-            int durationInMs = currentFlightHistory.end();
+            int durationInMs = currentFlightHistory.end()!;
             if (durationInMs > 30000) {
               await _saveFlight(currentFlightHistory);
             } else {
@@ -230,10 +244,10 @@ class _TrackingPageState extends State<TrackingPage> {
     setState(() {
       if (!moreInfoIsExpanded) {
         moreInfoIsExpanded = true;
-        expandibleController.currentState.expand();
+        expandibleController.currentState!.expand();
       } else {
         moreInfoIsExpanded = false;
-        expandibleController.currentState.contract();
+        expandibleController.currentState!.contract();
       }
     });
   }
@@ -242,13 +256,13 @@ class _TrackingPageState extends State<TrackingPage> {
     setState(() {
       mapController.move(
           computeCentroid(
-              [flightData.planeCoordinates, flightData.userCoordinates]),
+              [flightData!.planeCoordinates, flightData!.userCoordinates]),
           mapController.zoom);
-      if (!mapController.bounds.contains(flightData.planeCoordinates) |
-          !mapController.bounds.contains(flightData.userCoordinates)) {
-        mapController.bounds.extend(flightData.planeCoordinates);
-        mapController.bounds.extend(flightData.userCoordinates);
-        mapController.fitBounds(mapController.bounds);
+      if (!mapController.bounds!.contains(flightData!.planeCoordinates) |
+          !mapController.bounds!.contains(flightData!.userCoordinates)) {
+        mapController.bounds!.extend(flightData!.planeCoordinates);
+        mapController.bounds!.extend(flightData!.userCoordinates);
+        mapController.fitBounds(mapController.bounds!);
       }
       focusOn = null;
     });
@@ -257,7 +271,7 @@ class _TrackingPageState extends State<TrackingPage> {
   void _onFixPlane() {
     setState(() {
       _focusOnPlane();
-      mapController.move(flightData.planeCoordinates, 15.0);
+      mapController.move(flightData!.planeCoordinates!, 15.0);
       _centerOnLocationUpdate = CenterOnLocationUpdate.never;
     });
   }
@@ -291,7 +305,7 @@ class _TrackingPageState extends State<TrackingPage> {
       background: Stack(
         alignment: Alignment.topCenter,
         children: <Widget>[
-          buildMap(locationMarkerPlugin, markers, flightData, mapController),
+          buildMap(locationMarkerPlugin, markers, flightData!, mapController),
           Positioned(
               height: 60,
               width: 60,
@@ -319,7 +333,7 @@ class _TrackingPageState extends State<TrackingPage> {
                   if (locationServiceEnabled) {
                     setState(() {
                       _focusOnUser();
-                      mapController.move(flightData.userCoordinates, 15.0);
+                      mapController.move(flightData!.userCoordinates, 15.0);
                     });
                   } else {
                     await location.requestService();
@@ -359,7 +373,7 @@ class _TrackingPageState extends State<TrackingPage> {
                                   width: 10,
                                 ),
                                 Text(
-                                  flightData.planeId,
+                                  flightData!.planeId!,
                                   style: TextStyle(
                                       fontSize: 30, color: Colors.white),
                                 )
@@ -368,8 +382,8 @@ class _TrackingPageState extends State<TrackingPage> {
                             Row(
                               children: [
                                 VoltageIndicator(
-                                    voltageAlert: flightData.voltageAlert,
-                                    voltage: flightData.voltage),
+                                    voltageAlert: flightData!.voltageAlert,
+                                    voltage: flightData!.voltage),
                                 SizedBox(
                                   width: 10,
                                 ),

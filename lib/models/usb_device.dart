@@ -8,12 +8,12 @@ const USB_DEVICE_NAME = 'DSD';
 
 class USBDevice implements Device {
   final DeviceType type = DeviceType.USB;
-  UsbDevice _usbDevice;
-  UsbPort _usbPort;
+  late UsbDevice _usbDevice;
+  UsbPort? _usbPort;
 
-  USBDevice(UsbDevice _usbDevice);
+  USBDevice(UsbDevice? _usbDevice);
 
-  String get name {
+  String? get name {
     return _usbDevice.manufacturerName;
   }
 
@@ -22,33 +22,38 @@ class USBDevice implements Device {
   }
 
   Future<void> connect(
-      {Duration timeout: const Duration(seconds: 20),
-      FutureOr<void> Function() onTimeout}) async {
+      {Duration? timeout: const Duration(seconds: 20),
+      FutureOr<void> Function()? onTimeout}) async {
     _usbPort = await _usbDevice.create();
 
-    bool openResult = await _usbPort.open();
+    bool openResult = await _usbPort!.open();
     if (!openResult) {
       throw ('Failed to open usb port.');
     }
 
-    await _usbPort.setDTR(true);
-    await _usbPort.setRTS(true);
+    await _usbPort!.setDTR(true);
+    await _usbPort!.setRTS(true);
 
-    _usbPort.setPortParameters(
+    _usbPort!.setPortParameters(
         115200, UsbPort.DATABITS_8, UsbPort.STOPBITS_1, UsbPort.PARITY_NONE);
   }
 
-  Future<Stream<List<String>>> getDataStream() async {
-    return _usbPort.inputStream
+  Future<Stream<List<String>?>> getDataStream() async {
+    return _usbPort!.inputStream!
         .map<String>((val) => Utf8Decoder().convert(val))
         .transform(TimerDataTransformer());
   }
 
   Future<void> disconnect() async {
     try {
-      _usbPort.close();
+      _usbPort!.close();
     } catch (e) {
       // Nothing to do if can not be closed.
     }
+  }
+
+  @override
+  set type(DeviceType _type) {
+    this.type = _type;
   }
 }

@@ -5,15 +5,15 @@ import 'package:timerf1c/types.dart';
 class ConnectingDevice extends StatefulWidget {
   final String deviceName;
   final Function onConnect;
-  final Function onConnected;
+  final Function? onConnected;
   final ConnectionStatus connectionStatus;
 
   ConnectingDevice(
-      {Key key,
-      @required this.deviceName,
-      @required this.onConnect,
-      @required this.connectionStatus,
-      @required this.onConnected})
+      {Key? key,
+      required this.deviceName,
+      required this.onConnect,
+      required this.connectionStatus,
+      required this.onConnected})
       : super(key: key);
   @override
   _ConnectingDeviceState createState() => _ConnectingDeviceState();
@@ -21,9 +21,9 @@ class ConnectingDevice extends StatefulWidget {
 
 class _ConnectingDeviceState extends State<ConnectingDevice>
     with TickerProviderStateMixin {
-  AnimationController _controller;
-  AnimationController _errorAnimationController;
-  AnimationController _successAnimationController;
+  AnimationController? _controller;
+  AnimationController? _errorAnimationController;
+  AnimationController? _successAnimationController;
 
   @override
   void initState() {
@@ -31,20 +31,20 @@ class _ConnectingDeviceState extends State<ConnectingDevice>
     _controller = AnimationController(vsync: this);
     _errorAnimationController = AnimationController(vsync: this);
     _successAnimationController = AnimationController(vsync: this);
-    _errorAnimationController.reset();
-    _successAnimationController.reset();
-    _controller.reset();
+    _errorAnimationController!.reset();
+    _successAnimationController!.reset();
+    _controller!.reset();
   }
 
   @override
   void dispose() {
-    _controller
+    _controller!
       ..stop()
       ..dispose();
-    _errorAnimationController
+    _errorAnimationController!
       ..stop()
       ..dispose();
-    _successAnimationController
+    _successAnimationController!
       ..stop()
       ..dispose();
     super.dispose();
@@ -56,27 +56,27 @@ class _ConnectingDeviceState extends State<ConnectingDevice>
       return Lottie.asset("assets/animations/error-animation.json",
           controller: this._errorAnimationController,
           repeat: true, onLoaded: (composition) {
-        _errorAnimationController.duration = composition.duration;
-        _errorAnimationController.forward();
+        _errorAnimationController!.duration = composition.duration;
+        _errorAnimationController!.forward();
       });
     }
     if (widget.connectionStatus == ConnectionStatus.CONNECTED) {
       return Lottie.asset("assets/animations/bluetooth-connected.json",
           controller: this._successAnimationController,
           repeat: true, onLoaded: (composition) {
-        _successAnimationController.duration = composition.duration;
-        _successAnimationController
+        _successAnimationController!.duration = composition.duration;
+        _successAnimationController!
             .forward()
-            .whenComplete(() => widget.onConnected());
+            .whenComplete(() => widget.onConnected!());
       });
     }
 
     return Lottie.asset("assets/animations/bluetooth-connecting.json",
         controller: this._controller, repeat: true, onLoaded: (composition) {
-      _controller.duration = composition.duration;
-      _controller
+      _controller!.duration = composition.duration;
+      _controller!
           .forward()
-          .whenComplete(() => _controller.repeat(min: 0.16, reverse: true));
+          .whenComplete(() => _controller!.repeat(min: 0.16, reverse: true));
       widget.onConnect();
     });
   }
@@ -113,8 +113,8 @@ class _ConnectingDeviceState extends State<ConnectingDevice>
         widget.connectionStatus == ConnectionStatus.TIMEOUT_ERROR;
     if (error) {
       _controller?.stop();
-      if (_errorAnimationController.duration != null) {
-        _errorAnimationController.forward(from: 0);
+      if (_errorAnimationController!.duration != null) {
+        _errorAnimationController!.forward(from: 0);
       }
     }
     return Container(
@@ -122,7 +122,7 @@ class _ConnectingDeviceState extends State<ConnectingDevice>
             gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.blue, Colors.blue[300]])),
+                colors: [Colors.blue, Colors.blue[300]!])),
         child: Column(children: [
           Center(
               child: SizedBox(
@@ -142,10 +142,10 @@ class _ConnectingDeviceState extends State<ConnectingDevice>
                   splashColor: Colors.blueAccent,
                   onPressed: () {
                     widget.onConnect();
-                    _controller
+                    _controller!
                       ..reset()
                       ..forward().whenComplete(
-                          () => _controller.repeat(min: 0.16, reverse: true));
+                          () => _controller!.repeat(min: 0.16, reverse: true));
                   },
                   child: Text(
                     "Retry",

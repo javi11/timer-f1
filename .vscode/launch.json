@@ -7,7 +7,16 @@
         {
             "name": "Flutter",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "env": {
+                "HTTP_PROXY": "",
+                "HTTPS_PROXY": "",
+                "http_proxy": "",
+                "https_proxy": "",
+                "NO_PROXY": "*",
+                "no_proxy": "*"
+            },
+            "console": "terminal"
         }
     ]
 }

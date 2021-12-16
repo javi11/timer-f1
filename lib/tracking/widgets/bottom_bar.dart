@@ -6,21 +6,21 @@ import 'package:timerf1c/util/display_distance.dart';
 import 'package:timerf1c/widgets/round_button.dart';
 
 class BottomBar extends StatelessWidget {
-  final FlightData flightData;
+  final FlightData? flightData;
   final Function onExit;
   final Function onZoom;
   final Function onMoreInfo;
-  final FixedLocation focusOn;
+  final FixedLocation? focusOn;
   final bool expanded;
 
   BottomBar(
-      {Key key,
-      @required this.flightData,
-      @required this.onExit,
-      @required this.onZoom,
-      @required this.onMoreInfo,
-      @required this.focusOn,
-      @required this.expanded})
+      {Key? key,
+      required this.flightData,
+      required this.onExit,
+      required this.onZoom,
+      required this.onMoreInfo,
+      required this.focusOn,
+      required this.expanded})
       : super(key: key);
 
   Widget build(BuildContext context) {
@@ -54,10 +54,10 @@ class BottomBar extends StatelessWidget {
                             width: 5,
                           ),
                           Expanded(
-                              child: flightData.planeDistanceFromUser != null
+                              child: flightData!.planeDistanceFromUser != null
                                   ? AutoSizeText(
                                       distanceToString(
-                                          flightData.planeDistanceFromUser),
+                                          flightData!.planeDistanceFromUser!),
                                       textAlign: TextAlign.justify,
                                       style: TextStyle(
                                           color: Colors.green,
