@@ -1,0 +1,17 @@
+{
+    "id": 0,
+    "durationInMs": 0,
+    "startTimestamp": 0,
+    "endTimestamp": 0,
+    "planeId":"",
+    "maxPressure": 0.0,
+    "maxHeight": 0.0,
+    "maxTemperature": 0.0,
+    "farPlaneDistanceLat": 0.0,
+    "farPlaneDistanceLng": 0.0,
+    "startFlightLng": 0.0,
+    "startFlightLat": 0.0,
+    "endFlightLng": 0.0,
+    "endFlightLat": 0.0,
+    "maxPlaneDistanceFromStart": 0.0
+}

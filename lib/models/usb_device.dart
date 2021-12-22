@@ -34,7 +34,7 @@ class USBDevice implements Device {
     await _usbPort!.setDTR(true);
     await _usbPort!.setRTS(true);
 
-    _usbPort!.setPortParameters(
+    _usbPort.!.setPortParameters(
         115200, UsbPort.DATABITS_8, UsbPort.STOPBITS_1, UsbPort.PARITY_NONE);
   }
 
