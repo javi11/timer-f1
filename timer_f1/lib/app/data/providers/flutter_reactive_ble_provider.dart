@@ -4,41 +4,59 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart'
     hide DeviceConnectionState;
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart' as ble
     show DeviceConnectionState;
+import 'package:get_storage/get_storage.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:timer_f1/app/data/bluetooth_model.dart';
 import 'package:timer_f1/app/data/device_model.dart';
 import 'package:timer_f1/app/data/services/ble_service.dart';
 
+String pairedDeviceIdKey = 'PAIRED_DEVICE_NAME';
+String pairedDeviceNameKey = 'PAIRED_DEVICE_ID';
+
+class BluetoothOffException implements Exception {
+  String cause;
+  BluetoothOffException(this.cause);
+}
+
 class FlutterReactiveBLE extends BLEService {
   late FlutterReactiveBle _ble;
-
-  StreamSubscription<ConnectionStateUpdate>? _connectionStream;
-
-  final RxBool _isConnected = false.obs;
-  final RxBool _isScanning = false.obs;
+  late StreamSubscription<ConnectionStateUpdate>? _connectedDeviceStreamSub;
+  late StreamSubscription<BleStatus>? _btHWStatusStreamSub;
+  late GetStorage _box;
+  final Rx<BluetoothState> _bluetoothState = BluetoothState.off.obs;
   final _scannedDevices = <Device>[].obs;
   final _connectedDevice = Rx<Device?>(null);
+  final _pairedDevice = Rx<Device?>(null);
 
-  StreamSubscription? _scanSub;
+  StreamSubscription<ConnectionStateUpdate>? _connectionStream;
+  StreamSubscription<DiscoveredDevice>? _scanSub;
   Device? _deviceConnectingTo;
 
   @override
   void onInit() {
+    _box = GetStorage();
     _ble = FlutterReactiveBle();
     _ble.logLevel = LogLevel.none;
-    _ble.connectedDeviceStream.listen(_handleConnectionStateUpdates);
+    _connectedDeviceStreamSub =
+        _ble.connectedDeviceStream.listen(_handleConnectionStateUpdates);
+    _btHWStatusStreamSub = _ble.statusStream.listen(_handleBluetoothHWUpdates);
+
+    if (_box.hasData(pairedDeviceIdKey)) {
+      _pairedDevice.value = Device(
+          id: _box.read<String>(pairedDeviceIdKey)!,
+          name: _box.read<String>(pairedDeviceNameKey)!);
+      connect(_pairedDevice.value!);
+    }
     super.onInit();
   }
 
   @override
-  Stream<BleStatus> get getState => _ble.statusStream;
+  Future<void> authorize() async {
+    await Permission.locationWhenInUse.request();
+  }
 
   @override
-  Stream<bool> get isScanning =>
-      _isScanning.stream.asBroadcastStream(onListen: (_) {
-        if (_isScanning.value) _isScanning.refresh();
-      });
-
-  @override
-  Stream<bool> get isConnected => _isConnected.stream;
+  Rx<BluetoothState> get getBluetoothState => _bluetoothState;
 
   @override
   RxList<Device> get getScannedDevices => _scannedDevices;
@@ -47,51 +65,100 @@ class FlutterReactiveBLE extends BLEService {
   Rx<Device?> get getConnectedDevice => _connectedDevice;
 
   @override
-  Future<void> startScan() async {
+  Rx<Device?> get getPairedDevice => _pairedDevice;
+
+  @override
+  Future<void> pairDevice(Device device) async {
+    await _box.write(pairedDeviceIdKey, device.id);
+    await _box.write(pairedDeviceNameKey, device.name);
+    _pairedDevice.value = device;
+  }
+
+  @override
+  Future<void> forgetDevice(Device device) async {
+    await _box.remove(pairedDeviceIdKey);
+    await _box.remove(pairedDeviceNameKey);
+    if (_bluetoothState.value != BluetoothState.off) {
+      _bluetoothState.value = BluetoothState.on;
+    }
+  }
+
+  @override
+  StreamSubscription<DiscoveredDevice> startScan(
+      {void Function()? onTimeout,
+      Duration timeLimit = const Duration(seconds: 30)}) {
     if (_ble.status != BleStatus.ready) {
-      return Future.error('Bluetooth is not enabled');
+      _bluetoothState.value = BluetoothState.off;
+      throw BluetoothOffException('Bluetooth is not enabled');
     } else {
       _scannedDevices.clear();
-      _isScanning.value = true;
+      _bluetoothState.value = BluetoothState.scanning;
       _scanSub?.cancel();
-      _scanSub = _ble.scanForDevices(
-          withServices: [],
-          scanMode:
-              ScanMode.lowLatency).listen((result) => _addScanResult(result));
-      try {
-        await _scanSub?.asFuture().catchError((e) {
-          _isScanning.value = false;
-          print('Error during scanning: =====================================');
-          print(e.toString());
-          return Future.error('Error scanning for devices!');
-        });
-      } catch (e) {
-        return Future.error(e);
-      }
+      _scanSub = _ble
+          .scanForDevices(
+              withServices: [timerServiceUUID], scanMode: ScanMode.lowPower)
+          .takeWhile((element) => element.name == timerName)
+          .timeout(timeLimit, onTimeout: (event) async {
+            if (_bluetoothState.value == BluetoothState.scanning) {
+              _bluetoothState.value = BluetoothState.scanTimeout;
+              await _scanSub?.cancel();
+            }
+            onTimeout?.call();
+          })
+          .listen((result) => _addScanResult(result));
+
+      _scanSub?.onError((e) async {
+        if (_bluetoothState.value == BluetoothState.scanning) {
+          _bluetoothState.value = BluetoothState.on;
+          await _scanSub?.cancel();
+        }
+        print('Error during scanning: =====================================');
+        print(e.toString());
+      });
+
+      return _scanSub!;
     }
   }
 
   @override
   Future<void> stopScan() async {
-    _isScanning.value = false;
-    _scanSub?.cancel();
+    if (_bluetoothState.value == BluetoothState.scanning) {
+      _bluetoothState.value = BluetoothState.on;
+    }
+    await _scanSub?.cancel();
   }
 
   @override
-  void connect(Device device) {
+  void connect(Device device,
+      {void Function()? onTimeout,
+      Duration timeLimit = const Duration(seconds: 30)}) {
     String deviceId = device.id;
     _deviceConnectingTo = device;
 
     if (_connectionStream == null) {
       print('SERVICE: Adding connection stream for $deviceId');
-      _connectionStream = _ble.connectToDevice(
-        id: deviceId,
-        connectionTimeout: Duration(seconds: 10),
-        servicesWithCharacteristicsToDiscover: {
-          Uuid.parse(timerServiceUUID): [Uuid.parse(timerCharacteristicUUID)]
-        },
-      ).listen((stateUpdate) =>
-          print('SERVICE: connectToDevice state update: $stateUpdate'));
+      _bluetoothState.value = BluetoothState.connecting;
+      _connectionStream = _ble
+          .connectToAdvertisingDevice(
+              id: deviceId,
+              prescanDuration: timeLimit,
+              withServices: [timerServiceUUID],
+              connectionTimeout: timeLimit)
+          .listen((stateUpdate) {
+        if (stateUpdate.failure != null) {
+          _bluetoothState.value = BluetoothState.connectionTimeout;
+          _connectionStream?.cancel();
+          _connectionStream = null;
+          onTimeout?.call();
+        }
+        print('SERVICE: connectToDevice state update: $stateUpdate');
+      });
+      _connectionStream?.onError((error) {
+        _bluetoothState.value = BluetoothState.connectionTimeout;
+        _connectionStream?.cancel();
+        _connectionStream = null;
+        onTimeout?.call();
+      });
     }
   }
 
@@ -103,12 +170,35 @@ class FlutterReactiveBLE extends BLEService {
     }
     _connectionStream?.cancel();
     _connectionStream = null;
+    if (_bluetoothState.value == BluetoothState.connecting ||
+        _bluetoothState.value == BluetoothState.connected) {
+      _bluetoothState.value = BluetoothState.on;
+    }
   }
 
   @override
   void onClose() {
     _ble.deinitialize();
+    _btHWStatusStreamSub?.cancel();
+    _connectedDeviceStreamSub?.cancel();
     super.onClose();
+  }
+
+  void _handleBluetoothHWUpdates(BleStatus state) async {
+    switch (state) {
+      case BleStatus.ready:
+        if (_bluetoothState.value == BluetoothState.unauthorized ||
+            _bluetoothState.value == BluetoothState.off) {
+          _bluetoothState.value = BluetoothState.on;
+        }
+        break;
+      case BleStatus.unauthorized:
+        await authorize();
+        break;
+      default: // Off, unauthorized, unavailable, unknown
+        _scannedDevices.clear();
+        _bluetoothState.value == BluetoothState.off;
+    }
   }
 
   /// Keep track of connected devices count and update the isConnected stream.
@@ -119,18 +209,16 @@ class FlutterReactiveBLE extends BLEService {
 
     // Device connected.
     if (connectionState == ble.DeviceConnectionState.connected) {
-      _isConnected.value = true;
+      _bluetoothState.value = BluetoothState.connected;
 
       // Add to connected devices and remove from scanned devices.
       int deviceIndex =
           _scannedDevices.indexWhere((device) => device.id == deviceId);
       if (deviceIndex != -1) {
         _connectedDevice.value = _scannedDevices[deviceIndex];
-        _scannedDevices.removeAt(deviceIndex);
       } else {
         if (_deviceConnectingTo == null) {
-          _connectedDevice.value =
-              Device(id: deviceId, name: _deviceConnectingTo!.name);
+          _connectedDevice.value = Device(id: deviceId);
         } else {
           if (_connectedDevice.value == null) {
             print('SERVICE: Adding connected device');
@@ -170,11 +258,16 @@ class FlutterReactiveBLE extends BLEService {
         _connectionStream = null;
       }
 
-      _isConnected.value = false;
+      if (_bluetoothState.value == BluetoothState.connected) {
+        _bluetoothState.value = BluetoothState.on;
+      }
 
       // Move from list of scanned devices to connected devices, if needed.
       if (_connectedDevice.value?.id == deviceId) {
-        _scannedDevices.add(_connectedDevice.value!);
+        _scannedDevices.addIf(
+            _scannedDevices
+                .every((item) => item.id != _connectedDevice.value?.id),
+            _connectedDevice.value!);
         _connectedDevice.value = null;
       }
     }
@@ -211,7 +304,8 @@ class FlutterReactiveBLE extends BLEService {
       return false;
     }
 
-    var newDevice = Device(id: device.id, name: device.name);
+    Device newDevice =
+        Device(id: device.id, name: device.name, rssi: device.rssi);
     _scannedDevices.add(newDevice);
     print('SERVICE: Adding $newDevice!');
     return true;

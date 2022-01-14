@@ -14,11 +14,19 @@ class USBSerial extends USBService {
   Future<void> onInit() async {
     usbSubscription =
         UsbSerial.usbEventStream!.listen(_handleConnectionStateUpdates);
+    var devices = await UsbSerial.listDevices();
+    if (devices.isNotEmpty) {
+      connect(Device(
+          id: devices[0].deviceId.toString(), name: devices[0].deviceName));
+    }
     super.onInit();
   }
 
   @override
-  Stream<bool> get isConnected => _isConnected.stream;
+  Stream<bool> get isConnected =>
+      _isConnected.stream.asBroadcastStream(onListen: (_) {
+        _isConnected.refresh();
+      });
 
   @override
   Rx<Device?> get getConnectedDevice => _connectedDevice;
@@ -26,7 +34,6 @@ class USBSerial extends USBService {
   @override
   Future<void> connect(Device device) async {
     String deviceId = device.id;
-    _connectedDevice.value = device;
 
     print('SERVICE: Adding connection port for $deviceId');
     _connectedPort = await UsbSerial.createFromDeviceId(int.parse(deviceId));
@@ -41,6 +48,8 @@ class USBSerial extends USBService {
 
     _connectedPort?.setPortParameters(
         115200, UsbPort.DATABITS_8, UsbPort.STOPBITS_1, UsbPort.PARITY_NONE);
+    _isConnected.value = true;
+    _connectedDevice.value = device;
   }
 
   @override
@@ -59,7 +68,7 @@ class USBSerial extends USBService {
   }
 
   /// Keep track of connected devices count and update the isConnected stream.
-  Future<void> _handleConnectionStateUpdates(UsbEvent stateUpdate) async {
+  void _handleConnectionStateUpdates(UsbEvent stateUpdate) {
     print('SERVICE: connectedDeviceStream update: $stateUpdate');
     String? connectionState = stateUpdate.event;
 
@@ -67,10 +76,12 @@ class USBSerial extends USBService {
     String? deviceName = stateUpdate.device?.deviceName;
     // Device connected.
     if (connectionState == UsbEvent.ACTION_USB_ATTACHED && deviceId != null) {
-      await connect(Device(id: deviceId, name: deviceName!));
+      connect(Device(id: deviceId, name: deviceName!)).catchError((error) {
+        _isConnected.value = false;
+      });
       // Device disconnected.
     } else if (connectionState == UsbEvent.ACTION_USB_DETACHED) {
-      if (!_connectedDevice.isBlank!) {
+      if (_connectedDevice.value == null) {
         print(
             'SERVICE: Clearing _connectedDevice (after disconnected) -------');
         _connectedDevice.value = null;

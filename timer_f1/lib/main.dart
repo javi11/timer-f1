@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:timer_f1/app/data/providers/db_provider.dart';
 import 'package:timer_f1/app/data/providers/flutter_reactive_ble_provider.dart';
 import 'package:timer_f1/app/data/providers/usb_serial_provider.dart';
@@ -12,13 +13,14 @@ import 'app/routes/app_pages.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Get.put<USBService>(USBSerial()).onInit();
-  Get.put<BLEService>(FlutterReactiveBLE()).onInit();
-  await Get.put<DBService>(DBProvider()).onInit();
+  await GetStorage.init();
+  Get.put<DBService>(DBProvider());
+  Get.put<USBService>(USBSerial());
+  Get.put<BLEService>(FlutterReactiveBLE());
 
   runApp(
     GetMaterialApp(
-      title: "Application",
+      title: "Timer F1",
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
     ),
