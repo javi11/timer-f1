@@ -1,37 +1,36 @@
-import 'package:get/get.dart';
-import 'package:timer_f1/app/routes/middlewares/bluetooth_guard.dart';
-
-import '../modules/bluetooth/bindings/bluetooth_binding.dart';
-import '../modules/bluetooth/views/bluetooth_view.dart';
-import '../modules/flight_tracker/bindings/flight_tracker_binding.dart';
-import '../modules/flight_tracker/views/flight_tracker_view.dart';
-import '../modules/home/bindings/home_binding.dart';
-import '../modules/home/views/home_view.dart';
-import 'middlewares/device_connection_guard.dart';
+import 'package:go_router/go_router.dart';
+import 'package:timer_f1/app/data/models/flight_model.dart';
+import 'package:timer_f1/app/modules/bluetooth/bluetooth_page.dart';
+import 'package:timer_f1/app/modules/flight_tracker/flight_tracker_page.dart';
+import 'package:timer_f1/app/modules/history_detail/history_detail_page.dart';
+import 'package:timer_f1/app/modules/home/home_page.dart';
 
 part 'app_routes.dart';
 
-class AppPages {
-  AppPages._();
+const initial = Routes.HOME;
+const bluetoothRequiredPaths = [_Paths.FLIGHT_TRACKER];
 
-  static const INITIAL = Routes.HOME;
-
-  static final routes = [
-    GetPage(
-      name: _Paths.HOME,
-      page: () => HomeView(),
-      binding: HomeBinding(),
-    ),
-    GetPage(
-      name: _Paths.BLUETOOTH,
-      page: () => BluetoothView(),
-      binding: BluetoothBinding(),
-      middlewares: [BluetoothGuard()],
-    ),
-    GetPage(
-        name: _Paths.FLIGHT_TRACKER,
-        page: () => FlightTrackerView(),
-        binding: FlightTrackerBinding(),
-        middlewares: [DeviceConnectionGuard()]),
-  ];
-}
+final router = GoRouter(
+  initialLocation: initial,
+  routes: [
+    GoRoute(
+        path: _Paths.HOME,
+        builder: (context, state) => HomeView(),
+        routes: [
+          GoRoute(
+              path: _Paths.FlightDetail,
+              // Is protected by bluetooth but can not be redirected to ble connection page if ble connection is lost
+              builder: (context, state) => HistoryDetailPage(
+                    flight: state.extra as Flight,
+                  )),
+          GoRoute(
+              path: _Paths.FLIGHT_TRACKER,
+              // Is protected by bluetooth but can not be redirected to ble connection page if ble connection is lost
+              builder: (context, state) => FlightTrackerView()),
+        ]),
+    GoRoute(
+        path: _Paths.BLUETOOTH,
+        builder: (context, state) =>
+            BluetoothView(redirectTo: state.queryParams['redirectTo'])),
+  ],
+);

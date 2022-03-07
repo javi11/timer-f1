@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:timer_f1/app/data/device_model.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:timer_f1/app/data/models/device_model.dart';
+import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
 
-class DeviceList extends StatelessWidget {
-  final RxList<Device> deviceList;
+class DeviceList extends ConsumerWidget {
   final bool isScanning;
   final Future<void> Function(Device device) onPair;
   final Function onRetry;
 
   DeviceList({
     Key? key,
-    required this.deviceList,
     required this.isScanning,
     required this.onPair,
     required this.onRetry,
   }) : super(key: key);
 
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final deviceList = ref
+        .watch(bleControllerProvider.select((value) => value.scannedDevices));
     return Column(
       children: [
         Container(

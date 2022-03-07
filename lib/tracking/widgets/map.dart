@@ -7,7 +7,7 @@ import 'package:timerf1c/models/flight_data.dart';
 import 'package:timerf1c/providers/map_provider.dart';
 import 'package:timerf1c/tracking/widgets/plain_marker.dart';
 
-Widget buildMap(LocationMarkerPlugin locationMarkerPlugin, List<Marker> markers,
+Widget buildMap(LocationMarkerLayer locationMarkerLayer, List<Marker> markers,
     FlightData flightData, MapController mapController) {
   List<Polygon> polylines = [];
 
@@ -42,7 +42,6 @@ Widget buildMap(LocationMarkerPlugin locationMarkerPlugin, List<Marker> markers,
         polygons: polylines,
       )),
       LocationMarkerLayerWidget(
-        plugin: locationMarkerPlugin,
         options: LocationMarkerLayerOptions(
             showAccuracyCircle: true, showHeadingSector: true),
       ),

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:get/get_state_manager/get_state_manager.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lottie/lottie.dart';
-import 'package:timer_f1/app/modules/bluetooth/controllers/connecting_animation_controller.dart';
 
-class ConnectingToDevice extends GetWidget<ConnectingAnimationController> {
+class ConnectingToDevice extends HookWidget {
   final String deviceName;
 
   ConnectingToDevice({
@@ -13,6 +12,8 @@ class ConnectingToDevice extends GetWidget<ConnectingAnimationController> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = useAnimationController();
+
     return Container(
         padding: EdgeInsets.all(22.0),
         decoration: BoxDecoration(
@@ -27,12 +28,11 @@ class ConnectingToDevice extends GetWidget<ConnectingAnimationController> {
                   height: 400,
                   child: Lottie.asset(
                       "assets/animations/bluetooth-connecting.json",
-                      controller: controller.animationControl,
+                      controller: controller,
                       repeat: true, onLoaded: (composition) {
-                    controller.animationControl.duration = composition.duration;
-                    controller.animationControl.forward().whenComplete(() =>
-                        controller.animationControl
-                            .repeat(min: 0.16, reverse: true));
+                    controller.duration = composition.duration;
+                    controller.forward().whenComplete(
+                        () => controller.repeat(min: 0.16, reverse: true));
                   }))),
           Center(
               child: Text(

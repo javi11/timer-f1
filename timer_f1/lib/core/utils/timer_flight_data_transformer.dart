@@ -1,11 +1,13 @@
 import 'dart:async';
+import 'package:timer_f1/app/data/models/flight_data_model.dart';
 
-class TimerDataTransformer<S, T> implements StreamTransformer<S, T?> {
-  StreamController _controller = StreamController<T>();
+class TimerFlightDataTransformer<S>
+    implements StreamTransformer<S, FlightData> {
+  final StreamController _controller = StreamController<FlightData>();
   String _acc = '';
 
   @override
-  Stream<T?> bind(Stream<S> stream) {
+  Stream<FlightData> bind(Stream<S> stream) {
     stream.listen((value) {
       String data = value as String;
 
@@ -25,7 +27,7 @@ class TimerDataTransformer<S, T> implements StreamTransformer<S, T?> {
         }
       }
     });
-    return _controller.stream as Stream<T?>;
+    return _controller.stream as Stream<FlightData>;
   }
 
   @override

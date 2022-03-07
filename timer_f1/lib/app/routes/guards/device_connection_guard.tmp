@@ -1,0 +1,31 @@
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:timer_f1/app/data/models/bluetooth_model.dart';
+import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
+import 'package:timer_f1/app/modules/usb_device/controllers/usb_serial_repository.dart';
+import 'package:timer_f1/app/modules/bluetooth/bluetooth_page.dart';
+
+class DeviceConnectionGuard extends HookConsumerWidget {
+  final Widget child;
+  final String currentRoute;
+  const DeviceConnectionGuard(
+      {Key? key, required this.child, required this.currentRoute})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    var isBLEDeviceConected = ref.watch(
+            bleControllerProvider.select((value) => value.bluetoothState)) ==
+        BluetoothState.connected;
+    var isUSBDeviceConected =
+        ref.watch(usbControllerProvider.select((value) => value.isConnected));
+
+    if (isBLEDeviceConected == false && isUSBDeviceConected == false) {
+      return BluetoothView(
+        redirectTo: currentRoute,
+      );
+    }
+
+    return child;
+  }
+}
