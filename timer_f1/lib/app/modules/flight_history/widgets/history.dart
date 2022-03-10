@@ -44,9 +44,10 @@ class History extends ConsumerWidget {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    getDayAvatar(DateTime.fromMillisecondsSinceEpoch(
-                            history.startTimestamp!)
-                        .weekday),
+                    if (history.startTimestamp != null)
+                      getDayAvatar(DateTime.fromMillisecondsSinceEpoch(
+                              history.startTimestamp!)
+                          .weekday),
                     SizedBox(
                       height: 24,
                       width: 10,
@@ -59,9 +60,10 @@ class History extends ConsumerWidget {
                           'Plane Id: ' + history.planeId!,
                           style: TextStyle(fontSize: 18),
                         ),
-                        Text(DateFormat('dd-MM-yyyy kk:mm:ss').format(
-                            DateTime.fromMillisecondsSinceEpoch(
-                                history.startTimestamp!)))
+                        if (history.startTimestamp != null)
+                          Text(DateFormat('dd-MM-yyyy kk:mm:ss').format(
+                              DateTime.fromMillisecondsSinceEpoch(
+                                  history.startTimestamp!)))
                       ],
                     )
                   ],
@@ -112,7 +114,7 @@ class History extends ConsumerWidget {
     return ListView.builder(
         physics: BouncingScrollPhysics(),
         itemExtent: 160,
-        itemCount: provider.flightHistory.length + 1,
+        itemCount: provider.flightHistory.length,
         padding: EdgeInsetsDirectional.only(
             top: MediaQuery.of(context).size.height / 10),
         itemBuilder: (BuildContext ctx, int index) =>

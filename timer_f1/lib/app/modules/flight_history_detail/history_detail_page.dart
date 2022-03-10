@@ -1,27 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
-import 'package:timer_f1/app/modules/history_detail/widgets/history_map.dart';
+import 'package:timer_f1/app/modules/flight_history_detail/widgets/history_map.dart';
 import 'package:timer_f1/core/utils/distance_to_string.dart';
 import 'package:timer_f1/core/utils/export_csv.dart';
 
-class HistoryDetailPage extends StatefulWidget {
+class FligthHistoryDetailPage extends HookWidget {
   final Flight flight;
-  HistoryDetailPage({Key? key, required this.flight}) : super(key: key);
-  @override
-  _HistoryDetailPageState createState() => _HistoryDetailPageState();
-}
-
-class _HistoryDetailPageState extends State<HistoryDetailPage> {
+  FligthHistoryDetailPage({required this.flight});
   @override
   Widget build(BuildContext context) {
-    // Do not allow rotate the screen
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-    String duration =
-        ((widget.flight.durationInMs! / 1000) / 60).toStringAsFixed(2);
+    var duration = useState('0');
+    useEffect(() {
+      duration.value = ((flight.durationInMs! / 1000) / 60).toStringAsFixed(2);
+    }, [flight.durationInMs]);
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
@@ -38,9 +30,9 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
           alignment: Alignment(-1.1, -0.98)),
       body: Column(
         children: <Widget>[
-          widget.flight.flightStartCoordinates != null
+          flight.flightStartCoordinates != null
               ? HistoryMap(
-                  flight: widget.flight,
+                  flight: flight,
                 )
               : SizedBox(
                   height: 29,
@@ -49,7 +41,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
             height: 20,
           ),
           Text(
-            'Plain Id ' + widget.flight.planeId!,
+            'Plain Id ' + flight.planeId!,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
           ),
           SizedBox(
@@ -73,7 +65,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                     ),
                     icon: Icon(Icons.import_export),
                     onPressed: () async {
-                      await exportFlight2Csv(widget.flight);
+                      await exportFlight2Csv(flight);
                     },
                     label: Text(
                       "Export",
@@ -93,7 +85,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                     ),
                     icon: Icon(Icons.share),
                     onPressed: () async {
-                      await shareFligth(widget.flight);
+                      await shareFligth(flight);
                     },
                     label: Text(
                       "Share",
@@ -120,7 +112,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                         style: TextStyle(color: Colors.black, fontSize: 16),
                         children: <TextSpan>[
                           TextSpan(
-                              text: duration + ' minutes',
+                              text: duration.value + ' minutes',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.pink[700],
@@ -136,7 +128,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                         children: <TextSpan>[
                           TextSpan(
                               text: distanceToString(
-                                  widget.flight.maxPlaneDistanceFromUser!),
+                                  flight.maxPlaneDistanceFromUser!),
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.pink[700],
@@ -151,7 +143,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                         style: TextStyle(color: Colors.black, fontSize: 16),
                         children: <TextSpan>[
                           TextSpan(
-                              text: distanceToString(widget.flight.maxHeight!),
+                              text: distanceToString(flight.maxHeight!),
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.pink[700],
@@ -166,8 +158,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
                         style: TextStyle(color: Colors.black, fontSize: 16),
                         children: <TextSpan>[
                           TextSpan(
-                              text: widget.flight.maxTemperature!
-                                      .toStringAsFixed(2) +
+                              text: flight.maxTemperature!.toStringAsFixed(2) +
                                   ' º',
                               style: TextStyle(
                                 fontSize: 16,

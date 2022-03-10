@@ -3,18 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lottie/lottie.dart';
+import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/modules/flight_tracker/widgets/no_timer_data.dart';
 
 class WaitingForData extends HookWidget {
   final bool hasFlightStarted;
-  WaitingForData(this.hasFlightStarted);
+  final Device? device;
+  WaitingForData({required this.hasFlightStarted, required this.device});
 
   Timer _startTimerDataTimeout(BuildContext context) {
     return Timer(Duration(seconds: 10), () async {
       if (hasFlightStarted == false) {
         await showDialog(
             context: context,
-            builder: (ctx) => NoTimerData(),
+            builder: (ctx) => NoTimerData(device: device),
             barrierDismissible: false);
       }
     });

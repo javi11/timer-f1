@@ -15,6 +15,8 @@ import 'package:timer_f1/app/data/models/enums/fixed_location.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
 import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
 import 'package:timer_f1/app/data/repositories/flight_repository.dart';
+import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_data_controller.dart';
+import 'package:timer_f1/app/routes/app_pages.dart';
 import 'package:timer_f1/core/utils/compute_centroid.dart';
 
 final mapControllerProvider =
@@ -24,7 +26,8 @@ final flightControllerProvider =
         FlightTrackerController(
             bleController: ref.read(bleControllerProvider),
             flightRepository: ref.watch(flightRepositoryProvider),
-            mapController: ref.watch(mapControllerProvider)));
+            mapController: ref.watch(mapControllerProvider),
+            flightProvider: ref.watch(flightProvider)));
 final expandibleToggleSelector =
     flightControllerProvider.select((value) => value.expandibleToggle);
 final centerOnLocationUpdateSelector =
@@ -38,7 +41,7 @@ class FlightTrackerController extends ChangeNotifier {
   GlobalKey<ExpandableBottomSheetState> expandibleKey = GlobalKey();
   final BLEController bleController;
   final FlightRepository flightRepository;
-  final flight = Flight();
+  final Flight flightProvider;
   Timer? checkLocationServiceTimer;
   ExpansionStatus expandibleToggle = ExpansionStatus.contracted;
   FixedLocation focusedOn = FixedLocation.userLocation;
@@ -50,15 +53,16 @@ class FlightTrackerController extends ChangeNotifier {
   FlightTrackerController(
       {required this.bleController,
       required this.flightRepository,
-      required this.mapController}) {
+      required this.mapController,
+      required this.flightProvider}) {
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
       await _watchLocationEnabled();
     });
   }
 
-  Future<void> _saveFlight() async {
-    flight.finish();
-    await flightRepository.saveFlight(flight);
+  void _saveFlight() {
+    flightProvider.finish();
+    flightRepository.saveFlight(flightProvider);
   }
 
   void _focusOnUser() {
@@ -96,7 +100,7 @@ class FlightTrackerController extends ChangeNotifier {
   }
 
   void onExit(BuildContext context) {
-    if (flight.flightStartCoordinates == null) {
+    if (flightProvider.flightStartCoordinates == null) {
       AwesomeDialog(
           context: context,
           dialogType: DialogType.WARNING,
@@ -104,8 +108,8 @@ class FlightTrackerController extends ChangeNotifier {
           title: 'No data to save',
           desc: 'No data will be saved because there is no plane coordinates.',
           btnOkText: 'Exit',
-          btnOkOnPress: () async {
-            GoRouter.of(context).pop();
+          btnOkOnPress: () {
+            GoRouter.of(context).go(Routes.HOME);
           }).show();
     } else {
       AwesomeDialog(
@@ -115,10 +119,11 @@ class FlightTrackerController extends ChangeNotifier {
           title: 'Do you want to end the fly?',
           desc: 'The fly will be saved on your history',
           btnCancelOnPress: () {},
-          btnOkOnPress: () async {
-            int durationInMs = flight.elapsedTime;
+          btnOkOnPress: () {
+            int durationInMs = flightProvider.elapsedTime;
             if (durationInMs > 30000) {
-              await _saveFlight();
+              _saveFlight();
+              GoRouter.of(context).go(Routes.HOME);
             } else {
               AwesomeDialog(
                   context: context,
@@ -128,9 +133,12 @@ class FlightTrackerController extends ChangeNotifier {
                   desc: 'Do you still want to save it?',
                   btnCancelText: 'No',
                   btnOkText: 'Yes',
-                  btnOkOnPress: () async {
-                    await _saveFlight();
-                    GoRouter.of(context).pop();
+                  btnCancelOnPress: () {
+                    GoRouter.of(context).go(Routes.HOME);
+                  },
+                  btnOkOnPress: () {
+                    _saveFlight();
+                    GoRouter.of(context).go(Routes.HOME);
                   }).show();
             }
           }).show();

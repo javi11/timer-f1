@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:get_storage/get_storage.dart';
@@ -9,7 +11,9 @@ import 'package:timer_f1/app/data/models/bluetooth_model.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/data/providers/ble_provider.dart';
 import 'package:timer_f1/app/data/providers/storage_provider.dart';
+import 'package:timer_f1/core/vicent_timer/vicent_timer_commands.dart';
 
+const maxTimerDataLength = 20;
 const timerName = 'DSD TECH';
 Uuid timerServiceUUID = Uuid.parse('0000ffe0-0000-1000-8000-00805f9b34fb');
 Uuid timerCharacteristicUUID =
@@ -38,22 +42,21 @@ abstract class BLEController extends ChangeNotifier {
   Future<void> authorize();
   Future<void> pairDevice(Device device);
   Future<void> forgetDevice(Device device);
-  StreamSubscription<DiscoveredDevice> startScan(
+  StreamSubscription<DiscoveredDevice>? startScan(
       {void Function()? onTimeout,
       Duration timeLimit = const Duration(seconds: 30)});
   Future<void> stopScan();
   void connect(Device device,
       {void Function()? onTimeout,
       Duration timeLimit = const Duration(seconds: 30)});
-  void disconnect();
-  Stream<List<int>> subscribeToDeviceDataStream();
+  Future<void> disconnect();
+  Stream<String> subscribeToDeviceDataStream();
 }
 
 class FlutterReactiveBleController extends ChangeNotifier
     implements BLEController {
   final FlutterReactiveBle ble;
   final GetStorage box;
-  late StreamSubscription<ConnectionStateUpdate>? _connectedDeviceStreamSub;
   late StreamSubscription<BleStatus>? _btHWStatusStreamSub;
   final List<Device> _scannedDevices = [];
   BluetoothState _bluetoothState = BluetoothState.off;
@@ -63,6 +66,10 @@ class FlutterReactiveBleController extends ChangeNotifier
   StreamSubscription<ConnectionStateUpdate>? _connectionStream;
   StreamSubscription<DiscoveredDevice>? _scanSub;
   Timer? _reconnectionTimer;
+  Timer? _scanTimeout;
+  CancelableOperation<void>? _initialHandShakeFuture;
+  Stream<String>? _characteristicStream;
+  int _dataSubscribers = 0;
 
   @override
   Device? get deviceConnectingTo => _deviceConnectingTo;
@@ -81,14 +88,13 @@ class FlutterReactiveBleController extends ChangeNotifier
       UnmodifiableListView(_scannedDevices);
 
   FlutterReactiveBleController({required this.ble, required this.box}) {
-    _connectedDeviceStreamSub =
-        ble.connectedDeviceStream.listen(_handleConnectionStateUpdates);
     _btHWStatusStreamSub = ble.statusStream.listen(_handleBluetoothHWUpdates);
 
     if (box.hasData(_pairedDeviceIdKey)) {
       _pairedDevice = Device(
           id: box.read<String>(_pairedDeviceIdKey)!,
           name: box.read<String>(_pairedDeviceNameKey)!);
+      connect(_pairedDevice!);
     }
   }
 
@@ -106,50 +112,38 @@ class FlutterReactiveBleController extends ChangeNotifier
 
   @override
   Future<void> forgetDevice(Device device) async {
-    await box.remove(_pairedDeviceIdKey);
-    await box.remove(_pairedDeviceNameKey);
     _reconnectionTimer?.cancel();
+    _pairedDevice = null;
     if (_bluetoothState != BluetoothState.off) {
       _bluetoothState = BluetoothState.on;
       notifyListeners();
     }
+    await box.remove(_pairedDeviceIdKey);
+    await box.remove(_pairedDeviceNameKey);
   }
 
   @override
   StreamSubscription<DiscoveredDevice> startScan(
       {void Function()? onTimeout,
       Duration timeLimit = const Duration(seconds: 30)}) {
-    if (ble.status != BleStatus.ready) {
-      _bluetoothState = BluetoothState.off;
-      notifyListeners();
-    }
     _scannedDevices.clear();
     _bluetoothState = BluetoothState.scanning;
+    notifyListeners();
     _scanSub?.cancel();
+    _scanTimeout?.cancel();
     _scanSub = ble
         .scanForDevices(
             withServices: [timerServiceUUID], scanMode: ScanMode.lowPower)
         .takeWhile((element) => element.name == timerName)
-        .timeout(timeLimit, onTimeout: (event) async {
-          if (_bluetoothState == BluetoothState.scanning) {
-            _bluetoothState = BluetoothState.scanTimeout;
-            notifyListeners();
-            await _scanSub?.cancel();
-          }
-          onTimeout?.call();
-        })
-        .listen((result) => _addScanResult(result));
-
-    _scanSub?.onError((e) async {
+        .listen(_addScanResult, onError: _onScanError);
+    _scanTimeout = Timer(timeLimit, () {
       if (_bluetoothState == BluetoothState.scanning) {
-        _bluetoothState = BluetoothState.on;
+        _bluetoothState = BluetoothState.scanTimeout;
         notifyListeners();
-        await _scanSub?.cancel();
+        _scanSub?.cancel();
       }
-      print('Error during scanning: =====================================');
-      print(e.toString());
+      onTimeout?.call();
     });
-
     return _scanSub!;
   }
 
@@ -158,8 +152,9 @@ class FlutterReactiveBleController extends ChangeNotifier
     if (_bluetoothState == BluetoothState.scanning) {
       _bluetoothState = BluetoothState.on;
       notifyListeners();
+      await _scanSub?.cancel();
+      _scanTimeout?.cancel();
     }
-    await _scanSub?.cancel();
   }
 
   @override
@@ -170,6 +165,7 @@ class FlutterReactiveBleController extends ChangeNotifier
 
     if (_connectionStream == null) {
       print('BLE_CONTROLLER: Adding connection stream for $deviceId');
+      stopScan();
       _deviceConnectingTo = device;
       _bluetoothState = BluetoothState.connecting;
       notifyListeners();
@@ -179,32 +175,18 @@ class FlutterReactiveBleController extends ChangeNotifier
               prescanDuration: timeLimit,
               withServices: [timerServiceUUID],
               connectionTimeout: timeLimit)
-          .listen((stateUpdate) {
-        if (stateUpdate.failure != null) {
-          // On connection failure reset the connection stream.
-          _bluetoothState = BluetoothState.connectionTimeout;
-          _connectedDevice = null;
-          _deviceConnectingTo = null;
-          _connectionStream?.cancel();
-          _connectionStream = null;
-          notifyListeners();
-          onTimeout?.call();
-          _retryConnection();
-        }
-        print('BLE_CONTROLLER: connectToDevice state update: $stateUpdate');
-      });
+          .listen(_handleConnectionEvents, onError: _handleConnectionErrors);
     }
   }
 
   @override
-  void disconnect() {
+  Future<void> disconnect() async {
     if (_connectionStream == null || _connectionStream!.isPaused) {
       throw Exception(
           'BLE_CONTROLLER: Connection stream is paused or null or blank! It cannot be canceled =============');
     }
-    _connectionStream?.cancel();
-    _connectionStream = null;
-    _reconnectionTimer?.cancel();
+    print('BLE_CONTROLLER: Disconnecting from ${_connectedDevice?.id}');
+    await _cleanOnDisconnect();
     if (_bluetoothState == BluetoothState.connecting ||
         _bluetoothState == BluetoothState.connected) {
       _bluetoothState = BluetoothState.on;
@@ -214,20 +196,35 @@ class FlutterReactiveBleController extends ChangeNotifier
 
   void onClose() {
     _btHWStatusStreamSub?.cancel();
-    _connectedDeviceStreamSub?.cancel();
     _reconnectionTimer?.cancel();
+    _scanTimeout?.cancel();
+    _initialHandShakeFuture?.cancel();
   }
 
   void _retryConnection() {
-    if (_pairedDevice != null && _reconnectionTimer?.isActive == false) {
-      _reconnectionTimer = Timer.periodic(Duration(seconds: 6), (timer) {
+    if (_bluetoothState != BluetoothState.off &&
+        _pairedDevice != null &&
+        (_reconnectionTimer == null || _reconnectionTimer!.isActive == false)) {
+      print(
+          'BLE_CONTROLLER: Reconnecting to ${_pairedDevice!.id} in 6 seconds.');
+      _reconnectionTimer = Timer.periodic(Duration(seconds: 6), (timer) async {
         if (_pairedDevice != null) {
           connect(_pairedDevice!);
-        } else {
-          _reconnectionTimer?.cancel();
         }
+        _reconnectionTimer?.cancel();
       });
     }
+  }
+
+  Future<void> _cleanOnDisconnect() async {
+    await _connectionStream?.cancel();
+    await _initialHandShakeFuture?.cancel();
+    _characteristicStream = null;
+    _initialHandShakeFuture = null;
+    _connectionStream = null;
+    _reconnectionTimer?.cancel();
+    _connectedDevice = null;
+    _deviceConnectingTo = null;
   }
 
   void _handleBluetoothHWUpdates(BleStatus state) async {
@@ -236,117 +233,145 @@ class FlutterReactiveBleController extends ChangeNotifier
         if (_bluetoothState == BluetoothState.unauthorized ||
             _bluetoothState == BluetoothState.off) {
           _bluetoothState = BluetoothState.on;
+          _retryConnection();
         }
         break;
       case BleStatus.unauthorized:
         await authorize();
         break;
-      default: // Off, unauthorized, unavailable, unknown
+      case BleStatus.unknown:
         _scannedDevices.clear();
-        _bluetoothState == BluetoothState.off;
+        break;
+      default: // Off, unauthorized, unavailable
+        await _cleanOnDisconnect();
+        _scannedDevices.clear();
+        _bluetoothState = BluetoothState.off;
     }
     notifyListeners();
   }
 
-  /// Keep track of connected devices count and update the isConnected stream.
-  void _handleConnectionStateUpdates(ConnectionStateUpdate stateUpdate) {
-    print('BLE_CONTROLLER: _connectedDeviceStream update: $stateUpdate');
-    String deviceId = stateUpdate.deviceId;
-    DeviceConnectionState connectionState = stateUpdate.connectionState;
+  Future<void> _sendData(QualifiedCharacteristic characteristic, String data,
+      {String endOf = ''}) async {
+    try {
+      var toSend = data + endOf;
+      while (toSend.length >= maxTimerDataLength) {
+        //Prepare first message
+        var message = toSend.substring(0, maxTimerDataLength);
+        try {
+          await ble.writeCharacteristicWithoutResponse(characteristic,
+              value: utf8.encode(message));
+        } catch (e) {}
 
-    // Device connected.
-    if (connectionState == DeviceConnectionState.connected) {
-      _bluetoothState = BluetoothState.connected;
-      // Cancel reconnection timer if device is connected.
-      _reconnectionTimer?.cancel();
+        //Update remaining data
+        toSend = toSend.substring(maxTimerDataLength, toSend.length);
 
-      // Add to connected devices and remove from scanned devices.
-      int deviceIndex =
-          _scannedDevices.indexWhere((device) => device.id == deviceId);
-      if (deviceIndex != -1) {
-        _connectedDevice = _scannedDevices[deviceIndex];
-      } else {
-        if (_deviceConnectingTo == null) {
-          _connectedDevice = Device(id: deviceId);
-        } else {
-          if (_connectedDevice == null) {
-            print('BLE_CONTROLLER: Adding connected device');
-            _connectedDevice = _deviceConnectingTo;
-          } else {
-            print(
-                'BLE_CONTROLLER: Device already connected, this shouldn\'t happen! ================');
-          }
-        }
+        //Wait 500 milliseconds before sending more data
+        await Future.delayed(Duration(milliseconds: 500));
       }
+      //Send remaining data
+      await ble.writeCharacteristicWithoutResponse(characteristic,
+          value: utf8.encode(toSend));
+    } catch (ex) {
+      print(
+          'BLE_CONTROLLER: Caught error when sending data to timer: $ex. Data: $data');
+    }
+  }
 
-      if (_deviceConnectingTo != null) {
-        print(
-            'BLE_CONTROLLER: Clearing _deviceConnectingTo (after connecting)');
+  void _handleConnectionEvents(ConnectionStateUpdate event) {
+    switch (event.connectionState) {
+      case DeviceConnectionState.connecting:
+        _bluetoothState = BluetoothState.connecting;
+        print('BLE_CONTROLLER: Connecting to ${event.deviceId}');
+        notifyListeners();
+        break;
+      case DeviceConnectionState.connected:
+        _connectedDevice = _deviceConnectingTo;
         _deviceConnectingTo = null;
-      }
-
-      // Subscribe to connection stream if not subbed yet (usually after restart).
-      if (_connectionStream == null) {
-        print(
-            'BLE_CONTROLLER: Probably performed a hot restart after being connected to a device, reconnecting to it');
-        connect(Device(id: deviceId));
-      }
-    } else if (connectionState == DeviceConnectionState.disconnected) {
-      // Device disconnected.
-      if (_deviceConnectingTo != null && deviceId == _deviceConnectingTo?.id) {
-        print(
-            'BLE_CONTROLLER: Clearing _deviceConnectingTo (after disconnected) -------');
+        _bluetoothState = BluetoothState.connected;
+        print('BLE_CONTROLLER: Connected to ${event.deviceId}');
+        notifyListeners();
+        _initialHandShake();
+        break;
+      case DeviceConnectionState.disconnected:
+        _characteristicStream = null;
         _deviceConnectingTo = null;
-      }
-
-      // Remove connection stream, if it exists.
-      if (_connectionStream != null) {
-        print(
-            'BLE_CONTROLLER: Removing connection stream (this should appear only after unsuccessful connect or unexpected disconnect)');
+        _connectedDevice = null;
         _connectionStream?.cancel();
         _connectionStream = null;
-      }
-
-      // Run a reconnection timer in case the device was disconnected unintentionally.
-      if (_bluetoothState == BluetoothState.connectionTimeout) {
-        _retryConnection();
-      }
-
-      if (_bluetoothState == BluetoothState.connected) {
-        print('BLE_CONTROLLER: Set default ble state to ON');
         _bluetoothState = BluetoothState.on;
-      }
-
-      // Move to list of scanned devices from connected device, if needed.
-      if (_connectedDevice?.id == deviceId) {
-        if (_scannedDevices.every((item) => item.id != _connectedDevice?.id)) {
-          _scannedDevices.add(_connectedDevice!);
-        }
-        _connectedDevice = null;
-      }
-    }
-
-    // Update connection state of the Device model
-    try {
-      Device? device =
-          _scannedDevices.firstWhere((device) => device.id == deviceId);
-      _setConnectionState(device, connectionState);
-    } on StateError {
-      if (_connectedDevice != null) {
-        _reconnectionTimer?.cancel();
-        print(
-            'BLE_CONTROLLER: Device ${_connectedDevice!.name} already connected, updating status! ---------------');
-        _setConnectionState(_connectedDevice!, connectionState);
-      } else if (_pairedDevice != null) {
-        print(
-            'BLE_CONTROLLER: Connecting to paired device ${_pairedDevice!.name}! ---------------');
-        connect(_pairedDevice!);
-      } else if (connectionState == DeviceConnectionState.disconnected) {
-        print(
-            'BLE_CONTROLLER: Device neither scanned, nor connected to! ---------------');
+        print('BLE_CONTROLLER: Disconnected from ${event.deviceId}');
+        _retryConnection();
         notifyListeners();
-      }
+        break;
+      case DeviceConnectionState.disconnecting:
+        print('BLE_CONTROLLER: Disconnecting from ${event.deviceId}');
+        break;
     }
+  }
+
+  void _initialHandShake() {
+    print('BLE_CONTROLLER: Initial handshake for ${_connectedDevice!.id}');
+    QualifiedCharacteristic characteristic = QualifiedCharacteristic(
+        characteristicId: timerCharacteristicUUID,
+        serviceId: timerServiceUUID,
+        deviceId: _connectedDevice!.id);
+
+    Brand brand = Brand.unknown;
+    var sub = subscribeToDeviceDataStream().handleError((error) {
+      print('BLE_CONTROLLER: Error on Initial handshake, $error');
+    }).listen((value) {
+      if (value.contains(VicentTimerFirmware)) {
+        brand = Brand.vicent;
+      }
+    });
+
+    _initialHandShakeFuture = CancelableOperation.fromFuture(
+      () async {
+        int maxAttempts = 20;
+        int iteration = 0;
+        await Future.doWhile(() async {
+          if (_bluetoothState != BluetoothState.connected) {
+            return false;
+          }
+          await _sendData(characteristic, VicentTimerCommands.getHelp,
+              endOf: '\n');
+
+          if (brand != Brand.unknown ||
+              _bluetoothState != BluetoothState.connected) {
+            return false;
+          }
+
+          //Wait two seconds before retrying again
+          await Future.delayed(Duration(seconds: 2));
+          iteration += 1;
+
+          return iteration < maxAttempts;
+        });
+
+        await sub.cancel();
+        if (_connectedDevice != null) {
+          print(
+              'BLE_CONTROLLER: Device brand for ${_connectedDevice!.id} is $brand');
+          _connectedDevice!.brand = brand;
+          _initialHandShakeFuture = null;
+          notifyListeners();
+        } else {
+          print('BLE_CONTROLLER: Device disconnected before initial HandShake');
+        }
+      }(),
+      onCancel: () => sub.cancel(),
+    );
+  }
+
+  void _handleConnectionErrors(error) async {
+    print(
+        'BLE_CONTROLLER: Error on ${_deviceConnectingTo?.id} connection, $error');
+    _bluetoothState = BluetoothState.connectionTimeout;
+    _deviceConnectingTo = null;
+    _connectedDevice = null;
+    await _connectionStream?.cancel();
+    _connectionStream = null;
+    _retryConnection();
   }
 
   /// Adds a [device] to a private list of discovered devices, unless already added.
@@ -370,34 +395,36 @@ class FlutterReactiveBleController extends ChangeNotifier
     return true;
   }
 
-  /// Sets the connection state of a [device] to [connectionState].
-  /// Performs a conversion of flutter_reactiveble's DeviceConnectionState enum
-  /// to Device's DeviceConnectionState enum.
-  void _setConnectionState(
-      Device device, DeviceConnectionState connectionState) {
-    switch (connectionState) {
-      case DeviceConnectionState.connecting:
-        device.connectionState = DeviceConnection.connecting;
-        break;
-      case DeviceConnectionState.connected:
-        device.connectionState = DeviceConnection.connected;
-        break;
-      case DeviceConnectionState.disconnecting:
-        device.connectionState = DeviceConnection.disconnecting;
-        break;
-      case DeviceConnectionState.disconnected:
-        device.connectionState = DeviceConnection.disconnected;
-        break;
+  Future<void> _onScanError(e) async {
+    if (_bluetoothState == BluetoothState.scanning) {
+      _bluetoothState = BluetoothState.on;
+      notifyListeners();
+      await _scanSub?.cancel();
     }
-    notifyListeners();
+    print('Error during scanning: =====================================');
+    print(e.toString());
   }
 
   @override
-  Stream<List<int>> subscribeToDeviceDataStream() {
+  Stream<String> subscribeToDeviceDataStream() {
     QualifiedCharacteristic characteristic = QualifiedCharacteristic(
         characteristicId: timerCharacteristicUUID,
         serviceId: timerServiceUUID,
         deviceId: _connectedDevice!.id);
-    return ble.subscribeToCharacteristic(characteristic);
+    _characteristicStream ??= ble
+        .subscribeToCharacteristic(characteristic)
+        .transform(Utf8Decoder(allowMalformed: true))
+        .transform(LineSplitter())
+        .asBroadcastStream(onCancel: ((subscription) {
+      _dataSubscribers--;
+      print(
+          'BLE_CONTROLLER: A subscriber leaved the characteristic ${characteristic.characteristicId} data stream [$_dataSubscribers].');
+    }), onListen: ((subscription) {
+      _dataSubscribers++;
+      print(
+          'BLE_CONTROLLER: A subscriber entered to characteristic ${characteristic.characteristicId} data stream [$_dataSubscribers].');
+    }));
+
+    return _characteristicStream!;
   }
 }

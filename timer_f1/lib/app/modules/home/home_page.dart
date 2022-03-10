@@ -5,18 +5,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animator/flutter_animator.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:timer_f1/app/modules/flight_history/controllers/flight_history_controller.dart';
 import 'package:timer_f1/app/modules/flight_history/widgets/history.dart';
 import 'package:timer_f1/app/routes/app_pages.dart';
 import 'package:timer_f1/global_widgets/device_status.dart';
 import 'package:timer_f1/global_widgets/drawer.dart';
 import 'package:timer_f1/global_widgets/clipped_parts.dart';
 
-class HomeView extends HookWidget {
+class HomePage extends HookConsumerWidget {
   final GlobalKey<InOutAnimationState> _fabAnimationController =
       GlobalKey<InOutAnimationState>();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     var onStartFlight = useCallback(
         () => GoRouter.of(context)
             .push('${Routes.BLUETOOTH}?redirectTo=/${Routes.FLIGHT_TRACKER}'),
@@ -61,6 +63,12 @@ class HomeView extends HookWidget {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: InOutAnimation(
+          autoPlay: ref
+                  .watch(flightHistoryControllerProvider
+                      .select((value) => value.flightHistory))
+                  .isEmpty
+              ? InOutAnimationStatus.Out
+              : InOutAnimationStatus.In,
           inDefinition: SlideInUpAnimation(
               preferences:
                   AnimationPreferences(duration: Duration(milliseconds: 500))),

@@ -20,10 +20,10 @@ final isScanningListEmptyProvider = Provider.autoDispose<bool>((ref) {
   return scannedDevices != null && scannedDevices.isEmpty ? true : false;
 });
 
-class BluetoothView extends HookConsumerWidget {
+class BluetoothPage extends HookConsumerWidget {
   final String? redirectTo;
 
-  BluetoothView({
+  BluetoothPage({
     Key? key,
     this.redirectTo,
   }) : super(key: key);
@@ -68,12 +68,10 @@ class BluetoothView extends HookConsumerWidget {
             Device? pairedDevice = ref.watch(
                 bleControllerProvider.select((value) => value.pairedDevice));
             bool isScanningListEmpty = ref.watch(isScanningListEmptyProvider);
-            final onScan = useCallback(() async {
+            final onScan = useCallback(() {
               if (bluetoothState != BluetoothState.scanning) {
-                try {
-                  ref.read(bleControllerProvider).startScan().onError((error) =>
-                      FlushbarHelper.createError(message: error.message));
-                } catch (e) {}
+                ref.read(bleControllerProvider).startScan()?.onError((error) =>
+                    FlushbarHelper.createError(message: error.message));
               }
             }, [bluetoothState]);
 
@@ -97,7 +95,8 @@ class BluetoothView extends HookConsumerWidget {
               return ScanAnimation();
             }
 
-            if (bluetoothState == BluetoothState.scanTimeout ||
+            if ((bluetoothState == BluetoothState.scanTimeout &&
+                    isScanningListEmpty == true) ||
                 (bluetoothState != BluetoothState.scanning &&
                     isScanningListEmpty == true)) {
               return NoDevicesFound(

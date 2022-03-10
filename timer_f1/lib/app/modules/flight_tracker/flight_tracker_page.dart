@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:timer_f1/app/data/models/bluetooth_model.dart';
+import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/data/models/enums/fixed_location.dart';
 import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
 import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_data_controller.dart';
@@ -14,7 +15,10 @@ import 'package:timer_f1/app/modules/flight_tracker/widgets/voltage_indicator.da
 import 'package:timer_f1/app/modules/flight_tracker/widgets/waiting_for_timer_data.dart';
 
 void useNoDataPopup(BuildContext context, WidgetRef ref) {
-  var flightHasStarted = ref.watch<bool>(flighHasStartedControllerProvider);
+  var flightHasStarted = ref.watch<bool>(
+      flightProvider.select((value) => value.startTimestamp != null));
+  var device = ref.watch<Device?>(
+      bleControllerProvider.select((value) => value.connectedDevice));
   var isNoDataDialogDisplayed = useState(true);
   useEffect(() {
     if (flightHasStarted == false && isNoDataDialogDisplayed.value == true) {
@@ -22,19 +26,20 @@ void useNoDataPopup(BuildContext context, WidgetRef ref) {
         isNoDataDialogDisplayed.value = false;
         await showDialog(
             context: context,
-            builder: (ctx) => WaitingForData(flightHasStarted),
+            builder: (ctx) => WaitingForData(
+                hasFlightStarted: flightHasStarted, device: device),
             barrierDismissible: false);
       });
     } else if (flightHasStarted == true &&
         isNoDataDialogDisplayed.value == false) {
       WidgetsBinding.instance!.addPostFrameCallback((_) async {
-        Navigator.pop(context);
+        Navigator.of(context, rootNavigator: true).pop();
       });
     }
-  }, [flightHasStarted]);
+  }, [flightHasStarted, device]);
 }
 
-class FlightTrackerView extends HookConsumerWidget {
+class FlightTrackerPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var controller = ref.watch(flightControllerProvider);

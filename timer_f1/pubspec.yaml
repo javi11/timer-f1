@@ -8,6 +8,7 @@ environment:
 dependencies: 
   flutter: 
     sdk: flutter
+  async: ^2.8.2
   objectbox: ^1.4.1-dev.0
   objectbox_flutter_libs: 1.4.1-dev.0
   location: ^4.3.0
@@ -60,3 +61,4 @@ flutter:
     - assets/animations/turn-on-timerf1c.json
     - assets/animations/loading.json
     - assets/animations/download-success.json
+    - assets/animations/invalid-timer-brand.json

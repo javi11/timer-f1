@@ -47,13 +47,11 @@ class EmptyList extends StatelessWidget {
               height: 60.0,
               child: TextButton.icon(
                   style: TextButton.styleFrom(
+                      backgroundColor: Colors.green[50],
                       shape: RoundedRectangleBorder(
                           side: BorderSide(color: Colors.black12)),
                       elevation: 0,
-                      textStyle: TextStyle(
-                        color: Colors.black87,
-                        backgroundColor: Colors.green[50],
-                      )),
+                      textStyle: TextStyle(color: Colors.black87)),
                   icon: Icon(
                     Icons.flight_takeoff,
                     color: Colors.blue,

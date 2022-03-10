@@ -22,7 +22,7 @@ void useConfigureMap(
               !mapController.bounds!.contains(farPlaneDistanceCoordinates))) {
         mapController.bounds!.extend(flightStartCoordinates);
         mapController.bounds!.extend(farPlaneDistanceCoordinates);
-        mapController.fitBounds(mapController!.bounds!,
+        mapController.fitBounds(mapController.bounds!,
             options: FitBoundsOptions(padding: EdgeInsets.all(100)));
       } else {
         mapController.fitBounds(mapController.bounds!,
@@ -34,37 +34,41 @@ void useConfigureMap(
 
 ValueNotifier<List<Marker>> useMarkers(BuildContext context, Flight flight) {
   var markers = useState<List<Marker>>([]);
-  if (flight.flightStartCoordinates == null) {
-    markers.value = [
-      ...markers.value,
-      buildPlainFinishPointMarker(flight.flightEndCoordinates!)
-    ];
-  } else if (flight.flightEndCoordinates == null) {
-    markers.value = [
-      ...markers.value,
-      buildPlaneStartingFlagMarker(flight.flightStartCoordinates!)
-    ];
-  } else {
-    markers.value = [
-      ...markers.value,
-      buildPlaneStartingFlagMarker(flight.flightStartCoordinates!),
-      buildPlainFinishPointMarker(flight.flightEndCoordinates!)
-    ];
-  }
+  useEffect(() {
+    if (flight.flightStartCoordinates == null) {
+      markers.value = [
+        ...markers.value,
+        buildPlainFinishPointMarker(flight.flightEndCoordinates!)
+      ];
+    } else if (flight.flightEndCoordinates == null) {
+      markers.value = [
+        ...markers.value,
+        buildPlaneStartingFlagMarker(flight.flightStartCoordinates!)
+      ];
+    } else {
+      markers.value = [
+        ...markers.value,
+        buildPlaneStartingFlagMarker(flight.flightStartCoordinates!),
+        buildPlainFinishPointMarker(flight.flightEndCoordinates!)
+      ];
+    }
+  }, [flight.flightStartCoordinates, flight.flightEndCoordinates]);
 
   return markers;
 }
 
 ValueNotifier<LatLng?> useCentroid(BuildContext context, Flight flight) {
   var centroid = useState<LatLng?>(null);
-  if (flight.flightStartCoordinates == null) {
-    centroid.value = flight.flightEndCoordinates;
-  } else if (flight.flightEndCoordinates == null) {
-    centroid.value = flight.flightStartCoordinates;
-  } else {
-    centroid.value = computeCentroid(
-        [flight.flightStartCoordinates, flight.flightEndCoordinates]);
-  }
+  useEffect(() {
+    if (flight.flightStartCoordinates == null) {
+      centroid.value = flight.flightEndCoordinates;
+    } else if (flight.flightEndCoordinates == null) {
+      centroid.value = flight.flightStartCoordinates;
+    } else {
+      centroid.value = computeCentroid(
+          [flight.flightStartCoordinates, flight.flightEndCoordinates]);
+    }
+  }, [flight.flightStartCoordinates, flight.flightEndCoordinates]);
 
   return centroid;
 }

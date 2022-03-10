@@ -4,7 +4,7 @@ import 'package:timer_f1/objectbox.g.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
 
 abstract class FlightRepository {
-  Future<int> saveFlight(Flight flight);
+  int saveFlight(Flight flight);
 
   Flight? getFlightById(int id);
 
@@ -22,8 +22,8 @@ class StoreFlightRepository implements FlightRepository {
     _box = database.box<Flight>();
   }
   @override
-  Future<int> saveFlight(Flight flight) async {
-    return await _box.putAsync(flight);
+  int saveFlight(Flight flight) {
+    return _box.put(flight);
   }
 
   @override

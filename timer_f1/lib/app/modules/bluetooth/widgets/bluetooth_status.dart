@@ -21,7 +21,7 @@ class BluetoothStatus extends HookConsumerWidget {
     final onDisconnect = useCallback(() async {
       var provider = ref.read(bleControllerProvider);
       await provider.forgetDevice(connectedDevice!);
-      provider.disconnect();
+      await provider.disconnect();
     }, [connectedDevice]);
 
     final onConnect = useCallback(() async {
@@ -74,7 +74,17 @@ class BluetoothStatus extends HookConsumerWidget {
           ));
     }
 
-    if (bluetoothState == BluetoothState.connectionTimeout) {
+    if (bluetoothState == BluetoothState.off) {
+      return Container(
+          decoration: BoxDecoration(color: Colors.red[50]),
+          child: ListTile(
+            leading: Icon(Icons.bluetooth_disabled),
+            title: Text('Bluetooth is off.'),
+          ));
+    }
+
+    if (bluetoothState == BluetoothState.connectionTimeout ||
+        pairedDevice != null) {
       return Container(
           decoration: BoxDecoration(color: Colors.amber[50]),
           child: ListTile(
@@ -97,6 +107,7 @@ class BluetoothStatus extends HookConsumerWidget {
             },
           ));
     }
+
     return ListTile(
       leading: Icon(Icons.bluetooth),
       title: Text('Pair a device'),

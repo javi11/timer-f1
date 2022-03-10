@@ -101,17 +101,18 @@ class Flight {
   int? finish() {
     durationInMs = elapsedTime;
     for (var element in flightData) {
-      if (element.height! > maxHeight!) {
+      if (maxHeight == null || element.height! > maxHeight!) {
         maxHeight = element.height;
       }
-      if (element.pressure! > maxPressure!) {
+      if (maxPressure == null || element.pressure! > maxPressure!) {
         maxPressure = element.pressure;
       }
-      if (element.temperature! > maxTemperature!) {
+      if (maxTemperature == null || element.temperature! > maxTemperature!) {
         maxTemperature = element.temperature;
       }
-      if (element.planeDistanceFromUser != null &&
-          element.planeDistanceFromUser! > maxPlaneDistanceFromUser!) {
+      if (maxPlaneDistanceFromUser == null ||
+          element.planeDistanceFromUser != null &&
+              element.planeDistanceFromUser! > maxPlaneDistanceFromUser!) {
         maxPlaneDistanceFromUser = element.planeDistanceFromUser;
       }
       if (maxPlaneDistanceFromStart == null &&
@@ -122,7 +123,8 @@ class Flight {
       if (element.planeCoordinates != null) {
         double distanceFromStart = calculateDistance(
             element.planeCoordinates, flightStartCoordinates)!;
-        if (distanceFromStart > maxPlaneDistanceFromStart!) {
+        if (maxPlaneDistanceFromStart == null ||
+            distanceFromStart > maxPlaneDistanceFromStart!) {
           maxPlaneDistanceFromStart = distanceFromStart;
           farPlaneDistanceLat = element.planeCoordinates!.latitude;
           farPlaneDistanceLng = element.planeCoordinates!.longitude;

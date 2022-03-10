@@ -11,7 +11,7 @@ abstract class Routes {
 abstract class _Paths {
   _Paths._();
   static const HOME = '/';
-  static const FlightDetail = '/flight-details';
+  static const FlightDetail = 'flight-details';
   static const BLUETOOTH = '/bluetooth';
   static const FLIGHT_TRACKER = 'flight-tracker';
 }

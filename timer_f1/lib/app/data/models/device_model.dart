@@ -1,11 +1,15 @@
+enum Brand { vicent, manolo, unknown }
+
 class Device {
   final String id;
+  Brand brand;
   String _name = 'Unknown device';
   int? rssi;
 
   DeviceConnection connectionState = DeviceConnection.disconnected;
 
-  Device({required this.id, String? name, this.rssi}) {
+  Device(
+      {required this.id, this.brand = Brand.unknown, String? name, this.rssi}) {
     if (name != null) {
       _name = name;
     }

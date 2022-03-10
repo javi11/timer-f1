@@ -15,6 +15,7 @@ class DeviceList extends ConsumerWidget {
     required this.onRetry,
   }) : super(key: key);
 
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final deviceList = ref
         .watch(bleControllerProvider.select((value) => value.scannedDevices));
