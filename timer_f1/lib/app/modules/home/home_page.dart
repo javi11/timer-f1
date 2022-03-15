@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:timer_f1/app/modules/flight_history/controllers/flight_history_controller.dart';
 import 'package:timer_f1/app/modules/flight_history/widgets/history.dart';
+import 'package:timer_f1/app/modules/usb_device/controllers/usb_serial_controller.dart';
 import 'package:timer_f1/app/routes/app_pages.dart';
 import 'package:timer_f1/global_widgets/device_status.dart';
 import 'package:timer_f1/global_widgets/drawer.dart';
@@ -19,10 +20,14 @@ class HomePage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    var isUsbConnected =
+        ref.watch(usbControllerProvider.select((value) => value.isConnected));
     var onStartFlight = useCallback(
-        () => GoRouter.of(context)
-            .push('${Routes.BLUETOOTH}?redirectTo=/${Routes.FLIGHT_TRACKER}'),
-        []);
+        () => isUsbConnected
+            ? GoRouter.of(context).push('/${Routes.FLIGHT_TRACKER}')
+            : GoRouter.of(context).push(
+                '${Routes.BLUETOOTH}?redirectTo=/${Routes.FLIGHT_TRACKER}'),
+        [isUsbConnected]);
 
     return Scaffold(
         drawer: CustomDrawer(

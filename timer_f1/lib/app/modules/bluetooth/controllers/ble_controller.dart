@@ -11,6 +11,7 @@ import 'package:timer_f1/app/data/models/bluetooth_model.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/data/providers/ble_provider.dart';
 import 'package:timer_f1/app/data/providers/storage_provider.dart';
+import 'package:timer_f1/core/vicent_timer/vicent_get_firmware.dart';
 import 'package:timer_f1/core/vicent_timer/vicent_timer_commands.dart';
 
 const maxTimerDataLength = 20;
@@ -21,12 +22,11 @@ Uuid timerCharacteristicUUID =
 String _pairedDeviceIdKey = 'PAIRED_DEVICE_NAME';
 String _pairedDeviceNameKey = 'PAIRED_DEVICE_ID';
 
-final bleControllerProvider = ChangeNotifierProvider<BLEController>((ref) {
-  var ble = FlutterReactiveBleController(
-      ble: ref.watch(bleProvider), box: ref.watch(storageProvider));
-  ref.onDispose(() => ble.onClose());
-  return ble;
-});
+final bleControllerProvider =
+    ChangeNotifierProvider<BLEController>((ref) => FlutterReactiveBleController(
+          ble: ref.watch(bleProvider),
+          box: ref.watch(storageProvider),
+        ));
 
 class BluetoothOffException implements Exception {
   String cause;
@@ -39,6 +39,7 @@ abstract class BLEController extends ChangeNotifier {
   Device? get connectedDevice;
   Device? get pairedDevice;
   Device? get deviceConnectingTo;
+  bool autoReconnect = true;
   Future<void> authorize();
   Future<void> pairDevice(Device device);
   Future<void> forgetDevice(Device device);
@@ -46,7 +47,7 @@ abstract class BLEController extends ChangeNotifier {
       {void Function()? onTimeout,
       Duration timeLimit = const Duration(seconds: 30)});
   Future<void> stopScan();
-  void connect(Device device,
+  Future<void> connect(Device device,
       {void Function()? onTimeout,
       Duration timeLimit = const Duration(seconds: 30)});
   Future<void> disconnect();
@@ -67,9 +68,22 @@ class FlutterReactiveBleController extends ChangeNotifier
   StreamSubscription<DiscoveredDevice>? _scanSub;
   Timer? _reconnectionTimer;
   Timer? _scanTimeout;
-  CancelableOperation<void>? _initialHandShakeFuture;
+  CancelableOperation<void>? _connectionFuture;
   Stream<String>? _characteristicStream;
   int _dataSubscribers = 0;
+  bool _autoReconnect = true;
+  bool _disposed = false;
+
+  @override
+  set autoReconnect(bool value) {
+    if (value == false) {
+      _reconnectionTimer?.cancel();
+    }
+    _autoReconnect = value;
+  }
+
+  @override
+  bool get autoReconnect => _autoReconnect;
 
   @override
   Device? get deviceConnectingTo => _deviceConnectingTo;
@@ -94,7 +108,8 @@ class FlutterReactiveBleController extends ChangeNotifier
       _pairedDevice = Device(
           id: box.read<String>(_pairedDeviceIdKey)!,
           name: box.read<String>(_pairedDeviceNameKey)!);
-      connect(_pairedDevice!);
+      _connectionFuture =
+          CancelableOperation.fromFuture(connect(_pairedDevice!));
     }
   }
 
@@ -152,20 +167,27 @@ class FlutterReactiveBleController extends ChangeNotifier
     if (_bluetoothState == BluetoothState.scanning) {
       _bluetoothState = BluetoothState.on;
       notifyListeners();
-      await _scanSub?.cancel();
       _scanTimeout?.cancel();
+      await _scanSub?.cancel();
     }
   }
 
   @override
-  void connect(Device device,
+  void notifyListeners() {
+    if (!_disposed) {
+      super.notifyListeners();
+    }
+  }
+
+  @override
+  Future<void> connect(Device device,
       {void Function()? onTimeout,
-      Duration timeLimit = const Duration(seconds: 30)}) {
+      Duration timeLimit = const Duration(seconds: 30)}) async {
     String deviceId = device.id;
 
     if (_connectionStream == null) {
       print('BLE_CONTROLLER: Adding connection stream for $deviceId');
-      stopScan();
+      await stopScan();
       _deviceConnectingTo = device;
       _bluetoothState = BluetoothState.connecting;
       notifyListeners();
@@ -194,37 +216,50 @@ class FlutterReactiveBleController extends ChangeNotifier
     }
   }
 
-  void onClose() {
-    _btHWStatusStreamSub?.cancel();
-    _reconnectionTimer?.cancel();
+  @override
+  Future<void> dispose() async {
+    await clean();
+    await ble.deinitialize();
+    _disposed = true;
+    super.dispose();
+  }
+
+  Future<void> clean() async {
+    _pairedDevice = null;
     _scanTimeout?.cancel();
-    _initialHandShakeFuture?.cancel();
+    await _cleanOnDisconnect();
+    await _btHWStatusStreamSub?.cancel();
+    await _connectionFuture?.cancel();
+  }
+
+  Future<void> _cleanOnDisconnect() async {
+    _reconnectionTimer?.cancel();
+    _connectedDevice = null;
+    _deviceConnectingTo = null;
+    _characteristicStream = null;
+    _scanTimeout?.cancel();
+    await _connectionStream?.cancel();
+    _connectionStream = null;
+    await _connectionFuture?.cancel();
+    _connectionFuture = null;
   }
 
   void _retryConnection() {
-    if (_bluetoothState != BluetoothState.off &&
+    if (_autoReconnect == true &&
+        _bluetoothState != BluetoothState.off &&
         _pairedDevice != null &&
+        !_disposed &&
         (_reconnectionTimer == null || _reconnectionTimer!.isActive == false)) {
       print(
           'BLE_CONTROLLER: Reconnecting to ${_pairedDevice!.id} in 6 seconds.');
       _reconnectionTimer = Timer.periodic(Duration(seconds: 6), (timer) async {
-        if (_pairedDevice != null) {
-          connect(_pairedDevice!);
+        if (_pairedDevice != null && _autoReconnect == true) {
+          _connectionFuture =
+              CancelableOperation.fromFuture(connect(_pairedDevice!));
         }
         _reconnectionTimer?.cancel();
       });
     }
-  }
-
-  Future<void> _cleanOnDisconnect() async {
-    await _connectionStream?.cancel();
-    await _initialHandShakeFuture?.cancel();
-    _characteristicStream = null;
-    _initialHandShakeFuture = null;
-    _connectionStream = null;
-    _reconnectionTimer?.cancel();
-    _connectedDevice = null;
-    _deviceConnectingTo = null;
   }
 
   void _handleBluetoothHWUpdates(BleStatus state) async {
@@ -237,6 +272,8 @@ class FlutterReactiveBleController extends ChangeNotifier
         }
         break;
       case BleStatus.unauthorized:
+        _bluetoothState = BluetoothState.unauthorized;
+        notifyListeners();
         await authorize();
         break;
       case BleStatus.unknown:
@@ -289,8 +326,9 @@ class FlutterReactiveBleController extends ChangeNotifier
         _deviceConnectingTo = null;
         _bluetoothState = BluetoothState.connected;
         print('BLE_CONTROLLER: Connected to ${event.deviceId}');
+        _connectedDevice!.connectionState = DeviceConnection.handshaking;
         notifyListeners();
-        _initialHandShake();
+        _connectionFuture = CancelableOperation.fromFuture(_initialHandShake());
         break;
       case DeviceConnectionState.disconnected:
         _characteristicStream = null;
@@ -309,7 +347,7 @@ class FlutterReactiveBleController extends ChangeNotifier
     }
   }
 
-  void _initialHandShake() {
+  Future<void> _initialHandShake() async {
     print('BLE_CONTROLLER: Initial handshake for ${_connectedDevice!.id}');
     QualifiedCharacteristic characteristic = QualifiedCharacteristic(
         characteristicId: timerCharacteristicUUID,
@@ -317,50 +355,51 @@ class FlutterReactiveBleController extends ChangeNotifier
         deviceId: _connectedDevice!.id);
 
     Brand brand = Brand.unknown;
+    String firmware = 'unknown';
     var sub = subscribeToDeviceDataStream().handleError((error) {
       print('BLE_CONTROLLER: Error on Initial handshake, $error');
     }).listen((value) {
-      if (value.contains(VicentTimerFirmware)) {
+      var currentFirmware = getVicentFirmwareVersion(value);
+      if (currentFirmware != null) {
         brand = Brand.vicent;
+        firmware = currentFirmware;
       }
     });
 
-    _initialHandShakeFuture = CancelableOperation.fromFuture(
-      () async {
-        int maxAttempts = 20;
-        int iteration = 0;
-        await Future.doWhile(() async {
-          if (_bluetoothState != BluetoothState.connected) {
-            return false;
-          }
-          await _sendData(characteristic, VicentTimerCommands.getHelp,
-              endOf: '\n');
-
-          if (brand != Brand.unknown ||
-              _bluetoothState != BluetoothState.connected) {
-            return false;
-          }
-
-          //Wait two seconds before retrying again
-          await Future.delayed(Duration(seconds: 2));
-          iteration += 1;
-
-          return iteration < maxAttempts;
-        });
-
+    await Future.doWhile(() async {
+      print('BLE_CONTROLLER: Retrying handshake.');
+      if (brand != Brand.unknown ||
+          _bluetoothState != BluetoothState.connected ||
+          _disposed) {
         await sub.cancel();
-        if (_connectedDevice != null) {
-          print(
-              'BLE_CONTROLLER: Device brand for ${_connectedDevice!.id} is $brand');
-          _connectedDevice!.brand = brand;
-          _initialHandShakeFuture = null;
-          notifyListeners();
-        } else {
-          print('BLE_CONTROLLER: Device disconnected before initial HandShake');
-        }
-      }(),
-      onCancel: () => sub.cancel(),
-    );
+        return false;
+      }
+
+      await _sendData(characteristic, VicentTimerCommands.getHelp, endOf: '\n');
+
+      if (brand != Brand.unknown ||
+          _bluetoothState != BluetoothState.connected ||
+          _disposed) {
+        await sub.cancel();
+        return false;
+      }
+
+      //Wait two seconds before retrying again
+      await Future.delayed(Duration(seconds: 10));
+
+      return true;
+    });
+
+    if (_connectedDevice != null) {
+      print(
+          'BLE_CONTROLLER: Device brand for ${_connectedDevice!.id} is $brand and has firmware $firmware.');
+      _connectedDevice!.brand = brand;
+      _connectedDevice!.firmware = firmware;
+      _connectedDevice!.connectionState = DeviceConnection.connected;
+      notifyListeners();
+    } else {
+      print('BLE_CONTROLLER: Device disconnected before initial HandShake');
+    }
   }
 
   void _handleConnectionErrors(error) async {

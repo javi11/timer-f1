@@ -14,6 +14,7 @@ class WaitingForData extends HookWidget {
   Timer _startTimerDataTimeout(BuildContext context) {
     return Timer(Duration(seconds: 10), () async {
       if (hasFlightStarted == false) {
+        Navigator.of(context, rootNavigator: true).pop();
         await showDialog(
             context: context,
             builder: (ctx) => NoTimerData(device: device),

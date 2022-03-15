@@ -1,15 +1,20 @@
-enum Brand { vicent, manolo, unknown }
+enum Brand { vicent, pepe, unknown }
 
 class Device {
   final String id;
   Brand brand;
+  String firmware;
   String _name = 'Unknown device';
   int? rssi;
 
   DeviceConnection connectionState = DeviceConnection.disconnected;
 
   Device(
-      {required this.id, this.brand = Brand.unknown, String? name, this.rssi}) {
+      {required this.id,
+      this.brand = Brand.unknown,
+      this.firmware = 'unknown',
+      String? name,
+      this.rssi}) {
     if (name != null) {
       _name = name;
     }
@@ -27,4 +32,10 @@ class Device {
   String toString() => name == 'Unknown device' ? id : name;
 }
 
-enum DeviceConnection { connecting, connected, disconnecting, disconnected }
+enum DeviceConnection {
+  connecting,
+  handshaking,
+  connected,
+  disconnecting,
+  disconnected
+}

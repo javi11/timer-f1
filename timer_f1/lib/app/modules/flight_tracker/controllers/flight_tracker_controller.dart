@@ -14,19 +14,16 @@ import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/data/models/enums/fixed_location.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
 import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
-import 'package:timer_f1/app/data/repositories/flight_repository.dart';
+import 'package:timer_f1/app/modules/flight_history/controllers/flight_history_controller.dart';
 import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_data_controller.dart';
 import 'package:timer_f1/app/routes/app_pages.dart';
 import 'package:timer_f1/core/utils/compute_centroid.dart';
 
-final mapControllerProvider =
-    Provider.autoDispose<MapController>((ref) => MapController());
 final flightControllerProvider =
     ChangeNotifierProvider.autoDispose<FlightTrackerController>((ref) =>
         FlightTrackerController(
             bleController: ref.read(bleControllerProvider),
-            flightRepository: ref.watch(flightRepositoryProvider),
-            mapController: ref.watch(mapControllerProvider),
+            flightHistoryController: ref.watch(flightHistoryControllerProvider),
             flightProvider: ref.watch(flightProvider)));
 final expandibleToggleSelector =
     flightControllerProvider.select((value) => value.expandibleToggle);
@@ -40,7 +37,7 @@ final locationServiceEnabledSelector =
 class FlightTrackerController extends ChangeNotifier {
   GlobalKey<ExpandableBottomSheetState> expandibleKey = GlobalKey();
   final BLEController bleController;
-  final FlightRepository flightRepository;
+  final FlightHistoryController flightHistoryController;
   final Flight flightProvider;
   Timer? checkLocationServiceTimer;
   ExpansionStatus expandibleToggle = ExpansionStatus.contracted;
@@ -48,12 +45,11 @@ class FlightTrackerController extends ChangeNotifier {
   CenterOnLocationUpdate centerOnLocationUpdate = CenterOnLocationUpdate.always;
   bool locationServiceEnabled = true;
 
-  final MapController mapController;
+  final MapController mapController = MapController();
 
   FlightTrackerController(
       {required this.bleController,
-      required this.flightRepository,
-      required this.mapController,
+      required this.flightHistoryController,
       required this.flightProvider}) {
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
       await _watchLocationEnabled();
@@ -62,7 +58,7 @@ class FlightTrackerController extends ChangeNotifier {
 
   void _saveFlight() {
     flightProvider.finish();
-    flightRepository.saveFlight(flightProvider);
+    flightHistoryController.saveFlight(flightProvider);
   }
 
   void _focusOnUser() {

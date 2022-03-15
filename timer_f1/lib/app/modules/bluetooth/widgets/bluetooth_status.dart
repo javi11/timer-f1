@@ -7,6 +7,7 @@ import 'package:timer_f1/app/data/models/bluetooth_model.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
 import 'package:timer_f1/app/routes/app_pages.dart';
+import 'package:timer_f1/global_widgets/device_info.dart';
 
 class BluetoothStatus extends HookConsumerWidget {
   @override
@@ -18,11 +19,29 @@ class BluetoothStatus extends HookConsumerWidget {
     Device? connectedDevice = ref
         .watch(bleControllerProvider.select((value) => value.connectedDevice));
 
-    final onDisconnect = useCallback(() async {
-      var provider = ref.read(bleControllerProvider);
-      await provider.forgetDevice(connectedDevice!);
-      await provider.disconnect();
-    }, [connectedDevice]);
+    final openDeviceInfo = useCallback(
+        () => AwesomeDialog(
+                headerAnimationLoop: false,
+                context: context,
+                animType: AnimType.SCALE,
+                dialogType: DialogType.INFO,
+                body: Center(
+                  child: Consumer(builder: (ctx, ref, child) {
+                    var provider = ref.watch(bleControllerProvider);
+                    return DeviceInfo(
+                        device:
+                            provider.connectedDevice ?? provider.pairedDevice);
+                  }),
+                ),
+                btnCancelText: 'Disconnect device',
+                btnCancelOnPress: () async {
+                  var provider = ref.read(bleControllerProvider);
+                  await provider.disconnect();
+                },
+                btnOkText: 'Close',
+                btnOkOnPress: () {})
+            .show(),
+        []);
 
     final onConnect = useCallback(() async {
       var provider = ref.read(bleControllerProvider);
@@ -40,17 +59,7 @@ class BluetoothStatus extends HookConsumerWidget {
           child: ListTile(
             leading: Icon(Icons.bluetooth_connected),
             title: Text(connectedDevice!.name),
-            onTap: () {
-              AwesomeDialog(
-                      context: context,
-                      dialogType: DialogType.INFO,
-                      animType: AnimType.BOTTOMSLIDE,
-                      title: 'Do you want to delete this device?',
-                      desc: 'The device will be unpair from the phone',
-                      btnCancelOnPress: () {},
-                      btnOkOnPress: onDisconnect)
-                  .show();
-            },
+            onTap: openDeviceInfo,
           ));
     }
     if (bluetoothState == BluetoothState.connecting) {
@@ -60,17 +69,7 @@ class BluetoothStatus extends HookConsumerWidget {
             leading: Icon(Icons.bluetooth_searching),
             title: Text('Connecting to ${pairedDevice?.name}...'),
             trailing: CircularProgressIndicator(),
-            onTap: () {
-              AwesomeDialog(
-                      context: context,
-                      dialogType: DialogType.INFO,
-                      animType: AnimType.BOTTOMSLIDE,
-                      title: 'Do you want to delete this device?',
-                      desc: 'The device will be unpair from the phone',
-                      btnCancelOnPress: () {},
-                      btnOkOnPress: onDisconnect)
-                  .show();
-            },
+            onTap: openDeviceInfo,
           ));
     }
 

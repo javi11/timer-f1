@@ -16,88 +16,88 @@ export 'package:objectbox/objectbox.dart'; // so that callers only have to impor
 
 final _entities = <ModelEntity>[
   ModelEntity(
-      id: const IdUid(1, 3165863116182907038),
+      id: const IdUid(1, 3617741553367741416),
       name: 'Flight',
-      lastPropertyId: const IdUid(16, 9212259709871210634),
+      lastPropertyId: const IdUid(16, 757837763565641298),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
-            id: const IdUid(1, 8019531199516861549),
+            id: const IdUid(1, 8197531307069830182),
             name: 'id',
             type: 6,
             flags: 1),
         ModelProperty(
-            id: const IdUid(2, 3750840249029717805),
+            id: const IdUid(2, 3119362607594110509),
             name: 'startTimestamp',
             type: 6,
             flags: 0),
         ModelProperty(
-            id: const IdUid(3, 4563810052113108565),
+            id: const IdUid(3, 7065487454957984963),
             name: 'durationInMs',
             type: 6,
             flags: 0),
         ModelProperty(
-            id: const IdUid(4, 6277973561528253364),
+            id: const IdUid(4, 7000256746130150781),
             name: 'endTimestamp',
             type: 6,
             flags: 0),
         ModelProperty(
-            id: const IdUid(5, 6101419156975752555),
+            id: const IdUid(5, 3820573597573610140),
             name: 'planeId',
             type: 9,
             flags: 0),
         ModelProperty(
-            id: const IdUid(6, 2172206400939600275),
+            id: const IdUid(6, 5286937463019224857),
             name: 'maxPressure',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(7, 8304971787985858408),
+            id: const IdUid(7, 5281464452431523957),
             name: 'maxHeight',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(8, 2720155109047802998),
+            id: const IdUid(8, 6349820843352883293),
             name: 'maxTemperature',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(9, 415709757991951715),
+            id: const IdUid(9, 1707142063431928861),
             name: 'farPlaneDistanceLat',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(10, 4396155024076359281),
+            id: const IdUid(10, 2557690390243076247),
             name: 'farPlaneDistanceLng',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(11, 8241450892056199328),
+            id: const IdUid(11, 260385017123311303),
             name: 'startFlightLng',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(12, 5931329813350919931),
+            id: const IdUid(12, 3021449412803215971),
             name: 'startFlightLat',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(13, 8581924059033095630),
+            id: const IdUid(13, 4986105825531599917),
             name: 'endFlightLng',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(14, 3029365155708477675),
+            id: const IdUid(14, 8577958606838120936),
             name: 'endFlightLat',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(15, 3099520426003426857),
+            id: const IdUid(15, 3708300250080366842),
             name: 'maxPlaneDistanceFromStart',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(16, 9212259709871210634),
+            id: const IdUid(16, 757837763565641298),
             name: 'maxPlaneDistanceFromUser',
             type: 8,
             flags: 0)
@@ -108,88 +108,88 @@ final _entities = <ModelEntity>[
             name: 'flightData', srcEntity: 'FlightData', srcField: 'flight')
       ]),
   ModelEntity(
-      id: const IdUid(2, 70823002830630040),
+      id: const IdUid(2, 1996917656354719130),
       name: 'FlightData',
-      lastPropertyId: const IdUid(15, 7424903361140478442),
+      lastPropertyId: const IdUid(15, 3085372596932118392),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
-            id: const IdUid(1, 6571391424007732),
+            id: const IdUid(1, 5761424148726819047),
             name: 'id',
             type: 6,
             flags: 1),
         ModelProperty(
-            id: const IdUid(2, 7103565747219004802),
+            id: const IdUid(2, 955355203143129608),
             name: 'isConnectedToPlane',
             type: 1,
             flags: 0),
         ModelProperty(
-            id: const IdUid(3, 2634108080031677564),
+            id: const IdUid(3, 3034893611289659868),
             name: 'flightHistoryId',
             type: 6,
             flags: 0),
         ModelProperty(
-            id: const IdUid(4, 5592331679397164717),
+            id: const IdUid(4, 3796642959493733523),
             name: 'planeId',
             type: 9,
             flags: 0),
         ModelProperty(
-            id: const IdUid(5, 7089990277477234573),
+            id: const IdUid(5, 7728617168268401784),
             name: 'timestamp',
             type: 6,
             flags: 0),
         ModelProperty(
-            id: const IdUid(6, 5682665901119043125),
+            id: const IdUid(6, 4043674209865252467),
             name: 'planeLat',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(7, 4028476182584177846),
+            id: const IdUid(7, 5130337363462404811),
             name: 'planeLng',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(8, 8249038486058916802),
+            id: const IdUid(8, 675320341134320462),
             name: 'height',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(9, 5917507118174874349),
+            id: const IdUid(9, 6048122397642438921),
             name: 'temperature',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(10, 5832735911997603916),
+            id: const IdUid(10, 697926613373307829),
             name: 'pressure',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(11, 2587528542866636236),
+            id: const IdUid(11, 3924585362923200929),
             name: 'voltage',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(12, 2339443981301943014),
+            id: const IdUid(12, 5447326414969738812),
             name: 'userLng',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(13, 1269371314015550604),
+            id: const IdUid(13, 5622336359712150334),
             name: 'userLat',
             type: 8,
             flags: 0),
         ModelProperty(
-            id: const IdUid(14, 6500777353299544382),
+            id: const IdUid(14, 5009816197382593742),
+            name: 'isInitial',
+            type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(15, 3085372596932118392),
             name: 'flightId',
             type: 11,
             flags: 520,
-            indexId: const IdUid(1, 8719585340288803483),
-            relationTarget: 'Flight'),
-        ModelProperty(
-            id: const IdUid(15, 7424903361140478442),
-            name: 'planeDistanceFromUser',
-            type: 8,
-            flags: 0)
+            indexId: const IdUid(1, 5182127689446183035),
+            relationTarget: 'Flight')
       ],
       relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[])
@@ -215,8 +215,8 @@ Future<Store> openStore(
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
-      lastEntityId: const IdUid(2, 70823002830630040),
-      lastIndexId: const IdUid(1, 8719585340288803483),
+      lastEntityId: const IdUid(2, 1996917656354719130),
+      lastIndexId: const IdUid(1, 5182127689446183035),
       lastRelationId: const IdUid(0, 0),
       lastSequenceId: const IdUid(0, 0),
       retiredEntityUids: const [],
@@ -232,7 +232,7 @@ ModelDefinition getObjectBoxModel() {
         model: _entities[0],
         toOneRelations: (Flight object) => [],
         toManyRelations: (Flight object) => {
-              RelInfo<FlightData>.toOneBacklink(14, object.id,
+              RelInfo<FlightData>.toOneBacklink(15, object.id,
                   (FlightData srcObject) => srcObject.flight): object.flightData
             },
         getId: (Flight object) => object.id,
@@ -297,7 +297,7 @@ ModelDefinition getObjectBoxModel() {
               object.flightData,
               store,
               RelInfo<FlightData>.toOneBacklink(
-                  14, object.id, (FlightData srcObject) => srcObject.flight),
+                  15, object.id, (FlightData srcObject) => srcObject.flight),
               store.box<Flight>());
           return object;
         }),
@@ -326,8 +326,8 @@ ModelDefinition getObjectBoxModel() {
           fbb.addFloat64(10, object.voltage);
           fbb.addFloat64(11, object.userLng);
           fbb.addFloat64(12, object.userLat);
-          fbb.addInt64(13, object.flight.targetId);
-          fbb.addFloat64(14, object.planeDistanceFromUser);
+          fbb.addBool(13, object.isInitial);
+          fbb.addInt64(14, object.flight.targetId);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -355,13 +355,13 @@ ModelDefinition getObjectBoxModel() {
                   .vTableGetNullable(buffer, rootOffset, 20),
               pressure: const fb.Float64Reader()
                   .vTableGetNullable(buffer, rootOffset, 22),
-              voltage: const fb.Float64Reader()
-                  .vTableGetNullable(buffer, rootOffset, 24),
+              voltage:
+                  const fb.Float64Reader().vTableGetNullable(buffer, rootOffset, 24),
               userLng: const fb.Float64Reader().vTableGetNullable(buffer, rootOffset, 26),
-              userLat: const fb.Float64Reader().vTableGetNullable(buffer, rootOffset, 28))
-            ..planeDistanceFromUser = const fb.Float64Reader().vTableGetNullable(buffer, rootOffset, 32);
+              userLat: const fb.Float64Reader().vTableGetNullable(buffer, rootOffset, 28),
+              isInitial: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 30));
           object.flight.targetId =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 30, 0);
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 32, 0);
           object.flight.attach(store);
           return object;
         })
@@ -490,11 +490,11 @@ class FlightData_ {
   static final userLat =
       QueryDoubleProperty<FlightData>(_entities[1].properties[12]);
 
+  /// see [FlightData.isInitial]
+  static final isInitial =
+      QueryBooleanProperty<FlightData>(_entities[1].properties[13]);
+
   /// see [FlightData.flight]
   static final flight =
-      QueryRelationToOne<FlightData, Flight>(_entities[1].properties[13]);
-
-  /// see [FlightData.planeDistanceFromUser]
-  static final planeDistanceFromUser =
-      QueryDoubleProperty<FlightData>(_entities[1].properties[14]);
+      QueryRelationToOne<FlightData, Flight>(_entities[1].properties[14]);
 }

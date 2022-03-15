@@ -28,11 +28,12 @@ class History extends ConsumerWidget {
     );
   }
 
-  Widget _listItem(Flight history, BuildContext context) {
-    String duration = ((history.durationInMs! / 1000) / 60).toStringAsFixed(2);
+  Widget _listItem(Flight flight, BuildContext context) {
+    String duration = ((flight.durationInMs! / 1000) / 60).toStringAsFixed(2);
     return GestureDetector(
       onTap: () {
-        GoRouter.of(context).push(Routes.FLIGHT_DETAIL, extra: history);
+        GoRouter.of(context)
+            .push(Routes.HOME + Routes.FLIGHT_DETAIL, extra: flight);
       },
       // inkwell color
       child: Card(
@@ -44,9 +45,9 @@ class History extends ConsumerWidget {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    if (history.startTimestamp != null)
+                    if (flight.startTimestamp != null)
                       getDayAvatar(DateTime.fromMillisecondsSinceEpoch(
-                              history.startTimestamp!)
+                              flight.startTimestamp!)
                           .weekday),
                     SizedBox(
                       height: 24,
@@ -57,13 +58,13 @@ class History extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          'Plane Id: ' + history.planeId!,
+                          'Plane Id: ' + flight.planeId!,
                           style: TextStyle(fontSize: 18),
                         ),
-                        if (history.startTimestamp != null)
+                        if (flight.startTimestamp != null)
                           Text(DateFormat('dd-MM-yyyy kk:mm:ss').format(
                               DateTime.fromMillisecondsSinceEpoch(
-                                  history.startTimestamp!)))
+                                  flight.startTimestamp!)))
                       ],
                     )
                   ],
@@ -77,13 +78,13 @@ class History extends ConsumerWidget {
                       width: 5,
                     ),
                     _buildBox('Distance', Icons.transfer_within_a_station,
-                        distanceToString(history.maxPlaneDistanceFromUser!)),
+                        distanceToString(flight.maxPlaneDistanceFromUser!)),
                     SizedBox(
                       height: 24,
                       width: 5,
                     ),
                     _buildBox('Height', Icons.line_weight,
-                        distanceToString(history.maxHeight!)),
+                        distanceToString(flight.maxHeight!)),
                     SizedBox(
                       height: 24,
                       width: 5,

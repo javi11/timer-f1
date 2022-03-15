@@ -2,13 +2,13 @@ import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:timer_f1/app/data/models/bluetooth_model.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/data/models/enums/fixed_location.dart';
 import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
 import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_data_controller.dart';
 import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_tracker_controller.dart';
 import 'package:timer_f1/app/modules/flight_tracker/widgets/bottom_bar.dart';
+import 'package:timer_f1/app/modules/flight_tracker/widgets/connection_status.dart';
 import 'package:timer_f1/app/modules/flight_tracker/widgets/flight_expandible_content.dart';
 import 'package:timer_f1/app/modules/flight_tracker/widgets/tracking_map.dart';
 import 'package:timer_f1/app/modules/flight_tracker/widgets/voltage_indicator.dart';
@@ -36,6 +36,8 @@ void useNoDataPopup(BuildContext context, WidgetRef ref) {
         Navigator.of(context, rootNavigator: true).pop();
       });
     }
+
+    return null;
   }, [flightHasStarted, device]);
 }
 
@@ -149,44 +151,7 @@ class FlightTrackerPage extends HookConsumerWidget {
                                 SizedBox(
                                   width: 10,
                                 ),
-                                Consumer(builder: (context, ref, child) {
-                                  var bluetoothState = ref.watch(
-                                      bleControllerProvider.select(
-                                          (value) => value.bluetoothState));
-                                  if (bluetoothState ==
-                                      BluetoothState.connected) {
-                                    return CircleAvatar(
-                                      child: Icon(Icons.bluetooth_connected,
-                                          color: Colors.white),
-                                    );
-                                  }
-
-                                  if (bluetoothState ==
-                                      BluetoothState.connecting) {
-                                    return CircleAvatar(
-                                      backgroundColor: Colors.orangeAccent,
-                                      child: Icon(Icons.bluetooth_searching,
-                                          color: Colors.white),
-                                    );
-                                  }
-
-                                  return InkWell(
-                                    onTap: () async {
-                                      await ref
-                                          .read(flightControllerProvider)
-                                          .onReConnect(ref
-                                              .read(bleControllerProvider)
-                                              .pairedDevice!);
-                                    },
-                                    child: CircleAvatar(
-                                      backgroundColor: Colors.redAccent,
-                                      child: Icon(
-                                        Icons.bluetooth_disabled,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  );
-                                })
+                                ConnectionStatusCircle()
                               ],
                             )
                           ],

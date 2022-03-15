@@ -9,30 +9,7 @@ import 'package:timer_f1/core/utils/compute_centroid.dart';
 import 'package:timer_f1/global_widgets/plain_finish_point_marker.dart';
 import 'package:timer_f1/global_widgets/plane_starting_flag_marker.dart';
 
-void useConfigureMap(
-    BuildContext context, MapController mapController, Flight flight) {
-  useEffect(() {
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      LatLng? flightStartCoordinates = flight.flightStartCoordinates;
-      LatLng? farPlaneDistanceCoordinates = flight.farPlaneDistanceCoordinates;
-
-      if (flightStartCoordinates != null &&
-          farPlaneDistanceCoordinates != null &&
-          (!mapController.bounds!.contains(flightStartCoordinates) ||
-              !mapController.bounds!.contains(farPlaneDistanceCoordinates))) {
-        mapController.bounds!.extend(flightStartCoordinates);
-        mapController.bounds!.extend(farPlaneDistanceCoordinates);
-        mapController.fitBounds(mapController.bounds!,
-            options: FitBoundsOptions(padding: EdgeInsets.all(100)));
-      } else {
-        mapController.fitBounds(mapController.bounds!,
-            options: FitBoundsOptions(padding: EdgeInsets.all(100)));
-      }
-    });
-  }, [flight]);
-}
-
-ValueNotifier<List<Marker>> useMarkers(BuildContext context, Flight flight) {
+ValueNotifier<List<Marker>> useMarkers({required Flight flight}) {
   var markers = useState<List<Marker>>([]);
   useEffect(() {
     if (flight.flightStartCoordinates == null) {
@@ -52,12 +29,13 @@ ValueNotifier<List<Marker>> useMarkers(BuildContext context, Flight flight) {
         buildPlainFinishPointMarker(flight.flightEndCoordinates!)
       ];
     }
+    return null;
   }, [flight.flightStartCoordinates, flight.flightEndCoordinates]);
 
   return markers;
 }
 
-ValueNotifier<LatLng?> useCentroid(BuildContext context, Flight flight) {
+ValueNotifier<LatLng?> useCentroid({required Flight flight}) {
   var centroid = useState<LatLng?>(null);
   useEffect(() {
     if (flight.flightStartCoordinates == null) {
@@ -68,26 +46,54 @@ ValueNotifier<LatLng?> useCentroid(BuildContext context, Flight flight) {
       centroid.value = computeCentroid(
           [flight.flightStartCoordinates, flight.flightEndCoordinates]);
     }
+
+    return null;
   }, [flight.flightStartCoordinates, flight.flightEndCoordinates]);
 
   return centroid;
 }
 
+MapController useMapController({required Flight flight}) {
+  final controller = useMemoized(() => MapController());
+  useEffect(() {
+    controller.onReady.then((_) {
+      LatLng? flightStartCoordinates = flight.flightStartCoordinates;
+      LatLng? farPlaneDistanceCoordinates = flight.farPlaneDistanceCoordinates;
+
+      if (flightStartCoordinates != null &&
+          farPlaneDistanceCoordinates != null &&
+          (!controller.bounds!.contains(flightStartCoordinates) ||
+              !controller.bounds!.contains(farPlaneDistanceCoordinates))) {
+        controller.bounds!.extend(flightStartCoordinates);
+        controller.bounds!.extend(farPlaneDistanceCoordinates);
+        controller.fitBounds(controller.bounds!,
+            options: FitBoundsOptions(padding: EdgeInsets.all(100)));
+      } else {
+        controller.fitBounds(controller.bounds!,
+            options: FitBoundsOptions(padding: EdgeInsets.all(100)));
+      }
+    });
+
+    return null;
+  }, [flight, controller]);
+
+  return controller;
+}
+
 class HistoryMap extends HookConsumerWidget {
   final Flight flight;
-  final MapController mapController = MapController();
-  late List<LatLng?> route;
 
   HistoryMap({required this.flight});
 
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
-    useConfigureMap(context, mapController, flight);
+    var mapController = useMapController(flight: flight);
     var route = useState<List<LatLng>>(flight.flightData
         .where((element) => element.planeCoordinates != null)
         .map((e) => e.planeCoordinates!)
         .toList());
-    var markers = useMarkers(context, flight);
-    var centroid = useCentroid(context, flight);
+    var markers = useMarkers(flight: flight);
+    var centroid = useCentroid(flight: flight);
 
     return Container(
         width: MediaQuery.of(context).size.width,

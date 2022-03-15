@@ -21,10 +21,10 @@ class FlightHistoryController extends ChangeNotifier {
     _flightHistory.addAll(flightRepository.getFlightHistory());
   }
 
-  Future<void> saveFlight(Flight flight) async {
+  void saveFlight(Flight flight) {
     _flightHistory.add(flight);
+    flightRepository.saveFlight(flight);
     notifyListeners();
-    await flightRepository.saveFlight(flight);
   }
 
   Flight? getFlightById(int id) {

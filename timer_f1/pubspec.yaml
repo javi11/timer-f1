@@ -62,3 +62,4 @@ flutter:
     - assets/animations/loading.json
     - assets/animations/download-success.json
     - assets/animations/invalid-timer-brand.json
+    - assets/animations/device-disconnected.json

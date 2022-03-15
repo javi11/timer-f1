@@ -12,6 +12,7 @@ import 'package:timer_f1/app/modules/bluetooth/widgets/scan_animation.dart';
 import 'package:timer_f1/app/modules/bluetooth/widgets/connecting_device.dart';
 import 'package:timer_f1/app/modules/bluetooth/widgets/devices_list.dart';
 import 'package:timer_f1/app/modules/bluetooth/widgets/turn_on_bluetooth.dart';
+import 'package:timer_f1/app/modules/bluetooth/widgets/unauthorized_ble.dart';
 
 final isScanningListEmptyProvider = Provider.autoDispose<bool>((ref) {
   final List<Device>? scannedDevices =
@@ -74,6 +75,10 @@ class BluetoothPage extends HookConsumerWidget {
                     FlushbarHelper.createError(message: error.message));
               }
             }, [bluetoothState]);
+
+            if (bluetoothState == BluetoothState.unauthorized) {
+              return UnauthorizedBLE();
+            }
 
             if (bluetoothState == BluetoothState.off) {
               return TurnOnBluetooth();

@@ -43,6 +43,7 @@ class FlightData {
   double? voltage;
   double? userLng;
   double? userLat;
+  bool? isInitial;
 
   final flight = ToOne<Flight>();
 
@@ -59,7 +60,8 @@ class FlightData {
       this.pressure,
       this.voltage,
       this.userLng,
-      this.userLat});
+      this.userLat,
+      this.isInitial});
 
   LatLng? get planeCoordinates {
     return planeLat != null && planeLng != null
@@ -81,10 +83,6 @@ class FlightData {
     return planeCoordinates != null
         ? calculateDistance(planeCoordinates, userCoordinates)
         : null;
-  }
-
-  set planeDistanceFromUser(double? distance) {
-    planeDistanceFromUser = distance;
   }
 
   List<LatLng>? get route {
@@ -120,7 +118,7 @@ class FlightData {
       'voltage': (voltage! / toVolts).toString(),
       'userLng': userLan,
       'userLat': userLng,
-      'planeDistanceFromUser': planeDistanceFromUser
+      'isInitial': isInitial
     };
     return map;
   }
@@ -138,7 +136,7 @@ class FlightData {
     voltage = json['voltage'];
     userLng = json['userLng'];
     userLat = json['userLat'];
-    planeDistanceFromUser = json['planeDistanceFromUser'];
+    isInitial = json['isInitial'];
   }
 
   Map<String, dynamic> toJson() {
@@ -155,7 +153,7 @@ class FlightData {
     data['voltage'] = voltage;
     data['userLng'] = userLng;
     data['userLat'] = userLat;
-    data['planeDistanceFromUser'] = planeDistanceFromUser;
+    data['isInitial'] = isInitial;
     return data;
   }
 

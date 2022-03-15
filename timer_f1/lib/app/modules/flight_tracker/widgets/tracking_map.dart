@@ -8,6 +8,7 @@ import 'package:timer_f1/app/data/providers/tile_provider.dart';
 import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_data_controller.dart';
 import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_tracker_controller.dart';
 import 'package:timer_f1/global_widgets/plane_marker.dart';
+import 'package:timer_f1/global_widgets/plane_starting_flag_marker.dart';
 
 class EmptyMarker extends Container {
   @override
@@ -25,8 +26,6 @@ class TrackingMap extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var mapController = ref.watch(mapControllerProvider);
-
     return FlutterMap(
       options: MapOptions(
           interactiveFlags: InteractiveFlag.all,
@@ -47,9 +46,9 @@ class TrackingMap extends ConsumerWidget {
                       markers: [
                         if (snapshot.data!.planeCoordinates != null)
                           buildPlaneMarker(snapshot.data!.planeCoordinates!),
-                        /*  if (planeInitialCords.value != null)
+                        if (snapshot.data!.isInitial == true)
                           buildPlaneStartingFlagMarker(
-                              snapshot.data!.planeCoordinate!) */
+                              snapshot.data!.planeCoordinates!)
                       ],
                     ),
                   )
@@ -77,7 +76,8 @@ class TrackingMap extends ConsumerWidget {
               showAccuracyCircle: true, showHeadingSector: true),
         ),
       ],
-      mapController: mapController,
+      mapController: ref.watch(
+          flightControllerProvider.select((value) => value.mapController)),
     );
   }
 }
