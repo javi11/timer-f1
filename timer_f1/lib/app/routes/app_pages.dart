@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
 import 'package:timer_f1/app/modules/bluetooth/bluetooth_page.dart';
-import 'package:timer_f1/app/modules/flight_history_detail/history_detail_page.dart';
+import 'package:timer_f1/app/modules/flight_history/history_detail_page.dart';
 import 'package:timer_f1/app/modules/flight_tracker/flight_tracker_page.dart';
 import 'package:timer_f1/app/modules/home/home_page.dart';
 

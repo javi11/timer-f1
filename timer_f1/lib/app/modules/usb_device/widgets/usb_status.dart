@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:timer_f1/app/modules/usb_device/controllers/usb_serial_controller.dart';
 import 'package:timer_f1/global_widgets/device_info.dart';
 
-class UsbStatus extends ConsumerWidget {
+class UsbStatus extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final connectedDevice = ref

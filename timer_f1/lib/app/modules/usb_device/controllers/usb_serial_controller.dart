@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
+import 'package:timer_f1/core/pepe_timer/pepe_timer_commands.dart';
 import 'package:timer_f1/core/vicent_timer/vicent_get_firmware.dart';
 import 'package:timer_f1/core/vicent_timer/vicent_timer_commands.dart';
 import 'package:usb_serial/usb_serial.dart';
@@ -50,13 +51,15 @@ class USBSerialController extends ChangeNotifier implements USBController {
         UsbSerial.usbEventStream!.listen(_handleConnectionStateUpdates);
     _connectionFuture = CancelableOperation.fromFuture(
         UsbSerial.listDevices().then((value) async {
-      if (value.isNotEmpty && value.first.deviceId != null && !_disposed) {
-        _connectionFuture = CancelableOperation.fromFuture(connect(Device(
-            id: value.first.deviceId.toString(),
-            name: value.first.deviceName)));
+      var device = value.firstWhere(
+          (element) => element.serial == null || element.serial!.isEmpty);
+      if (device.deviceId != null && !_disposed) {
+        _connectionFuture = CancelableOperation.fromFuture(connect(
+            Device(id: device.deviceId.toString(), name: device.deviceName)));
       }
     }).catchError((err) {
-      print('USB_CONTROLLER: usb is not connected, skipping usb controller.');
+      print(
+          'USB_CONTROLLER: usb is not connected, skipping usb controller. $err');
     }));
   }
 
@@ -73,24 +76,26 @@ class USBSerialController extends ChangeNotifier implements USBController {
     String deviceId = device.id;
 
     print('USB_CONTROLLER: Adding connection port for $deviceId');
+    try {
+      _connectedPort = await UsbSerial.createFromDeviceId(int.parse(deviceId));
 
-    _connectedPort = await UsbSerial.createFromDeviceId(int.parse(deviceId));
+      bool openResult = await _connectedPort!.open();
+      if (!openResult) {
+        print('USB_CONTROLLER: Failed to open a the USB port.');
+      }
 
-    bool openResult = await _connectedPort!.open();
-    if (!openResult) {
-      print('USB_CONTROLLER: Failed to open a the USB port.');
+      await _connectedPort?.setDTR(true);
+      await _connectedPort?.setRTS(true);
+
+      _connectedPort?.setPortParameters(
+          9600, UsbPort.DATABITS_7, UsbPort.STOPBITS_1, UsbPort.PARITY_SPACE);
+      _isConnecting = false;
+      isConnected = true;
+      _connectedDevice = device;
+      _connectedDevice!.connectionState = DeviceConnection.handshaking;
+    } catch (e) {
+      print('USB_CONTROLLER: Could not connect to $deviceId. $e');
     }
-
-    await _connectedPort?.setDTR(false);
-    await _connectedPort?.setRTS(false);
-
-    _connectedPort?.setPortParameters(
-        9600, UsbPort.DATABITS_7, UsbPort.STOPBITS_1, UsbPort.PARITY_SPACE);
-    _isConnecting = false;
-    isConnected = true;
-    _connectedDevice = device;
-    _connectedDevice!.connectionState = DeviceConnection.handshaking;
-
     if (!_disposed) {
       notifyListeners();
       await _initialHandShake();
@@ -135,7 +140,7 @@ class USBSerialController extends ChangeNotifier implements USBController {
         toSend = toSend.substring(maxTimerDataLength, toSend.length);
 
         //Wait 500 milliseconds before sending more data
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future.delayed(Duration(milliseconds: 1000));
       }
       //Send remaining data
       await _connectedPort?.write(Uint8List.fromList(utf8.encode(toSend)));
@@ -157,12 +162,16 @@ class USBSerialController extends ChangeNotifier implements USBController {
       if (currentFirmware != null) {
         brand = Brand.vicent;
         firmware = currentFirmware;
+      } else if (value.length == PepeTimerDataFrameLenght) {
+        brand = Brand.pepe;
       }
     });
 
     await Future.doWhile(() async {
       print('USB_CONTROLLER: Retrying handshake.');
       await _sendData(VicentTimerCommands.getHelp, endOf: '\n');
+      await Future.delayed(Duration(milliseconds: 1000));
+      await _sendData(PepeTimerCommands.downloadConfiguration, endOf: '\n');
 
       if (brand != Brand.unknown || isConnected == false || _disposed) {
         await sub.cancel();

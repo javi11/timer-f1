@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
-import 'package:timer_f1/app/modules/flight_history_detail/widgets/history_map.dart';
+import 'package:timer_f1/app/modules/flight_history/widgets/history_map.dart';
 import 'package:timer_f1/core/utils/distance_to_string.dart';
 import 'package:timer_f1/core/utils/export_csv.dart';
 

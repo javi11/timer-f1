@@ -11,6 +11,7 @@ import 'package:timer_f1/app/data/models/bluetooth_model.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/data/providers/ble_provider.dart';
 import 'package:timer_f1/app/data/providers/storage_provider.dart';
+import 'package:timer_f1/core/pepe_timer/pepe_timer_commands.dart';
 import 'package:timer_f1/core/vicent_timer/vicent_get_firmware.dart';
 import 'package:timer_f1/core/vicent_timer/vicent_timer_commands.dart';
 
@@ -363,19 +364,18 @@ class FlutterReactiveBleController extends ChangeNotifier
       if (currentFirmware != null) {
         brand = Brand.vicent;
         firmware = currentFirmware;
+      } else if (value.length == PepeTimerDataFrameLenght) {
+        brand = Brand.pepe;
       }
     });
 
     await Future.doWhile(() async {
       print('BLE_CONTROLLER: Retrying handshake.');
-      if (brand != Brand.unknown ||
-          _bluetoothState != BluetoothState.connected ||
-          _disposed) {
-        await sub.cancel();
-        return false;
-      }
 
       await _sendData(characteristic, VicentTimerCommands.getHelp, endOf: '\n');
+      await Future.delayed(Duration(milliseconds: 1000));
+      await _sendData(characteristic, PepeTimerCommands.downloadConfiguration,
+          endOf: '\n');
 
       if (brand != Brand.unknown ||
           _bluetoothState != BluetoothState.connected ||
