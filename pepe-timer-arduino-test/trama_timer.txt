@@ -1,0 +1,24 @@
+Formato trama de bytes
+0->4 : Posiciones iniciales GIRO (servo 1 al 5)
+5->9 : Posiciones servos RDT (servo 1 al 5)
+Esto se repite para cada config hasta una longitud de 255 bytes, lo que no se rellene de 255 se debe añadir Byte.valueOf("0").
+10 : Tiempo
+11 : Tipo tiempo (0 Decimas, 1 Segundos, 2 Minutos)
+12 : ID servo (1,2,3,4,5)
+13 : Giro
+
+
+GRABAR 
+1 : Enviar una "E" en su código tiene serialPort.write("E".getBytes()); y esperar 1 segundo.
+2: Desde bytes 0 -> 220  escribir el contenido de trama de bytes con datos
+3: Byte 221  escribir un 3 (no se que es)
+4: Byte 222 si led activo poner un 1 sino 0
+5: Byte 223 hasta 254 escribir el nombre de la configuracion , rellenar con (byte) ".".charAt(0)  si es necesario
+
+LEER
+1: Enviar una "L" serialPort.write("L".getBytes());
+2: Leer lo que llega despues
+
+COMPROBAR ? 
+1: Enviar una "R" serialPort.write("R".getBytes());
+2: Leer lo que llega despues
