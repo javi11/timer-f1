@@ -1,0 +1,194 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:3617741553367741416",
+      "lastPropertyId": "16:757837763565641298",
+      "name": "Flight",
+      "properties": [
+        {
+          "id": "1:8197531307069830182",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3119362607594110509",
+          "name": "startTimestamp",
+          "type": 6
+        },
+        {
+          "id": "3:7065487454957984963",
+          "name": "durationInMs",
+          "type": 6
+        },
+        {
+          "id": "4:7000256746130150781",
+          "name": "endTimestamp",
+          "type": 6
+        },
+        {
+          "id": "5:3820573597573610140",
+          "name": "planeId",
+          "type": 9
+        },
+        {
+          "id": "6:5286937463019224857",
+          "name": "maxPressure",
+          "type": 8
+        },
+        {
+          "id": "7:5281464452431523957",
+          "name": "maxHeight",
+          "type": 8
+        },
+        {
+          "id": "8:6349820843352883293",
+          "name": "maxTemperature",
+          "type": 8
+        },
+        {
+          "id": "9:1707142063431928861",
+          "name": "farPlaneDistanceLat",
+          "type": 8
+        },
+        {
+          "id": "10:2557690390243076247",
+          "name": "farPlaneDistanceLng",
+          "type": 8
+        },
+        {
+          "id": "11:260385017123311303",
+          "name": "startFlightLng",
+          "type": 8
+        },
+        {
+          "id": "12:3021449412803215971",
+          "name": "startFlightLat",
+          "type": 8
+        },
+        {
+          "id": "13:4986105825531599917",
+          "name": "endFlightLng",
+          "type": 8
+        },
+        {
+          "id": "14:8577958606838120936",
+          "name": "endFlightLat",
+          "type": 8
+        },
+        {
+          "id": "15:3708300250080366842",
+          "name": "maxPlaneDistanceFromStart",
+          "type": 8
+        },
+        {
+          "id": "16:757837763565641298",
+          "name": "maxPlaneDistanceFromUser",
+          "type": 8
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:1996917656354719130",
+      "lastPropertyId": "15:3085372596932118392",
+      "name": "FlightData",
+      "properties": [
+        {
+          "id": "1:5761424148726819047",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:955355203143129608",
+          "name": "isConnectedToPlane",
+          "type": 1
+        },
+        {
+          "id": "3:3034893611289659868",
+          "name": "flightHistoryId",
+          "type": 6
+        },
+        {
+          "id": "4:3796642959493733523",
+          "name": "planeId",
+          "type": 9
+        },
+        {
+          "id": "5:7728617168268401784",
+          "name": "timestamp",
+          "type": 6
+        },
+        {
+          "id": "6:4043674209865252467",
+          "name": "planeLat",
+          "type": 8
+        },
+        {
+          "id": "7:5130337363462404811",
+          "name": "planeLng",
+          "type": 8
+        },
+        {
+          "id": "8:675320341134320462",
+          "name": "height",
+          "type": 8
+        },
+        {
+          "id": "9:6048122397642438921",
+          "name": "temperature",
+          "type": 8
+        },
+        {
+          "id": "10:697926613373307829",
+          "name": "pressure",
+          "type": 8
+        },
+        {
+          "id": "11:3924585362923200929",
+          "name": "voltage",
+          "type": 8
+        },
+        {
+          "id": "12:5447326414969738812",
+          "name": "userLng",
+          "type": 8
+        },
+        {
+          "id": "13:5622336359712150334",
+          "name": "userLat",
+          "type": 8
+        },
+        {
+          "id": "14:5009816197382593742",
+          "name": "isInitial",
+          "type": 1
+        },
+        {
+          "id": "15:3085372596932118392",
+          "name": "flightId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "1:5182127689446183035",
+          "relationTarget": "Flight"
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "2:1996917656354719130",
+  "lastIndexId": "1:5182127689446183035",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

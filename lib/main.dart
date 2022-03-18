@@ -1,44 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:timerf1c/home/home_page.dart';
-import 'package:timerf1c/providers/connection_provider.dart';
-import 'package:timerf1c/providers/history_provider.dart';
 
-void main() {
+import 'package:get_storage/get_storage.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:timer_f1/app/data/providers/db_provider.dart';
+import 'package:timer_f1/objectbox.g.dart';
+
+import 'app/routes/app_pages.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await GetStorage.init();
+  var database = await openStore();
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<ConnectionProvider>(
-            create: (_) => ConnectionProvider()..init()),
-        ChangeNotifierProvider<HistoryProvider>(
-            create: (_) => HistoryProvider()..loadHistoryItems(0)),
+  runApp(ProviderScope(
+      overrides: [
+        dbProvider.overrideWithValue(database),
       ],
-      child: MyApp(),
-    ),
-  );
-}
-
-class MyApp extends StatelessWidget {
-  final navigatorKey = GlobalKey<NavigatorState>();
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        title: 'timerf1c',
-        theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // Try running your application with "flutter run". You'll see the
-          // application has a blue toolbar. Then, without quitting the app, try
-          // changing the primarySwatch below to Colors.green and then invoke
-          // "hot reload" (press "r" in the console where you ran "flutter run",
-          // or simply save your changes to "hot reload" in a Flutter IDE).
-          // Notice that the counter didn't reset back to zero; the application
-          // is not restarted.
-          primarySwatch: Colors.blue,
-        ),
-        home: HomePage());
-  }
+      child: MaterialApp.router(
+        routeInformationParser: router.routeInformationParser,
+        routerDelegate: router.routerDelegate,
+        title: "Timer F1",
+      )));
 }

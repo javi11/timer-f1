@@ -1,0 +1,15 @@
+{
+    "id": 0,
+    "flightHistoryId":0,
+    "planeId": "",
+    "timestamp": 0,
+    "planeLat": 0.0,
+    "planeLng": 0.0,
+    "height": 0.0,
+    "temperature": 0.0,
+    "pressure": 0.0,
+    "voltage": 0.0,
+    "userLng": 0.0,
+    "userLat": 0.0,
+    "planeDistanceFromUser": 0.0
+}
