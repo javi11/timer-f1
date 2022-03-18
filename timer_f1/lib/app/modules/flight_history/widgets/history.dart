@@ -33,7 +33,7 @@ class History extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         GoRouter.of(context)
-            .push(Routes.HOME + Routes.FLIGHT_DETAIL, extra: flight);
+            .push(Routes.HOME + Routes.FLIGHT_DETAILS, extra: flight);
       },
       // inkwell color
       child: Card(

@@ -7,8 +7,6 @@ import 'package:timer_f1/app/data/models/bluetooth_model.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
 import 'package:timer_f1/app/modules/bluetooth/widgets/connected_device.dart';
-import 'package:timer_f1/app/modules/bluetooth/widgets/no_devices_found.dart';
-import 'package:timer_f1/app/modules/bluetooth/widgets/scan_animation.dart';
 import 'package:timer_f1/app/modules/bluetooth/widgets/connecting_device.dart';
 import 'package:timer_f1/app/modules/bluetooth/widgets/devices_list.dart';
 import 'package:timer_f1/app/modules/bluetooth/widgets/turn_on_bluetooth.dart';
@@ -93,20 +91,6 @@ class BluetoothPage extends HookConsumerWidget {
             if (bluetoothState == BluetoothState.connecting &&
                 pairedDevice != null) {
               return ConnectingToDevice(deviceName: pairedDevice.name);
-            }
-
-            if (bluetoothState == BluetoothState.scanning &&
-                isScanningListEmpty == true) {
-              return ScanAnimation();
-            }
-
-            if ((bluetoothState == BluetoothState.scanTimeout &&
-                    isScanningListEmpty == true) ||
-                (bluetoothState != BluetoothState.scanning &&
-                    isScanningListEmpty == true)) {
-              return NoDevicesFound(
-                onRetry: onScan,
-              );
             }
 
             return DeviceList(

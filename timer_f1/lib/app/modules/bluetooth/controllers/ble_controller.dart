@@ -4,13 +4,13 @@ import 'dart:convert';
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:timer_f1/app/data/models/app_settings.dart';
 import 'package:timer_f1/app/data/models/bluetooth_model.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
+import 'package:timer_f1/app/data/providers/app_settings_provider.dart';
 import 'package:timer_f1/app/data/providers/ble_provider.dart';
-import 'package:timer_f1/app/data/providers/storage_provider.dart';
 import 'package:timer_f1/core/pepe_timer/pepe_timer_commands.dart';
 import 'package:timer_f1/core/vicent_timer/vicent_get_firmware.dart';
 import 'package:timer_f1/core/vicent_timer/vicent_timer_commands.dart';
@@ -20,13 +20,11 @@ const timerName = 'DSD TECH';
 Uuid timerServiceUUID = Uuid.parse('0000ffe0-0000-1000-8000-00805f9b34fb');
 Uuid timerCharacteristicUUID =
     Uuid.parse('0000ffe1-0000-1000-8000-00805f9b34fb');
-String _pairedDeviceIdKey = 'PAIRED_DEVICE_NAME';
-String _pairedDeviceNameKey = 'PAIRED_DEVICE_ID';
 
 final bleControllerProvider =
     ChangeNotifierProvider<BLEController>((ref) => FlutterReactiveBleController(
           ble: ref.watch(bleProvider),
-          box: ref.watch(storageProvider),
+          appSettings: ref.watch(appSettingsProvider),
         ));
 
 class BluetoothOffException implements Exception {
@@ -58,7 +56,7 @@ abstract class BLEController extends ChangeNotifier {
 class FlutterReactiveBleController extends ChangeNotifier
     implements BLEController {
   final FlutterReactiveBle ble;
-  final GetStorage box;
+  final AppSettings appSettings;
   late StreamSubscription<BleStatus>? _btHWStatusStreamSub;
   final List<Device> _scannedDevices = [];
   BluetoothState _bluetoothState = BluetoothState.off;
@@ -102,13 +100,14 @@ class FlutterReactiveBleController extends ChangeNotifier
   UnmodifiableListView<Device> get scannedDevices =>
       UnmodifiableListView(_scannedDevices);
 
-  FlutterReactiveBleController({required this.ble, required this.box}) {
+  FlutterReactiveBleController({required this.ble, required this.appSettings}) {
     _btHWStatusStreamSub = ble.statusStream.listen(_handleBluetoothHWUpdates);
 
-    if (box.hasData(_pairedDeviceIdKey)) {
+    if (appSettings.pairedDeviceId.val.isNotEmpty &&
+        appSettings.pairedDeviceName.val.isNotEmpty) {
       _pairedDevice = Device(
-          id: box.read<String>(_pairedDeviceIdKey)!,
-          name: box.read<String>(_pairedDeviceNameKey)!);
+          id: appSettings.pairedDeviceId.val,
+          name: appSettings.pairedDeviceName.val);
       _connectionFuture =
           CancelableOperation.fromFuture(connect(_pairedDevice!));
     }
@@ -121,8 +120,8 @@ class FlutterReactiveBleController extends ChangeNotifier
 
   @override
   Future<void> pairDevice(Device device) async {
-    await box.write(_pairedDeviceIdKey, device.id);
-    await box.write(_pairedDeviceNameKey, device.name);
+    appSettings.pairedDeviceId.val = device.id;
+    appSettings.pairedDeviceName.val = device.name;
     _pairedDevice = device;
   }
 
@@ -134,8 +133,8 @@ class FlutterReactiveBleController extends ChangeNotifier
       _bluetoothState = BluetoothState.on;
       notifyListeners();
     }
-    await box.remove(_pairedDeviceIdKey);
-    await box.remove(_pairedDeviceNameKey);
+    appSettings.pairedDeviceId.val = '';
+    appSettings.pairedDeviceName.val = '';
   }
 
   @override
@@ -147,11 +146,10 @@ class FlutterReactiveBleController extends ChangeNotifier
     notifyListeners();
     _scanSub?.cancel();
     _scanTimeout?.cancel();
-    _scanSub = ble
-        .scanForDevices(
-            withServices: [timerServiceUUID], scanMode: ScanMode.lowPower)
-        .takeWhile((element) => element.name == timerName)
-        .listen(_addScanResult, onError: _onScanError);
+    _scanSub = ble.scanForDevices(
+        withServices: [timerServiceUUID],
+        scanMode:
+            ScanMode.lowPower).listen(_addScanResult, onError: _onScanError);
     _scanTimeout = Timer(timeLimit, () {
       if (_bluetoothState == BluetoothState.scanning) {
         _bluetoothState = BluetoothState.scanTimeout;

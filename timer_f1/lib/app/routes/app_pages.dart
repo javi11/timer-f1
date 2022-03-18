@@ -4,6 +4,7 @@ import 'package:timer_f1/app/modules/bluetooth/bluetooth_page.dart';
 import 'package:timer_f1/app/modules/flight_history/history_detail_page.dart';
 import 'package:timer_f1/app/modules/flight_tracker/flight_tracker_page.dart';
 import 'package:timer_f1/app/modules/home/home_page.dart';
+import 'package:timer_f1/app/modules/settings/settings_page.dart';
 
 part 'app_routes.dart';
 
@@ -18,15 +19,18 @@ final router = GoRouter(
         builder: (context, state) => HomePage(),
         routes: [
           GoRoute(
-              path: _Paths.FlightDetail,
+              path: _Paths.FLIGHT_DETAILS,
               // Is protected by bluetooth but can not be redirected to ble connection page if ble connection is lost
               builder: (context, state) => FligthHistoryDetailPage(
                     flight: state.extra as Flight,
                   )),
           GoRoute(
               path: _Paths.FLIGHT_TRACKER,
-              // Is protected by bluetooth but can not be redirected to ble connection page if ble connection is lost
               builder: (context, state) => FlightTrackerPage()),
+          GoRoute(
+              path: _Paths.SETTINGS,
+              // Is protected by bluetooth but can not be redirected to ble connection page if ble connection is lost
+              builder: (context, state) => SettingsPage()),
         ]),
     GoRoute(
         path: _Paths.BLUETOOTH,

@@ -13,8 +13,20 @@ import 'package:timer_f1/core/vicent_timer/vicent_timer_commands.dart';
 import 'package:usb_serial/usb_serial.dart';
 
 const maxTimerDataLength = 20;
-final usbControllerProvider = ChangeNotifierProvider<USBController>((ref) =>
-    USBSerialController(bleController: ref.watch(bleControllerProvider)));
+final usbControllerProvider = ChangeNotifierProvider<USBController>((ref) {
+  var usb = USBSerialController();
+  var sub = UsbSerial.usbEventStream!.listen(((event) {
+    if (event.event == UsbEvent.ACTION_USB_ATTACHED) {
+      ref.read(bleControllerProvider).autoReconnect = false;
+    } else if (event.event == UsbEvent.ACTION_USB_DETACHED) {
+      ref.read(bleControllerProvider).autoReconnect = true;
+    }
+  }));
+
+  ref.onDispose(() => sub.cancel());
+
+  return usb;
+});
 
 abstract class USBController extends ChangeNotifier {
   bool isConnected = false;
@@ -25,7 +37,6 @@ abstract class USBController extends ChangeNotifier {
 }
 
 class USBSerialController extends ChangeNotifier implements USBController {
-  final BLEController bleController;
   UsbPort? _connectedPort;
   Device? _connectedDevice;
   late StreamSubscription<UsbEvent> _usbSubscription;
@@ -41,7 +52,7 @@ class USBSerialController extends ChangeNotifier implements USBController {
   @override
   Device? get connectedDevice => _connectedDevice;
 
-  USBSerialController({required this.bleController}) {
+  USBSerialController() {
     if (!Platform.isAndroid) {
       print(
           'USB_CONTROLLER: usb feature is only available for android phones.');
@@ -207,7 +218,6 @@ class USBSerialController extends ChangeNotifier implements USBController {
         deviceId != null &&
         !isConnected &&
         !_isConnecting) {
-      bleController.autoReconnect = false;
       _connectionFuture = CancelableOperation.fromFuture(
           connect(Device(id: deviceId, name: deviceName!)));
       // Device disconnected.
@@ -217,7 +227,6 @@ class USBSerialController extends ChangeNotifier implements USBController {
       isConnected = false;
       disconnect();
       notifyListeners();
-      bleController.autoReconnect = true;
     }
   }
 

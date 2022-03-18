@@ -88,7 +88,7 @@ class BluetoothStatus extends HookConsumerWidget {
           decoration: BoxDecoration(color: Colors.amber[50]),
           child: ListTile(
             leading: Icon(Icons.bluetooth_disabled),
-            title: Text('${pairedDevice?.name} out of range'),
+            title: Text('${pairedDevice?.name} disconnected'),
             onTap: () {
               AwesomeDialog(
                       context: context,
