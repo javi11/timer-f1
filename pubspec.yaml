@@ -38,6 +38,7 @@ dependencies:
   flutter_file_dialog: ^2.3.0
   flutter_settings_ui: ^2.0.1
   package_info_plus: ^1.4.0
+  convex_bottom_bar: ^3.0.0
 
 dev_dependencies:
   build_runner: ^2.0.0
