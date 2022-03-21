@@ -9,10 +9,8 @@ import 'package:timer_f1/app/modules/flight_history/widgets/empty_list.dart';
 import 'package:timer_f1/app/routes/app_pages.dart';
 import 'package:timer_f1/core/utils/distance_to_string.dart';
 
-class History extends ConsumerWidget {
-  final Function onStartFlight;
-
-  History({Key? key, required this.onStartFlight}) : super(key: key);
+class ProgramList extends ConsumerWidget {
+  ProgramList({Key? key}) : super(key: key);
 
   Widget _buildBox(String text, IconData icon, String data) {
     return Container(
@@ -105,12 +103,6 @@ class History extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var provider = ref.watch(flightHistoryControllerProvider);
-
-    if (provider.flightHistory.isEmpty) {
-      return EmptyList(
-        onStartFlight: onStartFlight,
-      );
-    }
 
     return ListView.builder(
         physics: BouncingScrollPhysics(),
