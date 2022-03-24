@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
 
+const titleStyle =
+    TextStyle(fontWeight: FontWeight.bold, color: Colors.black54);
+
 class DeviceInfo extends StatelessWidget {
   final Device? device;
   const DeviceInfo({
@@ -19,21 +22,37 @@ class DeviceInfo extends StatelessWidget {
     return Column(
       children: [
         ListTile(
-          title: const Text('Device id:'),
+          contentPadding: EdgeInsets.zero,
+          title: const Text(
+            'Device id:',
+            style: titleStyle,
+          ),
           trailing: Text(device!.id),
         ),
         ListTile(
-          title: const Text('Device name:'),
+          contentPadding: EdgeInsets.zero,
+          title: const Text(
+            'Device name:',
+            style: titleStyle,
+          ),
           trailing: Text(device!.name),
         ),
         ListTile(
-          title: const Text('Device firmware:'),
+          contentPadding: EdgeInsets.zero,
+          title: const Text(
+            'Device firmware:',
+            style: titleStyle,
+          ),
           trailing: device!.connectionState == DeviceConnection.handshaking
               ? CircularProgressIndicator()
               : Text(device!.firmware),
         ),
         ListTile(
-          title: const Text('Device brand:'),
+          contentPadding: EdgeInsets.zero,
+          title: const Text(
+            'Device brand:',
+            style: titleStyle,
+          ),
           trailing: device!.connectionState == DeviceConnection.handshaking
               ? CircularProgressIndicator()
               : Text(device!.brand.toString()),

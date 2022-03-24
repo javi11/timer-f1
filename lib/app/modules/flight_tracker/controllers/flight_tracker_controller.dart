@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
@@ -56,8 +57,19 @@ class FlightTrackerController extends ChangeNotifier {
     });
   }
 
-  void _saveFlight() {
-    flightProvider.finish();
+  Future<void> _saveFlight() async {
+    String address = '';
+    try {
+      var userCoords = flightProvider.flightData.first.userCoordinates;
+      var geo = await placemarkFromCoordinates(
+          userCoords!.latitude, userCoords.longitude);
+      if (geo.first.country != null) {
+        address = '${geo.first.country}, ${geo.first.street}';
+      }
+    } catch (e) {
+      print('Can not get geolocation. $e');
+    }
+    flightProvider.finish(address);
     flightHistoryController.saveFlight(flightProvider);
   }
 
@@ -115,10 +127,10 @@ class FlightTrackerController extends ChangeNotifier {
           title: 'Do you want to end the fly?',
           desc: 'The fly will be saved on your history',
           btnCancelOnPress: () {},
-          btnOkOnPress: () {
+          btnOkOnPress: () async {
             int durationInMs = flightProvider.elapsedTime;
             if (durationInMs > 30000) {
-              _saveFlight();
+              await _saveFlight();
               GoRouter.of(context).go(Routes.HOME);
             } else {
               AwesomeDialog(
@@ -132,8 +144,8 @@ class FlightTrackerController extends ChangeNotifier {
                   btnCancelOnPress: () {
                     GoRouter.of(context).go(Routes.HOME);
                   },
-                  btnOkOnPress: () {
-                    _saveFlight();
+                  btnOkOnPress: () async {
+                    await _saveFlight();
                     GoRouter.of(context).go(Routes.HOME);
                   }).show();
             }

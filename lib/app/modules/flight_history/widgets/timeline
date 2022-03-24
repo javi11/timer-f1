@@ -1,0 +1,236 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_timeline/flutter_timeline.dart';
+import 'package:flutter_timeline/indicator_position.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:timer_f1/app/data/models/flight_model.dart';
+import 'package:timer_f1/app/data/providers/tile_provider.dart';
+import 'package:timer_f1/app/modules/flight_history/controllers/flight_history_controller.dart';
+import 'package:timer_f1/app/modules/flight_history/widgets/empty_list.dart';
+import 'package:timer_f1/app/routes/app_pages.dart';
+import 'package:timer_f1/core/utils/color_from_string.dart';
+import 'package:timer_f1/core/utils/distance_to_string.dart';
+
+class History extends ConsumerWidget {
+  final Function onStartFlight;
+  final DateFormat formatter = DateFormat('EEEE, D MMMM');
+  final DateFormat hourFormatter = DateFormat('HH:mm');
+
+  History({Key? key, required this.onStartFlight}) : super(key: key);
+
+  Widget _buildBox(String text, IconData icon, String data) {
+    return Container(
+      height: 80,
+      width: 60,
+      child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Icon(icon),
+            Text(
+              text,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(data),
+          ]),
+    );
+  }
+
+  Widget _listItem(Flight flight, BuildContext context) {
+    String duration = ((flight.durationInMs! / 1000) / 60).toStringAsFixed(2);
+    return Container(
+        margin: EdgeInsets.only(top: 20),
+        decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!, width: 1.5),
+            borderRadius: BorderRadius.all(Radius.circular(20))),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
+            GoRouter.of(context)
+                .push(Routes.HOME + Routes.FLIGHT_DETAILS, extra: flight);
+          },
+          // inkwell color
+          child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    CircleAvatar(
+                      backgroundColor: generateUniqColor(flight.planeId!),
+                      child: Text(flight.planeId!),
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        _buildBox('Distance', Icons.transfer_within_a_station,
+                            distanceToString(flight.maxPlaneDistanceFromUser!)),
+                        _buildBox('Height', Icons.line_weight,
+                            distanceToString(flight.maxHeight!)),
+                        _buildBox('Duration', Icons.timelapse, duration + '\''),
+                      ],
+                    )
+                  ],
+                ),
+              )),
+        ));
+  }
+
+  List<TimelineEventDisplay> _buildEvents(
+      String date, List<Flight> flights, BuildContext context, WidgetRef ref) {
+    var events = [
+      TimelineEventDisplay(
+          anchor: IndicatorPosition.top,
+          child: TimelineEventCard(
+            padding:
+                const EdgeInsets.only(left: 0, top: 12, right: 16, bottom: 0),
+            title: Text(
+              date,
+              style: TextStyle(
+                  color: Colors.grey[600], fontWeight: FontWeight.w500),
+            ),
+            content: SizedBox(),
+          ),
+          indicator: Icon(
+            Icons.calendar_today,
+            color: Colors.grey[600],
+          )),
+    ];
+    for (var f in flights) {
+      String startHour = hourFormatter
+          .format(DateTime.fromMillisecondsSinceEpoch(f.startTimestamp!));
+      String endHour = hourFormatter
+          .format(DateTime.fromMillisecondsSinceEpoch(f.endTimestamp!));
+      events.addAll([
+        TimelineEventDisplay(
+            anchor: IndicatorPosition.top,
+            child: TimelineEventCard(
+              padding: const EdgeInsets.only(
+                  left: 0, top: 12, right: 16, bottom: 20),
+              title: Text('$startHour - $endHour',
+                  style: TextStyle(
+                      color: Colors.grey[600], fontWeight: FontWeight.w500)),
+              content: SizedBox(),
+            ),
+            indicator: Icon(
+              Icons.access_time_filled,
+              color: Colors.grey[600],
+            )),
+        TimelineEventDisplay(
+            anchor: IndicatorPosition.top,
+            child: TimelineEventCard(
+              padding:
+                  const EdgeInsets.only(left: 0, top: 12, right: 16, bottom: 0),
+              title: Text(
+                  f.flightAddress!.isEmpty
+                      ? 'Unknown Address'
+                      : f.flightAddress!,
+                  style: TextStyle(
+                      color: Colors.grey[600], fontWeight: FontWeight.w500)),
+              content: Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: 130,
+                  child: FlutterMap(
+                    options: MapOptions(
+                        screenSize:
+                            Size(MediaQuery.of(context).size.width, 100),
+                        interactiveFlags: InteractiveFlag.none,
+                        center: f.userStartingCoordinates),
+                    children: [
+                      TileLayerWidget(
+                          options: TileLayerOptions(
+                              tileProvider: ref.watch(tileProvider),
+                              urlTemplate:
+                                  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                              subdomains: ['a', 'b', 'c'])),
+                    ],
+                  )),
+            ),
+            indicator: Icon(
+              Icons.location_on,
+              color: Colors.grey[600],
+            )),
+        TimelineEventDisplay(
+            anchor: IndicatorPosition.top,
+            child: TimelineEventCard(
+              padding:
+                  const EdgeInsets.only(left: 0, top: 12, right: 16, bottom: 0),
+              title: Text(distanceToString(f.maxHeight!),
+                  style: TextStyle(
+                      color: Colors.grey[600], fontWeight: FontWeight.w500)),
+              content: SizedBox(),
+            ),
+            indicator: Icon(
+              Icons.line_weight,
+              color: Colors.grey[600],
+            )),
+        TimelineEventDisplay(
+            anchor: IndicatorPosition.top,
+            child: TimelineEventCard(
+              padding:
+                  const EdgeInsets.only(left: 0, top: 12, right: 16, bottom: 0),
+              title: Text(distanceToString(f.maxPlaneDistanceFromUser!),
+                  style: TextStyle(
+                      color: Colors.grey[600], fontWeight: FontWeight.w500)),
+              content: Center(
+                  child: IconButton(
+                icon: Icon(
+                  Icons.keyboard_double_arrow_right,
+                  size: 35,
+                  color: Colors.grey[600],
+                ),
+                onPressed: () {},
+              )),
+            ),
+            indicator: Icon(
+              Icons.transfer_within_a_station,
+              color: Colors.grey[600],
+            )),
+      ]);
+    }
+
+    return events;
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    var provider = ref.watch(flightHistoryControllerProvider);
+
+    if (provider.flightHistory.isEmpty) {
+      return EmptyList(
+        onStartFlight: onStartFlight,
+      );
+    }
+
+    List<TimelineEventDisplay> events = [];
+    provider.flightHistory
+        .fold<Map<String, List<Flight>>>({}, (val, element) {
+          DateTime date =
+              DateTime.fromMicrosecondsSinceEpoch(element.startTimestamp!);
+          String dateFormated = formatter.format(date);
+          if (!val.containsKey(dateFormated)) {
+            val[dateFormated] = [];
+          }
+          val[dateFormated]?.add(element);
+          return val;
+        })
+        .entries
+        .forEach((element) {
+          events.addAll(_buildEvents(element.key, element.value, context, ref));
+        });
+
+    return Container(
+        padding: EdgeInsets.only(top: 20),
+        child: TimelineTheme(
+            data:
+                TimelineThemeData(lineColor: Colors.grey[300]!, strokeWidth: 2),
+            child: Timeline(
+              indicatorSize: 56,
+              events: events,
+            )));
+  }
+}

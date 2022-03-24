@@ -2,17 +2,17 @@ import 'package:objectbox/objectbox.dart';
 import 'package:timer_f1/app/data/models/servo.dart';
 
 @Entity()
-class PepeTimerConfiguration {
+class TimerConfiguration {
   int id = 0;
   bool ledOn = false;
   late String name;
 
-  @Backlink('TimerConfigurations')
+  @Backlink('timerConfiguration')
   final servos = ToMany<Servo>();
 
-  PepeTimerConfiguration({required this.name, this.ledOn = false});
+  TimerConfiguration({required this.name, this.ledOn = false});
 
-  PepeTimerConfiguration.fromJson(Map<String, dynamic> json) {
+  TimerConfiguration.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     ledOn = json['ledOn'];
     name = json['name'];

@@ -21,6 +21,7 @@ class Flight {
   double? endFlightLat;
   double? maxPlaneDistanceFromStart;
   double? maxPlaneDistanceFromUser;
+  String? flightAddress;
 
   @Backlink('flight')
   final flightData = ToMany<FlightData>();
@@ -69,7 +70,8 @@ class Flight {
       this.endFlightLng,
       this.endFlightLat,
       this.maxPlaneDistanceFromStart,
-      this.maxPlaneDistanceFromUser});
+      this.maxPlaneDistanceFromUser,
+      this.flightAddress});
 
   void addAll(Iterable<FlightData> iterable) {
     for (var element in iterable) {
@@ -94,11 +96,15 @@ class Flight {
         : 0;
   }
 
+  get userStartingCoordinates {
+    return flightData.isNotEmpty ? flightData.first.userCoordinates : null;
+  }
+
   void start() {
     startTimestamp = DateTime.now().millisecondsSinceEpoch;
   }
 
-  int? finish() {
+  int? finish(String address) {
     durationInMs = elapsedTime;
     for (var element in flightData) {
       if (maxHeight == null || element.height! > maxHeight!) {
@@ -139,6 +145,10 @@ class Flight {
       flightEndCoordinates = lastPlainCoordinates;
     }
 
+    flightAddress = address;
+
+    endTimestamp = DateTime.now().millisecondsSinceEpoch;
+
     return durationInMs;
   }
 
@@ -158,6 +168,7 @@ class Flight {
     endFlightLng = json['endFlightLng'];
     endFlightLat = json['endFlightLat'];
     maxPlaneDistanceFromStart = json['maxPlaneDistanceFromStart'];
+    flightAddress = json['flightAddress'];
   }
 
   Map<String, dynamic> toJson() {
@@ -177,6 +188,7 @@ class Flight {
     data['endFlightLng'] = endFlightLng;
     data['endFlightLat'] = endFlightLat;
     data['maxPlaneDistanceFromStart'] = maxPlaneDistanceFromStart;
+    data['flightAddress'] = flightAddress;
     return data;
   }
 }

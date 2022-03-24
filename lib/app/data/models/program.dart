@@ -1,5 +1,6 @@
 import 'package:objectbox/objectbox.dart';
 import 'package:timer_f1/app/data/models/enums/timer_time_types.dart';
+import 'package:timer_f1/app/data/models/servo.dart';
 
 @Entity()
 class Program {
@@ -7,6 +8,8 @@ class Program {
   int time = 0;
   TimerTimeTypes timeMeasure = TimerTimeTypes.milliseconds;
   int rotation = 1;
+
+  final servo = ToOne<Servo>();
 
   Program(
       {this.time = 0,

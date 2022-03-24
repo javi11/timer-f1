@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:3617741553367741416",
-      "lastPropertyId": "16:757837763565641298",
+      "lastPropertyId": "17:852303600115363581",
       "name": "Flight",
       "properties": [
         {
@@ -88,6 +88,11 @@
           "id": "16:757837763565641298",
           "name": "maxPlaneDistanceFromUser",
           "type": 8
+        },
+        {
+          "id": "17:852303600115363581",
+          "name": "flightAddress",
+          "type": 9
         }
       ],
       "relations": []
@@ -178,17 +183,108 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "4:2193015486373281114",
+      "lastPropertyId": "4:4066208250836667911",
+      "name": "Program",
+      "properties": [
+        {
+          "id": "1:5561007999418306729",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5774301234943724802",
+          "name": "time",
+          "type": 6
+        },
+        {
+          "id": "3:8670529558916408178",
+          "name": "rotation",
+          "type": 6
+        },
+        {
+          "id": "4:4066208250836667911",
+          "name": "servoId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "2:3854474950964882710",
+          "relationTarget": "Servo"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "5:553770475019406838",
+      "lastPropertyId": "3:2366463627940278094",
+      "name": "Servo",
+      "properties": [
+        {
+          "id": "1:3736744247678785430",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:385968381398050751",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:2366463627940278094",
+          "name": "timerConfigurationId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "3:2073944158793052802",
+          "relationTarget": "TimerConfiguration"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "7:7894768153648976925",
+      "lastPropertyId": "3:1409326336159371176",
+      "name": "TimerConfiguration",
+      "properties": [
+        {
+          "id": "1:1553974021383400304",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3543977496437803216",
+          "name": "ledOn",
+          "type": 1
+        },
+        {
+          "id": "3:1409326336159371176",
+          "name": "name",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "2:1996917656354719130",
-  "lastIndexId": "1:5182127689446183035",
+  "lastEntityId": "7:7894768153648976925",
+  "lastIndexId": "3:2073944158793052802",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
-  "retiredEntityUids": [],
+  "retiredEntityUids": [
+    4466057026167610518,
+    6145684746531592935
+  ],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    5819823023752054217,
+    7477028276912578726,
+    8235972078413561412,
+    5104838492584877097
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

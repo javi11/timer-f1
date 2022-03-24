@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -14,53 +13,61 @@ class EmptyList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        margin: EdgeInsetsDirectional.only(top: 140),
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        child: Column(children: <Widget>[
-          logo,
-          AutoSizeText(
-            'No Flights Done Yet',
-            style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Colors.black54),
-          ),
-          SizedBox(
-            height: 24,
-          ),
-          SizedBox(
-            width: 210,
-            child: AutoSizeText(
-                'Make sure that bluetooth device is on before start.',
-                maxLines: 2,
-                maxFontSize: 25,
+    return Center(
+        child: Wrap(children: <Widget>[
+      Center(
+          child: Text(
+        'No Flights Done Yet',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+            fontSize: 30, fontWeight: FontWeight.bold, color: Colors.black54),
+      )),
+      SizedBox(
+        height: 70,
+      ),
+      Center(
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width - 100,
+          child: Text(
+              'Start tracking your first flight and filling your history.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black38)),
+        ),
+      ),
+      SizedBox(
+        height: 70,
+      ),
+      Center(
+          child: TextButton(
+              child: Text(
+                'Start a flight',
                 style: TextStyle(
-                    fontWeight: FontWeight.w500, color: Colors.black38)),
-          ),
-          SizedBox(
-            height: 24,
-          ),
-          ButtonTheme(
-              minWidth: 250.0,
-              height: 60.0,
-              child: TextButton.icon(
-                  style: TextButton.styleFrom(
-                      backgroundColor: Colors.green[50],
-                      shape: RoundedRectangleBorder(
-                          side: BorderSide(color: Colors.black12)),
-                      elevation: 0,
-                      textStyle: TextStyle(color: Colors.black87)),
-                  icon: Icon(
-                    Icons.flight_takeoff,
-                    color: Colors.blue,
+                    color: Colors.indigo,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400),
+              ),
+              style: TextButton.styleFrom(
+                  minimumSize: Size(
+                    MediaQuery.of(context).size.width - 150,
+                    60.0,
                   ),
-                  label: AutoSizeText(
-                    'Start a flight',
-                    style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800),
-                  ),
-                  onPressed: onStartFlight as void Function()?))
-        ]));
+                  backgroundColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      side: BorderSide(color: Colors.indigo, width: 1.5)),
+                  elevation: 0),
+              onPressed: () => onStartFlight())),
+      SizedBox(
+        height: 80,
+      ),
+      Center(
+          child: Image.asset(
+        'assets/images/empty_home.png',
+        width: 200,
+      ))
+    ]));
   }
 }

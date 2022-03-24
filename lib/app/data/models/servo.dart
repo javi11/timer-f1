@@ -1,13 +1,16 @@
 import 'package:objectbox/objectbox.dart';
 import 'package:timer_f1/app/data/models/program.dart';
+import 'package:timer_f1/app/data/models/timer_configuration.dart';
 
 @Entity()
 class Servo {
   int id = 0;
   late String name;
 
-  @Backlink('TimerConfigurations')
+  @Backlink('servo')
   final program = ToMany<Program>();
+
+  final timerConfiguration = ToOne<TimerConfiguration>();
 
   Servo({required this.name});
 

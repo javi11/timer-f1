@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:timer_f1/app/modules/usb_device/controllers/usb_serial_controller.dart';
 import 'package:timer_f1/global_widgets/device_info.dart';
+import 'package:timer_f1/global_widgets/drawer_items.dart';
 
 class UsbStatus extends HookConsumerWidget {
   @override
@@ -31,9 +32,9 @@ class UsbStatus extends HookConsumerWidget {
 
     return Container(
         decoration: BoxDecoration(color: Colors.green[50]),
-        child: ListTile(
+        child: DrawerItem(
           leading: Icon(Icons.usb),
-          title: Text('${connectedDevice!.name} connected'),
+          title: '${connectedDevice!.name} connected',
           onTap: openDeviceInfo,
         ));
   }

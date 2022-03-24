@@ -31,9 +31,9 @@ class BluetoothPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useEffect(() {
       var provider = ref.read(bleControllerProvider);
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
         if (provider.pairedDevice != null) {
-          provider.connect(provider.pairedDevice!);
+          await provider.connect(provider.pairedDevice!);
         } else if (provider.bluetoothState != BluetoothState.scanning) {
           provider.startScan();
         }
@@ -44,65 +44,79 @@ class BluetoothPage extends HookConsumerWidget {
 
     return Scaffold(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () async {
-                await ref.read(bleControllerProvider).stopScan();
-                GoRouter.of(context).pop();
-              },
+        body: Stack(
+          children: [
+            Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              child: HookConsumer(
+                  builder: (BuildContext ctx, WidgetRef ref, Widget? widget) {
+                BluetoothState bluetoothState = ref.watch(bleControllerProvider
+                    .select((value) => value.bluetoothState));
+                Device? connectedDevice = ref.watch(bleControllerProvider
+                    .select((value) => value.connectedDevice));
+                Device? pairedDevice = ref.watch(bleControllerProvider
+                    .select((value) => value.pairedDevice));
+                final onScan = useCallback(() {
+                  if (bluetoothState != BluetoothState.scanning) {
+                    ref.read(bleControllerProvider).startScan()?.onError(
+                        (error) =>
+                            FlushbarHelper.createError(message: error.message));
+                  }
+                }, [bluetoothState]);
+
+                if (bluetoothState == BluetoothState.unauthorized) {
+                  return UnauthorizedBLE();
+                }
+
+                if (bluetoothState == BluetoothState.off) {
+                  return TurnOnBluetooth();
+                }
+
+                if (bluetoothState == BluetoothState.connected &&
+                    connectedDevice != null) {
+                  return ConnectedDevice(
+                      deviceName: connectedDevice.name, redirectTo: redirectTo);
+                }
+
+                if ((bluetoothState == BluetoothState.connecting ||
+                        bluetoothState == BluetoothState.connectionTimeout) &&
+                    pairedDevice != null) {
+                  return ConnectingToDevice(deviceName: pairedDevice.name);
+                }
+
+                return DeviceList(
+                  isScanning: bluetoothState == BluetoothState.scanning,
+                  onPair: (Device device) async {
+                    ref.read(bleControllerProvider)
+                      ..connect(device)
+                      ..pairDevice(device);
+                  },
+                  onRetry: onScan,
+                );
+              }),
             ),
-            centerTitle: true,
-            title: Text('Connecting...'),
-            elevation: 0),
-        body: Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          child: HookConsumer(
-              builder: (BuildContext ctx, WidgetRef ref, Widget? widget) {
-            BluetoothState bluetoothState = ref.watch(
-                bleControllerProvider.select((value) => value.bluetoothState));
-            Device? connectedDevice = ref.watch(
-                bleControllerProvider.select((value) => value.connectedDevice));
-            Device? pairedDevice = ref.watch(
-                bleControllerProvider.select((value) => value.pairedDevice));
-            bool isScanningListEmpty = ref.watch(isScanningListEmptyProvider);
-            final onScan = useCallback(() {
-              if (bluetoothState != BluetoothState.scanning) {
-                ref.read(bleControllerProvider).startScan()?.onError((error) =>
-                    FlushbarHelper.createError(message: error.message));
-              }
-            }, [bluetoothState]);
-
-            if (bluetoothState == BluetoothState.unauthorized) {
-              return UnauthorizedBLE();
-            }
-
-            if (bluetoothState == BluetoothState.off) {
-              return TurnOnBluetooth();
-            }
-
-            if (bluetoothState == BluetoothState.connected &&
-                connectedDevice != null) {
-              return ConnectedDevice(
-                  deviceName: connectedDevice.name, redirectTo: redirectTo);
-            }
-
-            if (bluetoothState == BluetoothState.connecting &&
-                pairedDevice != null) {
-              return ConnectingToDevice(deviceName: pairedDevice.name);
-            }
-
-            return DeviceList(
-              isScanning: bluetoothState == BluetoothState.scanning,
-              onPair: (Device device) async {
-                ref.read(bleControllerProvider)
-                  ..connect(device)
-                  ..pairDevice(device);
-              },
-              onRetry: onScan,
-            );
-          }),
+            SizedBox(
+                height: 80,
+                child: AppBar(
+                    backgroundColor: Colors.transparent,
+                    leading: IconButton(
+                      icon: Icon(
+                        Icons.arrow_back,
+                        color: Colors.blue[100],
+                      ),
+                      onPressed: () async {
+                        await ref.read(bleControllerProvider).stopScan();
+                        GoRouter.of(context).pop();
+                      },
+                    ),
+                    centerTitle: true,
+                    title: Text(
+                      'Connecting...',
+                      style: TextStyle(color: Colors.blue[100]),
+                    ),
+                    elevation: 0)),
+          ],
         ));
   }
 }

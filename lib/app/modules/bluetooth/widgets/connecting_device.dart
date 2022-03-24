@@ -15,31 +15,37 @@ class ConnectingToDevice extends HookWidget {
     final controller = useAnimationController();
 
     return Container(
-        padding: EdgeInsets.all(22.0),
+        padding: EdgeInsets.only(top: 60),
         decoration: BoxDecoration(
             gradient: LinearGradient(
-                colors: [Colors.blue, Colors.blue[300]!],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter)),
-        child: Column(children: [
-          Center(
-              child: SizedBox(
-                  width: 400,
-                  height: 400,
-                  child: Lottie.asset(
-                      "assets/animations/bluetooth-connecting.json",
-                      controller: controller,
-                      repeat: true, onLoaded: (composition) {
-                    controller.duration = composition.duration;
-                    controller.forward().whenComplete(
-                        () => controller.repeat(min: 0.16, reverse: true));
-                  }))),
-          Center(
-              child: Text(
-            'Connecting to $deviceName...',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          )),
-        ]));
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [
+            Colors.blue[400]!,
+            Colors.indigo[800]!,
+          ],
+        )),
+        child: Padding(
+            padding: EdgeInsets.all(22),
+            child: Column(children: [
+              Center(
+                  child: SizedBox(
+                      width: 400,
+                      height: 400,
+                      child: Lottie.asset(
+                          "assets/animations/bluetooth-connecting.json",
+                          controller: controller,
+                          repeat: true, onLoaded: (composition) {
+                        controller.duration = composition.duration;
+                        controller.forward().whenComplete(
+                            () => controller.repeat(min: 0.16, reverse: true));
+                      }))),
+              Center(
+                  child: Text(
+                'Connecting to $deviceName...',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.blue[100], fontSize: 16),
+              )),
+            ])));
   }
 }
