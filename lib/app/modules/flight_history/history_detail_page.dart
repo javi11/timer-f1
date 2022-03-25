@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
+import 'package:timer_f1/app/modules/flight_history/widgets/history_detail_button.dart';
+import 'package:timer_f1/app/modules/flight_history/widgets/history_detail_glass_box.dart';
 import 'package:timer_f1/app/modules/flight_history/widgets/history_map.dart';
 import 'package:timer_f1/core/utils/distance_to_string.dart';
 import 'package:timer_f1/core/utils/export_csv.dart';
 
-class FligthHistoryDetailPage extends HookWidget {
+class FlightHistoryDetailPage extends HookWidget {
   final Flight flight;
-  FligthHistoryDetailPage({required this.flight});
+  FlightHistoryDetailPage({required this.flight});
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([
@@ -18,6 +21,7 @@ class FligthHistoryDetailPage extends HookWidget {
     var duration = useState('0');
     useEffect(() {
       duration.value = ((flight.durationInMs! / 1000) / 60).toStringAsFixed(2);
+      return null;
     }, [flight.durationInMs]);
 
     return Scaffold(
@@ -30,153 +34,91 @@ class FligthHistoryDetailPage extends HookWidget {
                 onPressed: () => Navigator.of(context).pop(),
                 child: Icon(
                   Icons.arrow_back,
-                  color: Colors.black,
+                  color: Colors.indigo,
                 )),
-            alignment: Alignment(-1.1, -0.98)),
+            alignment: Alignment(-1.1, -1)),
         body: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
-          child: Column(
+          child: Stack(
             children: <Widget>[
-              flight.flightStartCoordinates != null
-                  ? HistoryMap(
-                      flight: flight,
-                    )
-                  : SizedBox(
-                      height: 29,
-                    ),
-              SizedBox(
-                height: 20,
-              ),
-              Text(
-                'Plain Id ' + flight.planeId!,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Divider(
-                color: Colors.black26,
-                height: 3,
-                indent: 15,
-                endIndent: 15,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  ButtonTheme(
-                      minWidth: MediaQuery.of(context).size.width / 2 - 5,
-                      height: 50,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide.none,
-                        ),
-                        icon: Icon(Icons.import_export),
-                        onPressed: () async {
-                          await exportFlight2Csv(flight);
-                        },
-                        label: Text(
-                          "Export",
-                        ),
-                      )),
-                  VerticalDivider(
-                    color: Colors.black26,
-                    width: 3,
-                    thickness: 2,
-                  ),
-                  ButtonTheme(
-                      minWidth: MediaQuery.of(context).size.width / 2 - 5,
-                      height: 50,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide.none,
-                        ),
-                        icon: Icon(Icons.share),
-                        onPressed: () async {
-                          await shareFligth(flight);
-                        },
-                        label: Text(
-                          "Share",
-                        ),
-                      ))
-                ],
-              ),
-              Divider(
-                color: Colors.black26,
-                height: 3,
-                indent: 15,
-                endIndent: 15,
+              HistoryMap(
+                flight: flight,
               ),
               Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height / 3,
-                  child: ListView(
-                    children: <Widget>[
-                      ListTile(
-                          leading: Icon(Icons.timelapse),
-                          title: RichText(
-                              text: TextSpan(
-                            text: 'Duration: ',
-                            style: TextStyle(color: Colors.black, fontSize: 16),
-                            children: <TextSpan>[
-                              TextSpan(
-                                  text: duration.value + ' minutes',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.pink[700],
-                                  ))
+                margin: EdgeInsets.only(left: 20, right: 20, bottom: 30),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    HistoryDetailGlassBox(
+                        text: 'Distance',
+                        data:
+                            distanceToString(flight.maxPlaneDistanceFromUser!)),
+                    HistoryDetailGlassBox(
+                        text: 'Height',
+                        data: distanceToString(flight.maxHeight!)),
+                    HistoryDetailGlassBox(
+                        text: 'Temp',
+                        data: flight.maxTemperature!.toStringAsFixed(2) +
+                            ' Degrees'),
+                    HistoryDetailGlassBox(
+                        text: 'Duration', data: duration.value + ' minutes'),
+                    Container(
+                        width: MediaQuery.of(context).size.width,
+                        height: 190,
+                        child: Card(
+                          elevation: 0,
+                          shape: const RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(40))),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              ListTile(
+                                contentPadding: EdgeInsets.all(18),
+                                title: Text('Plane ${flight.planeId}'),
+                                subtitle: Text(flight.flightAddress!),
+                                leading: Icon(
+                                  Icons.location_on_sharp,
+                                  color: Colors.red[300],
+                                ),
+                              ),
+                              Align(
+                                alignment: AlignmentDirectional.bottomCenter,
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Expanded(
+                                          child: HistoryDetailButton(
+                                              backgroundColor:
+                                                  Colors.indigo.shade400,
+                                              borderRadius: BorderRadius.only(
+                                                  bottomLeft:
+                                                      Radius.circular(40)),
+                                              onPressed: () async {
+                                                await shareFlight(flight);
+                                              },
+                                              text: 'Share')),
+                                      Expanded(
+                                          child: HistoryDetailButton(
+                                              backgroundColor:
+                                                  Colors.red.shade300,
+                                              borderRadius: BorderRadius.only(
+                                                  bottomRight:
+                                                      Radius.circular(40)),
+                                              onPressed: () async {
+                                                await exportFlight2Csv(flight);
+                                              },
+                                              text: 'Export'))
+                                    ]),
+                              )
                             ],
-                          ))),
-                      ListTile(
-                          leading: Icon(Icons.transfer_within_a_station),
-                          title: RichText(
-                              text: TextSpan(
-                            text: 'Max distance from user: ',
-                            style: TextStyle(color: Colors.black, fontSize: 16),
-                            children: <TextSpan>[
-                              TextSpan(
-                                  text: distanceToString(
-                                      flight.maxPlaneDistanceFromUser!),
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.pink[700],
-                                  ))
-                            ],
-                          ))),
-                      ListTile(
-                          leading: Icon(Icons.line_weight),
-                          title: RichText(
-                              text: TextSpan(
-                            text: 'Max height: ',
-                            style: TextStyle(color: Colors.black, fontSize: 16),
-                            children: <TextSpan>[
-                              TextSpan(
-                                  text: distanceToString(flight.maxHeight!),
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.pink[700],
-                                  ))
-                            ],
-                          ))),
-                      ListTile(
-                          leading: Icon(Icons.ac_unit),
-                          title: RichText(
-                              text: TextSpan(
-                            text: 'Max temperature: ',
-                            style: TextStyle(color: Colors.black, fontSize: 16),
-                            children: <TextSpan>[
-                              TextSpan(
-                                  text: flight.maxTemperature!
-                                          .toStringAsFixed(2) +
-                                      ' º',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.pink[700],
-                                  ))
-                            ],
-                          )))
-                    ],
-                  ))
+                          ),
+                        )),
+                  ],
+                ),
+              )
             ],
           ),
         ));

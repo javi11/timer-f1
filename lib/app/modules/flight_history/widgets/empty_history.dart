@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-class EmptyList extends StatelessWidget {
+class EmptyHistory extends StatelessWidget {
   final Function onStartFlight;
   final Widget logo = SvgPicture.asset(
     'assets/images/logo.svg',
@@ -9,7 +9,7 @@ class EmptyList extends StatelessWidget {
     width: 100,
     height: 100,
   );
-  EmptyList({Key? key, required this.onStartFlight}) : super(key: key);
+  EmptyHistory({Key? key, required this.onStartFlight}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

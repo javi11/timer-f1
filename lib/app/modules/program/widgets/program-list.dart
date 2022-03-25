@@ -4,8 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
 import 'package:timer_f1/app/modules/flight_history/controllers/flight_history_controller.dart';
-import 'package:timer_f1/app/modules/flight_history/widgets/day_avatar.dart';
-import 'package:timer_f1/app/modules/flight_history/widgets/empty_list.dart';
+import 'package:timer_f1/app/modules/flight_history/widgets/empty_history.dart';
 import 'package:timer_f1/app/routes/app_pages.dart';
 import 'package:timer_f1/core/utils/distance_to_string.dart';
 
@@ -43,10 +42,6 @@ class ProgramList extends ConsumerWidget {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    if (flight.startTimestamp != null)
-                      getDayAvatar(DateTime.fromMillisecondsSinceEpoch(
-                              flight.startTimestamp!)
-                          .weekday),
                     SizedBox(
                       height: 24,
                       width: 10,

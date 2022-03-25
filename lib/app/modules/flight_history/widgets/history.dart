@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_timeline/flutter_timeline.dart';
 import 'package:go_router/go_router.dart';
+import 'package:grouped_list/grouped_list.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
 import 'package:timer_f1/app/modules/flight_history/controllers/flight_history_controller.dart';
-import 'package:timer_f1/app/modules/flight_history/widgets/empty_list.dart';
+import 'package:timer_f1/app/modules/flight_history/widgets/empty_history.dart';
 import 'package:timer_f1/app/routes/app_pages.dart';
+import 'package:timer_f1/core/utils/date_title_formater.dart';
 import 'package:timer_f1/core/utils/distance_to_string.dart';
 
 class History extends ConsumerWidget {
   final Function onStartFlight;
-  final DateFormat formatter = DateFormat('EEEE, D MMMM');
   final DateFormat hourFormatter = DateFormat('HH:mm');
 
   History({Key? key, required this.onStartFlight}) : super(key: key);
@@ -56,7 +56,7 @@ class History extends ConsumerWidget {
       },
       // inkwell color
       child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
+          padding: EdgeInsets.all(20),
           child: Center(
               child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,35 +112,24 @@ class History extends ConsumerWidget {
     var provider = ref.watch(flightHistoryControllerProvider);
 
     if (provider.flightHistory.isEmpty) {
-      return EmptyList(
+      return EmptyHistory(
         onStartFlight: onStartFlight,
       );
     }
 
-    List<TimelineEventDisplay> events = [];
-    var days = provider.flightHistory
-        .fold<Map<String, List<Flight>>>({}, (val, element) {
+    return GroupedListView(
+        itemComparator: (Flight element1, Flight element2) =>
+            element1.startTimestamp! > element2.startTimestamp! ? -1 : 1,
+        elements: provider.flightHistory.toList(),
+        groupBy: (Flight flight) {
           DateTime date =
-              DateTime.fromMicrosecondsSinceEpoch(element.startTimestamp!);
-          String dateFormated = formatter.format(date);
-          if (!val.containsKey(dateFormated)) {
-            val[dateFormated] = [];
-          }
-          val[dateFormated]?.add(element);
-          return val;
-        })
-        .entries
-        .toList();
+              DateTime.fromMillisecondsSinceEpoch(flight.startTimestamp!);
 
-    return ListView.builder(
-        shrinkWrap: true,
-        physics: BouncingScrollPhysics(),
-        itemCount: days.length,
-        padding: EdgeInsetsDirectional.only(
-            top: MediaQuery.of(context).size.height / 10),
-        itemBuilder: (BuildContext ctx, int index) {
-          return Wrap(
-            children: [
+          return dateTitleFormatter(date);
+        },
+        useStickyGroupSeparators: true,
+        stickyHeaderBackgroundColor: Colors.white,
+        groupSeparatorBuilder: (String title) => Wrap(children: [
               Divider(
                 thickness: 8,
                 color: Colors.grey[100],
@@ -150,7 +139,7 @@ class History extends ConsumerWidget {
                   child: Row(
                     children: [
                       Text(
-                        days[index].key,
+                        title,
                         style: TextStyle(
                             fontSize: 18,
                             color: Colors.black54,
@@ -158,24 +147,14 @@ class History extends ConsumerWidget {
                       )
                     ],
                   )),
-              Padding(
-                  padding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-                  child: ListView.separated(
-                      separatorBuilder: (context, index) => Divider(
-                            thickness: 2,
-                            color: Colors.grey[100],
-                          ),
-                      shrinkWrap: true,
-                      physics: BouncingScrollPhysics(),
-                      itemCount: days[index].value.length,
-                      itemBuilder: (BuildContext ctx, int i) =>
-                          _listItem(days[index].value[i], context))),
-              Divider(
-                thickness: 8,
-                color: Colors.grey[100],
-              )
-            ],
-          );
-        });
+            ]),
+        separator: Divider(
+          thickness: 2,
+          color: Colors.grey[100],
+        ),
+        shrinkWrap: true,
+        physics: BouncingScrollPhysics(),
+        itemBuilder: (BuildContext ctx, Flight flight) =>
+            _listItem(flight, context));
   }
 }

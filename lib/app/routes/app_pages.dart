@@ -21,7 +21,7 @@ final router = GoRouter(
           GoRoute(
               path: _Paths.FLIGHT_DETAILS,
               // Is protected by bluetooth but can not be redirected to ble connection page if ble connection is lost
-              builder: (context, state) => FligthHistoryDetailPage(
+              builder: (context, state) => FlightHistoryDetailPage(
                     flight: state.extra as Flight,
                   )),
           GoRoute(

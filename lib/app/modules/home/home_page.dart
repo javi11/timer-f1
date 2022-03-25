@@ -71,21 +71,17 @@ class HomePage extends HookConsumerWidget {
             TabItem(icon: Icons.build, title: 'program'),
           ],
           controller: tabController,
-          initialActiveIndex: 0, //optional, default as 0
-          onTap: (int i) {
-            switch (i) {
-              case 0:
-                break;
-              case 1:
-                startFlight();
-                tabController.index = 0;
-                break;
-              case 2:
-                break;
+          initialActiveIndex: 0,
+          onTabNotify: (i) {
+            var intercept = i == 1;
+            if (intercept) {
+              startFlight();
             }
+            return !intercept;
           },
         ),
         body: TabBarView(
+          physics: NeverScrollableScrollPhysics(),
           controller: tabController,
           children: [
             History(onStartFlight: startFlight),

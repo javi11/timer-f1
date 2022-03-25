@@ -61,7 +61,7 @@ Future<void> exportFlight2Csv(Flight flight) async {
   await FlutterFileDialog.saveFile(params: params);
 }
 
-Future<void> shareFligth(Flight flight) async {
+Future<void> shareFlight(Flight flight) async {
   String filePath = await generateCsv(flight);
-  await ShareExtend.share(filePath, "timerf1c flight");
+  await ShareExtend.share(filePath, "timerf1 flight");
 }

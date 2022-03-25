@@ -97,7 +97,7 @@ class HistoryMap extends HookConsumerWidget {
 
     return Container(
         width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height / 3,
+        height: MediaQuery.of(context).size.height,
         child: FlutterMap(
             mapController: mapController,
             options: MapOptions(

@@ -372,8 +372,8 @@ class FlutterReactiveBleController extends ChangeNotifier
 
       await _sendData(characteristic, VicentTimerCommands.getHelp, endOf: '\n');
       await Future.delayed(Duration(milliseconds: 1000));
-      await _sendData(characteristic, PepeTimerCommands.downloadConfiguration,
-          endOf: '\n');
+      /*  await _sendData(characteristic, PepeTimerCommands.downloadConfiguration,
+          endOf: '\n'); */
 
       if (brand != Brand.unknown ||
           _bluetoothState != BluetoothState.connected ||
