@@ -24,7 +24,7 @@ Uuid timerCharacteristicUUID =
 final bleControllerProvider =
     ChangeNotifierProvider<BLEController>((ref) => FlutterReactiveBleController(
           ble: ref.watch(bleProvider),
-          appSettings: ref.watch(appSettingsProvider),
+          appSettings: ref.read(appSettingsProvider),
         ));
 
 class BluetoothOffException implements Exception {
@@ -102,15 +102,6 @@ class FlutterReactiveBleController extends ChangeNotifier
 
   FlutterReactiveBleController({required this.ble, required this.appSettings}) {
     _btHWStatusStreamSub = ble.statusStream.listen(_handleBluetoothHWUpdates);
-
-    if (appSettings.pairedDeviceId.val.isNotEmpty &&
-        appSettings.pairedDeviceName.val.isNotEmpty) {
-      _pairedDevice = Device(
-          id: appSettings.pairedDeviceId.val,
-          name: appSettings.pairedDeviceName.val);
-      _connectionFuture =
-          CancelableOperation.fromFuture(connect(_pairedDevice!));
-    }
   }
 
   @override
@@ -120,21 +111,21 @@ class FlutterReactiveBleController extends ChangeNotifier
 
   @override
   Future<void> pairDevice(Device device) async {
-    appSettings.pairedDeviceId.val = device.id;
-    appSettings.pairedDeviceName.val = device.name;
+    appSettings.savePairDevice(device);
     _pairedDevice = device;
   }
 
   @override
   Future<void> forgetDevice(Device device) async {
+    print('BLE_CONTROLLER: Removing device ${device.id}');
     _reconnectionTimer?.cancel();
+    await disconnect();
     _pairedDevice = null;
     if (_bluetoothState != BluetoothState.off) {
       _bluetoothState = BluetoothState.on;
       notifyListeners();
     }
-    appSettings.pairedDeviceId.val = '';
-    appSettings.pairedDeviceName.val = '';
+    appSettings.removePairedDevice();
   }
 
   @override
@@ -185,6 +176,12 @@ class FlutterReactiveBleController extends ChangeNotifier
     String deviceId = device.id;
 
     if (_connectionStream == null) {
+      try {
+        await ble.clearGattCache(deviceId);
+        print('BLE_CONTROLLER: Device $deviceId Gatt cleared on Hot Reload.');
+      } catch (e) {
+        print('BLE_CONTROLLER: Device $deviceId $e.');
+      }
       print('BLE_CONTROLLER: Adding connection stream for $deviceId');
       await stopScan();
       _deviceConnectingTo = device;
@@ -202,10 +199,6 @@ class FlutterReactiveBleController extends ChangeNotifier
 
   @override
   Future<void> disconnect() async {
-    if (_connectionStream == null || _connectionStream!.isPaused) {
-      throw Exception(
-          'BLE_CONTROLLER: Connection stream is paused or null or blank! It cannot be canceled =============');
-    }
     print('BLE_CONTROLLER: Disconnecting from ${_connectedDevice?.id}');
     await _cleanOnDisconnect();
     if (_bluetoothState == BluetoothState.connecting ||
@@ -232,15 +225,19 @@ class FlutterReactiveBleController extends ChangeNotifier
   }
 
   Future<void> _cleanOnDisconnect() async {
-    _reconnectionTimer?.cancel();
-    _connectedDevice = null;
-    _deviceConnectingTo = null;
-    _characteristicStream = null;
-    _scanTimeout?.cancel();
-    await _connectionStream?.cancel();
-    _connectionStream = null;
-    await _connectionFuture?.cancel();
-    _connectionFuture = null;
+    try {
+      _reconnectionTimer?.cancel();
+      _connectedDevice = null;
+      _deviceConnectingTo = null;
+      _characteristicStream = null;
+      _scanTimeout?.cancel();
+      await _connectionStream?.cancel();
+      _connectionStream = null;
+      await _connectionFuture?.cancel();
+      _connectionFuture = null;
+    } catch (e) {
+      print('BLE_CONTROLLER: Unhandled error on disconnect from device, $e');
+    }
   }
 
   void _retryConnection() {
@@ -267,6 +264,9 @@ class FlutterReactiveBleController extends ChangeNotifier
         if (_bluetoothState == BluetoothState.unauthorized ||
             _bluetoothState == BluetoothState.off) {
           _bluetoothState = BluetoothState.on;
+          _pairedDevice = appSettings.getPairDevice();
+          print(
+              'BLE_CONTROLLER: Device paired ${_pairedDevice!.id}, retrying connection.');
           _retryConnection();
         }
         break;
@@ -316,12 +316,14 @@ class FlutterReactiveBleController extends ChangeNotifier
   void _handleConnectionEvents(ConnectionStateUpdate event) {
     switch (event.connectionState) {
       case DeviceConnectionState.connecting:
+        _deviceConnectingTo?.connectionState = DeviceConnection.connecting;
         _bluetoothState = BluetoothState.connecting;
         print('BLE_CONTROLLER: Connecting to ${event.deviceId}');
         notifyListeners();
         break;
       case DeviceConnectionState.connected:
         _connectedDevice = _deviceConnectingTo;
+        _connectedDevice!.connectionState = DeviceConnection.connected;
         _deviceConnectingTo = null;
         _bluetoothState = BluetoothState.connected;
         print('BLE_CONTROLLER: Connected to ${event.deviceId}');
@@ -332,6 +334,7 @@ class FlutterReactiveBleController extends ChangeNotifier
       case DeviceConnectionState.disconnected:
         _characteristicStream = null;
         _deviceConnectingTo = null;
+        _connectedDevice?.connectionState = DeviceConnection.disconnected;
         _connectedDevice = null;
         _connectionStream?.cancel();
         _connectionStream = null;
@@ -357,6 +360,9 @@ class FlutterReactiveBleController extends ChangeNotifier
     String firmware = 'unknown';
     var sub = subscribeToDeviceDataStream().handleError((error) {
       print('BLE_CONTROLLER: Error on Initial handshake, $error');
+      print('BLE_CONTROLLER: Retrying handshake from the beginning.');
+      _connectionFuture?.cancel();
+      _connectionFuture = CancelableOperation.fromFuture(_initialHandShake());
     }).listen((value) {
       var currentFirmware = getVicentFirmwareVersion(value);
       if (currentFirmware != null) {
@@ -394,6 +400,7 @@ class FlutterReactiveBleController extends ChangeNotifier
       _connectedDevice!.brand = brand;
       _connectedDevice!.firmware = firmware;
       _connectedDevice!.connectionState = DeviceConnection.connected;
+      appSettings.savePairDevice(_connectedDevice!);
       notifyListeners();
     } else {
       print('BLE_CONTROLLER: Device disconnected before initial HandShake');

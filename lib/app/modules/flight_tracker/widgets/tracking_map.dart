@@ -7,8 +7,8 @@ import 'package:timer_f1/app/data/models/flight_data_model.dart';
 import 'package:timer_f1/app/data/providers/tile_provider.dart';
 import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_data_controller.dart';
 import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_tracker_controller.dart';
-import 'package:timer_f1/global_widgets/plane_marker.dart';
-import 'package:timer_f1/global_widgets/plane_starting_flag_marker.dart';
+import 'package:timer_f1/global_widgets/map/plane_marker.dart';
+import 'package:timer_f1/global_widgets/map/plane_starting_flag_marker.dart';
 
 class EmptyMarker extends Container {
   @override

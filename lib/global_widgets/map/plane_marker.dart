@@ -4,8 +4,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:latlong2/latlong.dart';
 
 final Widget planeIcon = SvgPicture.asset(
-  'assets/icons/plain_marker.svg',
-  semanticsLabel: 'plain',
+  'assets/icons/plane_marker.svg',
+  semanticsLabel: 'plane',
   width: 50,
   height: 50,
 );

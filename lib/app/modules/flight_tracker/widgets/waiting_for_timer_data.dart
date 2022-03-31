@@ -3,33 +3,33 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lottie/lottie.dart';
-import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/modules/flight_tracker/widgets/no_timer_data.dart';
+import 'package:timer_f1/global_widgets/buttons/cancel_button.dart';
 
-class WaitingForData extends HookWidget {
-  final bool hasFlightStarted;
-  final Device? device;
-  WaitingForData({required this.hasFlightStarted, required this.device});
-
-  Timer _startTimerDataTimeout(BuildContext context) {
-    return Timer(Duration(seconds: 10), () async {
+void useNoTimerData({bool hasFlightStarted = false}) {
+  var context = useContext();
+  useEffect(() {
+    Timer timeout = Timer(Duration(seconds: 10), () async {
       if (hasFlightStarted == false) {
         Navigator.of(context, rootNavigator: true).pop();
         await showDialog(
             context: context,
-            builder: (ctx) => NoTimerData(device: device),
+            builder: (ctx) => NoTimerData(),
             barrierDismissible: false);
       }
     });
-  }
+
+    return timeout.cancel;
+  }, [hasFlightStarted]);
+}
+
+class WaitingForData extends HookWidget {
+  final bool hasFlightStarted;
+  WaitingForData({required this.hasFlightStarted});
 
   @override
   Widget build(BuildContext context) {
-    useEffect(() {
-      Timer timeout = _startTimerDataTimeout(context);
-
-      return timeout.cancel;
-    }, [hasFlightStarted]);
+    useNoTimerData(hasFlightStarted: hasFlightStarted);
 
     return WillPopScope(
         onWillPop: () {
@@ -40,7 +40,13 @@ class WaitingForData extends HookWidget {
           return Future.value(false);
         },
         child: SimpleDialog(
-          title: Text('Waiting for timer data...'),
+          title: Text(
+            'Waiting for timer data...',
+            style: TextStyle(
+                fontSize: 30,
+                color: Colors.indigo,
+                fontWeight: FontWeight.w400),
+          ),
           children: [
             Lottie.asset("assets/animations/loading.json", repeat: true),
             Container(
@@ -50,17 +56,14 @@ class WaitingForData extends HookWidget {
                     SizedBox(
                       height: 20,
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.popUntil(context, (route) {
-                          return route.isFirst;
-                        });
-                      },
-                      child: Text(
-                        "Exit",
-                        style: TextStyle(fontSize: 20.0),
-                      ),
-                    )
+                    CancelButton(
+                        text: 'Exit',
+                        minimumSize: Size(60, 40),
+                        onPressed: () {
+                          Navigator.popUntil(context, (route) {
+                            return route.isFirst;
+                          });
+                        })
                   ],
                 ))
           ],

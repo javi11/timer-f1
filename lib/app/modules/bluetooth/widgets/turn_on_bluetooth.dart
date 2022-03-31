@@ -23,8 +23,9 @@ class TurnOnBluetooth extends Container {
           )),
           Center(
               child: Text(
-                  'Turn on your bluetooth connection to start scanning.',
-                  style: TextStyle(fontSize: 18.0, color: Colors.white))),
+            'Turn on your bluetooth connection to start scanning.',
+            style: TextStyle(color: Colors.blue[100], fontSize: 16),
+          )),
         ]));
   }
 }

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,13 +5,15 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:timer_f1/app/data/models/bluetooth_model.dart';
+import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
 import 'package:timer_f1/app/modules/flight_history/widgets/history.dart';
-import 'package:timer_f1/app/modules/program/widgets/program-list.dart';
+import 'package:timer_f1/app/modules/program/widgets/program_list.dart';
 import 'package:timer_f1/app/modules/usb_device/controllers/usb_serial_controller.dart';
 import 'package:timer_f1/app/routes/app_pages.dart';
-import 'package:timer_f1/global_widgets/app_name.dart';
-import 'package:timer_f1/global_widgets/device_status.dart';
-import 'package:timer_f1/global_widgets/drawer.dart';
+import 'package:timer_f1/global_widgets/header/app_header_title.dart';
+import 'package:timer_f1/global_widgets/drawer/device_status.dart';
+import 'package:timer_f1/global_widgets/drawer/drawer.dart';
 
 class HomePage extends HookConsumerWidget {
   @override
@@ -24,12 +24,14 @@ class HomePage extends HookConsumerWidget {
     ]);
     var isUsbConnected =
         ref.watch(usbControllerProvider.select((value) => value.isConnected));
+    var isBLEConnected = ref.watch(bleControllerProvider
+        .select((value) => value.bluetoothState == BluetoothState.connected));
     var startFlight = useCallback(
-        () => isUsbConnected
+        () => isUsbConnected || isBLEConnected
             ? GoRouter.of(context).push('/${Routes.FLIGHT_TRACKER}')
             : GoRouter.of(context).push(
                 '${Routes.BLUETOOTH}?redirectTo=/${Routes.FLIGHT_TRACKER}'),
-        [isUsbConnected]);
+        [isUsbConnected, isBLEConnected]);
     var tabController = useTabController(initialLength: 3, initialIndex: 0);
     var zoomDrawerController = useMemoized(() => ZoomDrawerController(), []);
 
@@ -37,6 +39,7 @@ class HomePage extends HookConsumerWidget {
         child: ZoomDrawer(
       controller: zoomDrawerController,
       menuScreen: CustomDrawer(
+        onNavigate: (() => zoomDrawerController.close!()),
         deviceStatusWidget: DeviceStatus(),
       ),
       mainScreen: Scaffold(
@@ -56,7 +59,10 @@ class HomePage extends HookConsumerWidget {
               onPressed: () {},
             )
           ],
-          title: AppName(),
+          title: AppHeaderTitle(
+            title: 'TIMER',
+            subtitle: 'F1',
+          ),
         ),
         bottomNavigationBar: ConvexAppBar(
           color: Colors.indigo[100],

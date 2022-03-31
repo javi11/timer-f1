@@ -22,8 +22,10 @@ class UnauthorizedBLE extends Container {
                 repeat: true),
           )),
           Center(
-              child: Text('Authorize the app to use the BLE.',
-                  style: TextStyle(fontSize: 18.0, color: Colors.white))),
+              child: Text(
+            'Authorize the app to use the BLE.',
+            style: TextStyle(color: Colors.blue[100], fontSize: 16),
+          )),
         ]));
   }
 }

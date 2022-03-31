@@ -23,8 +23,8 @@ Future<String> generateCsv(Flight flight) async {
   rows.add([
     "id",
     "timestamp",
-    "plain latitude",
-    "plain longitude",
+    "plane latitude",
+    "plane longitude",
     "height",
     "temperature",
     "pressure",

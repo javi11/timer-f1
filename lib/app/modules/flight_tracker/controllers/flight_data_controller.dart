@@ -7,6 +7,7 @@ import 'package:timer_f1/app/data/models/bluetooth_model.dart';
 import 'package:timer_f1/app/data/models/flight_data_model.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
 import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
+import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_duration_controller.dart';
 import 'package:timer_f1/app/modules/usb_device/controllers/usb_serial_controller.dart';
 import 'package:timer_f1/core/vicent_timer/vicent_timer_flight_data_parser.dart';
 
@@ -43,6 +44,7 @@ final flightDataStreamProvider = StreamProvider.autoDispose<FlightData>((ref) {
     // Start the flight on receive first data.
     if (flight.startTimestamp == null) {
       flightData.isInitial = true;
+      ref.read(flightDurationProvider.notifier).start();
       flight.start();
     }
     flight.addData(flightData);

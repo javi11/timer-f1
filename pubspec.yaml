@@ -41,7 +41,6 @@ dependencies:
   flutter_zoom_drawer: ^2.3.1+1
   backdrop_modal_route: ^2.0.2
   flutter_timeline: ^0.3.0
-  awesome_dialog: ^2.1.2
   geocoding: ^2.0.4
   grouped_list: ^4.2.0
 
@@ -65,9 +64,9 @@ flutter:
     - assets/images/logo.svg
     - assets/images/device-not-found.png
     - assets/images/empty_home.png
-    - assets/icons/plain_marker.svg
-    - assets/icons/plain_start.svg
-    - assets/icons/plain_end.svg
+    - assets/icons/plane_marker.svg
+    - assets/icons/plane_start.svg
+    - assets/icons/plane_end.svg
     - assets/animations/turn-on-timerf1c.json
     - assets/animations/loading.json
     - assets/animations/download-success.json

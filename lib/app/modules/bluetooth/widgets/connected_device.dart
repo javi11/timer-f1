@@ -39,7 +39,7 @@ class ConnectedDevice extends HookWidget {
               child: Text(
             'Connected to $deviceName...',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: Colors.blue[100], fontSize: 16),
           )),
         ]));
   }

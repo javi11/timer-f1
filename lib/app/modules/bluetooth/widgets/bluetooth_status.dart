@@ -1,4 +1,3 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:backdrop_modal_route/backdrop_modal_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -9,8 +8,8 @@ import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
 import 'package:timer_f1/app/modules/bluetooth/widgets/bluetooth_device_info.dart';
 import 'package:timer_f1/app/routes/app_pages.dart';
-import 'package:timer_f1/global_widgets/drawer_items.dart';
-import 'package:timer_f1/global_widgets/modal.dart';
+import 'package:timer_f1/global_widgets/drawer/drawer_items.dart';
+import 'package:timer_f1/global_widgets/modals/custom_modal.dart';
 
 const double deviceStatusModalHeight = 400;
 
@@ -38,16 +37,6 @@ class BluetoothStatus extends HookConsumerWidget {
                 content: BluetoothDeviceInfo()),
           ));
     }, [context]);
-
-    final onConnect = useCallback(() async {
-      var provider = ref.read(bleControllerProvider);
-      provider.connect(pairedDevice!);
-      await provider.pairDevice(pairedDevice);
-    }, [pairedDevice]);
-
-    final onForgetDevice = useCallback(() async {
-      await ref.read(bleControllerProvider).forgetDevice(pairedDevice!);
-    }, [pairedDevice]);
 
     if (bluetoothState == BluetoothState.connected) {
       return DrawerItem(
@@ -80,24 +69,10 @@ class BluetoothStatus extends HookConsumerWidget {
     if (bluetoothState == BluetoothState.connectionTimeout ||
         pairedDevice != null) {
       return DrawerItem(
-        textColor: Colors.red[200],
-        leading: Icon(Icons.bluetooth_disabled),
-        title: '${pairedDevice?.name} disconnected',
-        onTap: () {
-          AwesomeDialog(
-                  context: context,
-                  dialogType: DialogType.INFO,
-                  animType: AnimType.BOTTOMSLIDE,
-                  title: 'What do you want to do with ${pairedDevice?.name}?',
-                  desc:
-                      'Get closer to ${pairedDevice?.name} and push reconnect',
-                  btnCancelText: 'Remove device',
-                  btnCancelOnPress: onForgetDevice,
-                  btnOkText: 'Reconnect',
-                  btnOkOnPress: onConnect)
-              .show();
-        },
-      );
+          textColor: Colors.red[200],
+          leading: Icon(Icons.bluetooth_disabled),
+          title: '${pairedDevice?.name} disconnected',
+          onTap: openDeviceInfo);
     }
 
     return DrawerItem(

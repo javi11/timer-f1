@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
+import 'package:timer_f1/global_widgets/header/app_header_title.dart';
 
 class LanguagesScreen extends HookWidget {
   @override
@@ -16,27 +17,42 @@ class LanguagesScreen extends HookWidget {
     }, [languageIndex]);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Languages')),
-      body: SettingsList(
-        sections: [
-          SettingsSection(tiles: [
-            SettingsTile(
-              title: "English",
-              trailing: trailingWidget(0),
-              onPressed: (BuildContext context) {
-                changeLanguage(0);
-              },
-            ),
-            SettingsTile(
-              title: "Spanish",
-              trailing: trailingWidget(1),
-              onPressed: (BuildContext context) {
-                changeLanguage(1);
-              },
-            ),
-          ]),
-        ],
-      ),
-    );
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: false,
+          iconTheme: IconThemeData(color: Colors.indigo),
+          title: AppHeaderTitle(
+            logo: SizedBox(width: 0),
+            title: 'LANGUAGES',
+          ),
+        ),
+        body: Container(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          padding: const EdgeInsets.all(20),
+          child: SettingsList(
+            backgroundColor: Colors.white,
+            sections: [
+              SettingsSection(tiles: [
+                SettingsTile(
+                  title: "English",
+                  trailing: trailingWidget(0),
+                  onPressed: (BuildContext context) {
+                    changeLanguage(0);
+                  },
+                ),
+                SettingsTile(
+                  title: "Spanish",
+                  trailing: trailingWidget(1),
+                  onPressed: (BuildContext context) {
+                    changeLanguage(1);
+                  },
+                ),
+              ]),
+            ],
+          ),
+        ));
   }
 }

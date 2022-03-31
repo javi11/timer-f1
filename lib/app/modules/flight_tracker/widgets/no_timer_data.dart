@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
+import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
+import 'package:timer_f1/global_widgets/buttons/cancel_button.dart';
 
-class NoTimerData extends StatelessWidget {
-  final Device? device;
-  NoTimerData({required this.device});
-
+class NoTimerData extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    var device = ref.watch<Device?>(
+        bleControllerProvider.select((value) => value.connectedDevice));
+
     return WillPopScope(
         onWillPop: () {
           Navigator.popUntil(context, (route) {
@@ -17,9 +20,15 @@ class NoTimerData extends StatelessWidget {
           return Future.value(false);
         },
         child: SimpleDialog(
-          title: Text(device?.brand != Brand.vicent
-              ? 'Invalid timer brand'
-              : 'Is the timer turned ON?'),
+          title: Text(
+            device?.brand != Brand.vicent
+                ? 'Invalid timer brand'
+                : 'Is the timer turned ON?',
+            style: TextStyle(
+                fontSize: 30,
+                color: Colors.indigo,
+                fontWeight: FontWeight.w400),
+          ),
           children: [
             Lottie.asset(
                 device?.brand != Brand.vicent
@@ -40,17 +49,14 @@ class NoTimerData extends StatelessWidget {
                     SizedBox(
                       height: 20,
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.popUntil(context, (route) {
-                          return route.isFirst;
-                        });
-                      },
-                      child: Text(
-                        "Exit",
-                        style: TextStyle(fontSize: 20.0),
-                      ),
-                    )
+                    CancelButton(
+                        text: 'Exit',
+                        minimumSize: Size(60, 40),
+                        onPressed: () {
+                          Navigator.popUntil(context, (route) {
+                            return route.isFirst;
+                          });
+                        })
                   ],
                 ))
           ],

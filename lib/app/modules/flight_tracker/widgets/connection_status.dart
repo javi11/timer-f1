@@ -19,7 +19,7 @@ class ConnectionStatusCircle extends ConsumerWidget {
 
     if (usbConnected == true) {
       return CircleAvatar(
-        child: Icon(Icons.usb, color: Colors.white),
+        child: Icon(Icons.usb),
       );
     } else if (pairedDevice == null) {
       return CircleAvatar(
@@ -30,14 +30,15 @@ class ConnectionStatusCircle extends ConsumerWidget {
     // There is a paired device, so we can try to connect to it.
     if (bluetoothState == BluetoothState.connected) {
       return CircleAvatar(
-        child: Icon(Icons.bluetooth_connected, color: Colors.white),
+        backgroundColor: Colors.indigo,
+        child: Icon(Icons.bluetooth_connected),
       );
     }
 
     if (bluetoothState == BluetoothState.connecting) {
       return CircleAvatar(
         backgroundColor: Colors.orangeAccent,
-        child: Icon(Icons.bluetooth_searching, color: Colors.white),
+        child: Icon(Icons.bluetooth_searching),
       );
     }
 
@@ -51,7 +52,6 @@ class ConnectionStatusCircle extends ConsumerWidget {
         backgroundColor: Colors.redAccent,
         child: Icon(
           Icons.bluetooth_disabled,
-          color: Colors.white,
         ),
       ),
     );

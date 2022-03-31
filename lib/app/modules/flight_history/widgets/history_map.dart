@@ -6,8 +6,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
 import 'package:timer_f1/app/data/providers/tile_provider.dart';
 import 'package:timer_f1/core/utils/compute_centroid.dart';
-import 'package:timer_f1/global_widgets/plain_finish_point_marker.dart';
-import 'package:timer_f1/global_widgets/plane_starting_flag_marker.dart';
+import 'package:timer_f1/global_widgets/map/plane_finish_point_marker.dart';
+import 'package:timer_f1/global_widgets/map/plane_starting_flag_marker.dart';
 
 ValueNotifier<List<Marker>> useMarkers({required Flight flight}) {
   var markers = useState<List<Marker>>([]);
@@ -15,7 +15,7 @@ ValueNotifier<List<Marker>> useMarkers({required Flight flight}) {
     if (flight.flightStartCoordinates == null) {
       markers.value = [
         ...markers.value,
-        buildPlainFinishPointMarker(flight.flightEndCoordinates!)
+        buildPlaneFinishPointMarker(flight.flightEndCoordinates!)
       ];
     } else if (flight.flightEndCoordinates == null) {
       markers.value = [
@@ -26,7 +26,7 @@ ValueNotifier<List<Marker>> useMarkers({required Flight flight}) {
       markers.value = [
         ...markers.value,
         buildPlaneStartingFlagMarker(flight.flightStartCoordinates!),
-        buildPlainFinishPointMarker(flight.flightEndCoordinates!)
+        buildPlaneFinishPointMarker(flight.flightEndCoordinates!)
       ];
     }
     return null;

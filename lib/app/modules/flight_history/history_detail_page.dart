@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:timer_f1/app/data/models/flight_model.dart';
 import 'package:timer_f1/app/modules/flight_history/widgets/history_detail_button.dart';
-import 'package:timer_f1/app/modules/flight_history/widgets/history_detail_glass_box.dart';
+import 'package:timer_f1/app/modules/flight_history/widgets/history_detail_info_box.dart';
 import 'package:timer_f1/app/modules/flight_history/widgets/history_map.dart';
 import 'package:timer_f1/core/utils/distance_to_string.dart';
 import 'package:timer_f1/core/utils/export_csv.dart';
@@ -29,8 +29,8 @@ class FlightHistoryDetailPage extends HookWidget {
         floatingActionButton: Align(
             child: FloatingActionButton(
                 elevation: 0,
-                splashColor: Color.fromRGBO(255, 255, 255, 0),
-                backgroundColor: Color.fromRGBO(255, 255, 255, 0),
+                splashColor: const Color.fromRGBO(255, 255, 255, 0),
+                backgroundColor: const Color.fromRGBO(255, 255, 255, 0),
                 onPressed: () => Navigator.of(context).pop(),
                 child: Icon(
                   Icons.arrow_back,
@@ -46,27 +46,30 @@ class FlightHistoryDetailPage extends HookWidget {
                 flight: flight,
               ),
               Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    gradient: LinearGradient(
+                        begin: FractionalOffset.topCenter,
+                        end: FractionalOffset.bottomCenter,
+                        colors: [
+                          Colors.white,
+                          Colors.white.withOpacity(0.0),
+                        ],
+                        stops: [
+                          0.0,
+                          1.0
+                        ]),
+                  )),
+              Container(
                 margin: EdgeInsets.only(left: 20, right: 20, bottom: 30),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    HistoryDetailGlassBox(
-                        text: 'Distance',
-                        data:
-                            distanceToString(flight.maxPlaneDistanceFromUser!)),
-                    HistoryDetailGlassBox(
-                        text: 'Height',
-                        data: distanceToString(flight.maxHeight!)),
-                    HistoryDetailGlassBox(
-                        text: 'Temp',
-                        data: flight.maxTemperature!.toStringAsFixed(2) +
-                            ' Degrees'),
-                    HistoryDetailGlassBox(
-                        text: 'Duration', data: duration.value + ' minutes'),
                     Container(
                         width: MediaQuery.of(context).size.width,
-                        height: 190,
                         child: Card(
                           elevation: 0,
                           shape: const RoundedRectangleBorder(
@@ -76,7 +79,8 @@ class FlightHistoryDetailPage extends HookWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
                               ListTile(
-                                contentPadding: EdgeInsets.all(18),
+                                contentPadding: const EdgeInsets.only(
+                                    top: 18, left: 18, right: 18),
                                 title: Text('Plane ${flight.planeId}'),
                                 subtitle: Text(flight.flightAddress!),
                                 leading: Icon(
@@ -84,6 +88,32 @@ class FlightHistoryDetailPage extends HookWidget {
                                   color: Colors.red[300],
                                 ),
                               ),
+                              Container(
+                                  padding: const EdgeInsets.only(
+                                      bottom: 18, left: 18, right: 18),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      HistoryDetailInfoBox(
+                                          text: 'Distance',
+                                          data: distanceToString(flight
+                                              .maxPlaneDistanceFromUser!)),
+                                      HistoryDetailInfoBox(
+                                          text: 'Height',
+                                          data: distanceToString(
+                                              flight.maxHeight!)),
+                                      HistoryDetailInfoBox(
+                                          text: 'Temp',
+                                          data: flight.maxTemperature!
+                                                  .toStringAsFixed(2) +
+                                              ' Degrees'),
+                                      HistoryDetailInfoBox(
+                                          text: 'Duration',
+                                          data: duration.value + ' minutes'),
+                                    ],
+                                  )),
                               Align(
                                 alignment: AlignmentDirectional.bottomCenter,
                                 child: Row(

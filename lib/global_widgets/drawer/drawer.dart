@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timer_f1/app/routes/app_pages.dart';
-import 'package:timer_f1/global_widgets/drawer_items.dart';
+import 'package:timer_f1/global_widgets/drawer/drawer_items.dart';
 
 class CustomDrawer extends Container {
   final Widget logo = SvgPicture.asset(
@@ -12,11 +12,10 @@ class CustomDrawer extends Container {
     height: 50,
   );
   final Widget deviceStatusWidget;
+  final void Function()? onNavigate;
 
-  CustomDrawer({
-    Key? key,
-    required this.deviceStatusWidget,
-  }) : super(key: key);
+  CustomDrawer({Key? key, required this.deviceStatusWidget, this.onNavigate})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +56,7 @@ class CustomDrawer extends Container {
                     leading: Icon(Icons.settings),
                     title: 'Settings',
                     onTap: () {
+                      onNavigate?.call();
                       GoRouter.of(context)
                           .push('${Routes.HOME}${Routes.SETTINGS}');
                     },

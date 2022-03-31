@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:timer_f1/global_widgets/buttons/accept_button.dart';
 
 class EmptyHistory extends StatelessWidget {
   final Function onStartFlight;
@@ -41,24 +42,12 @@ class EmptyHistory extends StatelessWidget {
         height: 70,
       ),
       Center(
-          child: TextButton(
-              child: Text(
-                'Start a flight',
-                style: TextStyle(
-                    color: Colors.indigo,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400),
+          child: AcceptButton(
+              text: 'Start a flight',
+              minimumSize: Size(
+                MediaQuery.of(context).size.width - 150,
+                60.0,
               ),
-              style: TextButton.styleFrom(
-                  minimumSize: Size(
-                    MediaQuery.of(context).size.width - 150,
-                    60.0,
-                  ),
-                  backgroundColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      side: BorderSide(color: Colors.indigo, width: 1.5)),
-                  elevation: 0),
               onPressed: () => onStartFlight())),
       SizedBox(
         height: 80,

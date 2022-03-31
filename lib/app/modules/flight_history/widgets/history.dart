@@ -68,7 +68,7 @@ class History extends ConsumerWidget {
                 crossAxisAlignment: WrapCrossAlignment.start,
                 children: <Widget>[
                   Text(
-                    'Plain ${flight.planeId}',
+                    'Plane ${flight.planeId}',
                     style: TextStyle(
                         color: Colors.grey[600], fontWeight: FontWeight.w500),
                   ),

@@ -9,6 +9,7 @@ class VoltageIndicator extends StatelessWidget {
       {Key? key, required this.voltageAlert, required this.voltage})
       : super(key: key);
 
+  @override
   Widget build(BuildContext context) {
     if (isNullVoltage(voltage)) {
       return Tooltip(
@@ -16,7 +17,10 @@ class VoltageIndicator extends StatelessWidget {
           message: "Waiting for voltage data...",
           child: CircleAvatar(
             backgroundColor: Colors.orange,
-            child: Icon(Icons.battery_unknown, color: Colors.white),
+            child: Icon(
+              Icons.battery_unknown,
+              color: Colors.white,
+            ),
           ));
     }
 
@@ -30,7 +34,8 @@ class VoltageIndicator extends StatelessWidget {
           ));
     }
     return CircleAvatar(
-      child: Icon(Icons.battery_full, color: Colors.white),
+      backgroundColor: Colors.indigo,
+      child: Icon(Icons.battery_full),
     );
   }
 }

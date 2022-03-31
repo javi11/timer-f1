@@ -80,7 +80,7 @@ class Flight {
   }
 
   void addData(FlightData data) {
-    // There is no point on add the history if there is no plain coordinates to show
+    // There is no point on add the history if there is no plane coordinates to show
     if (data.planeCoordinates != null) {
       if (flightStartCoordinates == null && data.planeCoordinates != null) {
         flightStartCoordinates = data.planeCoordinates;
@@ -137,12 +137,12 @@ class Flight {
         }
       }
     }
-    var lastPlainCoordinates = flightData
+    var lastPlaneCoordinates = flightData
         .lastWhere((element) => element.planeCoordinates != null)
         .planeCoordinates;
 
-    if (lastPlainCoordinates != null) {
-      flightEndCoordinates = lastPlainCoordinates;
+    if (lastPlaneCoordinates != null) {
+      flightEndCoordinates = lastPlaneCoordinates;
     }
 
     flightAddress = address;

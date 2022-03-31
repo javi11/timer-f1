@@ -1,6 +1,5 @@
 import 'dart:async';
-
-import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:backdrop_modal_route/backdrop_modal_route.dart';
 import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -17,13 +16,18 @@ import 'package:timer_f1/app/data/models/flight_model.dart';
 import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
 import 'package:timer_f1/app/modules/flight_history/controllers/flight_history_controller.dart';
 import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_data_controller.dart';
+import 'package:timer_f1/app/modules/flight_tracker/controllers/flight_duration_controller.dart';
 import 'package:timer_f1/app/routes/app_pages.dart';
 import 'package:timer_f1/core/utils/compute_centroid.dart';
+import 'package:timer_f1/global_widgets/buttons/accept_button.dart';
+import 'package:timer_f1/global_widgets/buttons/cancel_button.dart';
+import 'package:timer_f1/global_widgets/modals/alert_modal.dart';
 
 final flightControllerProvider =
     ChangeNotifierProvider.autoDispose<FlightTrackerController>((ref) =>
         FlightTrackerController(
             bleController: ref.read(bleControllerProvider),
+            flightDurationController: ref.read(flightDurationProvider.notifier),
             flightHistoryController: ref.watch(flightHistoryControllerProvider),
             flightProvider: ref.watch(flightProvider)));
 final expandibleToggleSelector =
@@ -40,6 +44,7 @@ class FlightTrackerController extends ChangeNotifier {
   final BLEController bleController;
   final FlightHistoryController flightHistoryController;
   final Flight flightProvider;
+  final FlightDurationNotifier flightDurationController;
   Timer? checkLocationServiceTimer;
   ExpansionStatus expandibleToggle = ExpansionStatus.contracted;
   FixedLocation focusedOn = FixedLocation.userLocation;
@@ -49,7 +54,8 @@ class FlightTrackerController extends ChangeNotifier {
   final MapController mapController = MapController();
 
   FlightTrackerController(
-      {required this.bleController,
+      {required this.flightDurationController,
+      required this.bleController,
       required this.flightHistoryController,
       required this.flightProvider}) {
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
@@ -109,47 +115,56 @@ class FlightTrackerController extends ChangeNotifier {
 
   void onExit(BuildContext context) {
     if (flightProvider.flightStartCoordinates == null) {
-      AwesomeDialog(
-          context: context,
-          dialogType: DialogType.WARNING,
-          animType: AnimType.BOTTOMSLIDE,
-          title: 'No data to save',
-          desc: 'No data will be saved because there is no plane coordinates.',
-          btnOkText: 'Exit',
-          btnOkOnPress: () {
-            GoRouter.of(context).go(Routes.HOME);
-          }).show();
+      Navigator.push(
+          context,
+          BackdropModalRoute(
+            topPadding: MediaQuery.of(context).size.height - 200,
+            canBarrierDismiss: true,
+            safeAreaBottom: false,
+            overlayContentBuilder: (context) => AlertModal(
+              height: 200,
+              title: 'No data to save',
+              subtitle:
+                  'No data will be saved because there is no plane coordinates.',
+              buttons: [
+                AcceptButton(
+                    text: 'Exit',
+                    minimumSize: Size(310, 45),
+                    onPressed: () {
+                      flightDurationController.reset();
+                      GoRouter.of(context).go(Routes.HOME);
+                    })
+              ],
+            ),
+          ));
     } else {
-      AwesomeDialog(
-          context: context,
-          dialogType: DialogType.INFO,
-          animType: AnimType.BOTTOMSLIDE,
-          title: 'Do you want to end the fly?',
-          desc: 'The fly will be saved on your history',
-          btnCancelOnPress: () {},
-          btnOkOnPress: () async {
-            int durationInMs = flightProvider.elapsedTime;
-            if (durationInMs > 30000) {
-              await _saveFlight();
-              GoRouter.of(context).go(Routes.HOME);
-            } else {
-              AwesomeDialog(
-                  context: context,
-                  dialogType: DialogType.WARNING,
-                  animType: AnimType.BOTTOMSLIDE,
-                  title: 'Flight is to short',
-                  desc: 'Do you still want to save it?',
-                  btnCancelText: 'No',
-                  btnOkText: 'Yes',
-                  btnCancelOnPress: () {
-                    GoRouter.of(context).go(Routes.HOME);
-                  },
-                  btnOkOnPress: () async {
-                    await _saveFlight();
-                    GoRouter.of(context).go(Routes.HOME);
-                  }).show();
-            }
-          }).show();
+      Navigator.push(
+          context,
+          BackdropModalRoute(
+            topPadding: MediaQuery.of(context).size.height - 200,
+            canBarrierDismiss: true,
+            safeAreaBottom: false,
+            overlayContentBuilder: (context) => AlertModal(
+              height: 200,
+              title: 'Do you want to end the fly?',
+              subtitle: 'The fly will be saved on your history.',
+              buttons: [
+                CancelButton(
+                    text: 'Cancel',
+                    minimumSize: Size(150, 45),
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                    }),
+                AcceptButton(
+                    text: 'Yes',
+                    onPressed: () async {
+                      await _saveFlight();
+                      GoRouter.of(context).go(Routes.HOME);
+                    },
+                    minimumSize: Size(150, 45)),
+              ],
+            ),
+          ));
     }
   }
 

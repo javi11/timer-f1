@@ -177,7 +177,7 @@ class FlightData {
     flightData.temperature = double.parse(line[12]);
     flightData.pressure = double.parse(line[13]);
     flightData.voltage = parseVoltage(line[14]);
-    // if the voltage has 0 values, the timer receiver is not connected to the plain.
+    // if the voltage has 0 values, the timer receiver is not connected to the plane.
     flightData.isConnectedToPlane = !isNullVoltage(flightData.voltage);
 
     return flightData;

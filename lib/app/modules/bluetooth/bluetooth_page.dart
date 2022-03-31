@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:timer_f1/app/data/models/bluetooth_model.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
 import 'package:timer_f1/app/modules/bluetooth/controllers/ble_controller.dart';
+import 'package:timer_f1/app/modules/bluetooth/widgets/bluetooth_scaffold.dart';
 import 'package:timer_f1/app/modules/bluetooth/widgets/connected_device.dart';
 import 'package:timer_f1/app/modules/bluetooth/widgets/connecting_device.dart';
 import 'package:timer_f1/app/modules/bluetooth/widgets/devices_list.dart';
@@ -42,81 +43,58 @@ class BluetoothPage extends HookConsumerWidget {
       return provider.stopScan;
     }, []);
 
-    return Scaffold(
-        backgroundColor: Colors.white,
-        body: Stack(
-          children: [
-            Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child: HookConsumer(
-                  builder: (BuildContext ctx, WidgetRef ref, Widget? widget) {
-                BluetoothState bluetoothState = ref.watch(bleControllerProvider
-                    .select((value) => value.bluetoothState));
-                Device? connectedDevice = ref.watch(bleControllerProvider
-                    .select((value) => value.connectedDevice));
-                Device? pairedDevice = ref.watch(bleControllerProvider
-                    .select((value) => value.pairedDevice));
-                final onScan = useCallback(() {
-                  if (bluetoothState != BluetoothState.scanning) {
-                    ref.read(bleControllerProvider).startScan()?.onError(
-                        (error) =>
-                            FlushbarHelper.createError(message: error.message));
-                  }
-                }, [bluetoothState]);
+    var onGoBack = useCallback(() async {
+      await ref.read(bleControllerProvider).stopScan();
+      GoRouter.of(context).pop();
+    }, [context, ref.watch(bleControllerProvider)]);
 
-                if (bluetoothState == BluetoothState.unauthorized) {
-                  return UnauthorizedBLE();
-                }
+    return HookConsumer(
+        builder: (BuildContext ctx, WidgetRef ref, Widget? widget) {
+      BluetoothState bluetoothState = ref
+          .watch(bleControllerProvider.select((value) => value.bluetoothState));
+      Device? connectedDevice = ref.watch(
+          bleControllerProvider.select((value) => value.connectedDevice));
+      Device? pairedDevice = ref
+          .watch(bleControllerProvider.select((value) => value.pairedDevice));
+      final onScan = useCallback(() {
+        if (bluetoothState != BluetoothState.scanning) {
+          ref.read(bleControllerProvider).startScan()?.onError(
+              (error) => FlushbarHelper.createError(message: error.message));
+        }
+      }, [bluetoothState]);
 
-                if (bluetoothState == BluetoothState.off) {
-                  return TurnOnBluetooth();
-                }
+      if (bluetoothState == BluetoothState.unauthorized) {
+        return BluetoothScaffold(child: UnauthorizedBLE(), onGoBack: onGoBack);
+      }
 
-                if (bluetoothState == BluetoothState.connected &&
-                    connectedDevice != null) {
-                  return ConnectedDevice(
-                      deviceName: connectedDevice.name, redirectTo: redirectTo);
-                }
+      if (bluetoothState == BluetoothState.off) {
+        return BluetoothScaffold(child: TurnOnBluetooth(), onGoBack: onGoBack);
+      }
 
-                if ((bluetoothState == BluetoothState.connecting ||
-                        bluetoothState == BluetoothState.connectionTimeout) &&
-                    pairedDevice != null) {
-                  return ConnectingToDevice(deviceName: pairedDevice.name);
-                }
+      if (bluetoothState == BluetoothState.connected &&
+          connectedDevice != null) {
+        return BluetoothScaffold(
+            child: ConnectedDevice(
+                deviceName: connectedDevice.name, redirectTo: redirectTo),
+            onGoBack: onGoBack);
+      }
 
-                return DeviceList(
-                  isScanning: bluetoothState == BluetoothState.scanning,
-                  onPair: (Device device) async {
-                    ref.read(bleControllerProvider)
-                      ..connect(device)
-                      ..pairDevice(device);
-                  },
-                  onRetry: onScan,
-                );
-              }),
-            ),
-            SizedBox(
-                height: 80,
-                child: AppBar(
-                    backgroundColor: Colors.transparent,
-                    leading: IconButton(
-                      icon: Icon(
-                        Icons.arrow_back,
-                        color: Colors.blue[100],
-                      ),
-                      onPressed: () async {
-                        await ref.read(bleControllerProvider).stopScan();
-                        GoRouter.of(context).pop();
-                      },
-                    ),
-                    centerTitle: true,
-                    title: Text(
-                      'Connecting...',
-                      style: TextStyle(color: Colors.blue[100]),
-                    ),
-                    elevation: 0)),
-          ],
-        ));
+      if ((bluetoothState == BluetoothState.connecting ||
+              bluetoothState == BluetoothState.connectionTimeout) &&
+          pairedDevice != null) {
+        return BluetoothScaffold(
+            child: ConnectingToDevice(deviceName: pairedDevice.name),
+            onGoBack: onGoBack);
+      }
+
+      return DeviceList(
+        isScanning: bluetoothState == BluetoothState.scanning,
+        onPair: (Device device) async {
+          await ref.read(bleControllerProvider).pairDevice(device);
+          await ref.read(bleControllerProvider).connect(device);
+        },
+        onRetry: onScan,
+      );
+    });
   }
 }

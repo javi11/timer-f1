@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lottie/lottie.dart';
 import 'package:timer_f1/app/data/models/device_model.dart';
 
 const titleStyle =
     TextStyle(fontWeight: FontWeight.bold, color: Colors.black54);
 
-class DeviceInfo extends StatelessWidget {
+class DeviceInfo extends HookWidget {
   final Device? device;
   const DeviceInfo({
     Key? key,
@@ -18,6 +19,17 @@ class DeviceInfo extends StatelessWidget {
       return Lottie.asset("assets/animations/device-disconnected.json",
           repeat: true);
     }
+    var statusColor = useState(Colors.green);
+    useEffect(() {
+      if (device!.connectionState == DeviceConnection.handshaking) {
+        statusColor.value = Colors.amber;
+      } else if (device!.connectionState == DeviceConnection.disconnected) {
+        statusColor.value = Colors.red;
+      } else {
+        statusColor.value = Colors.green;
+      }
+      return null;
+    }, [device!.connectionState]);
 
     return Column(
       children: [
@@ -36,6 +48,17 @@ class DeviceInfo extends StatelessWidget {
             style: titleStyle,
           ),
           trailing: Text(device!.name),
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text(
+            'Status:',
+            style: titleStyle,
+          ),
+          trailing: Icon(
+            Icons.circle,
+            color: statusColor.value,
+          ),
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,
