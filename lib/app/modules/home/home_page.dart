@@ -43,18 +43,13 @@ class HomePage extends HookConsumerWidget {
         deviceStatusWidget: DeviceStatus(),
       ),
       mainScreen: Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
           centerTitle: true,
           leading: IconButton(
-              color: Colors.indigo,
               onPressed: () => zoomDrawerController.toggle?.call(),
               icon: Icon(Icons.menu)),
           actions: [
             IconButton(
-              color: Colors.indigo,
               icon: Icon(Icons.filter_alt_outlined),
               onPressed: () {},
             )
@@ -65,8 +60,6 @@ class HomePage extends HookConsumerWidget {
           ),
         ),
         bottomNavigationBar: ConvexAppBar(
-          color: Colors.indigo[100],
-          backgroundColor: Colors.indigo,
           style: TabStyle.fixedCircle,
           items: [
             TabItem(icon: Icons.history, title: 'History'),
@@ -103,7 +96,7 @@ class HomePage extends HookConsumerWidget {
       angle: 0.0,
       mainScreenScale: 0.15,
       style: DrawerStyle.Style1,
-      backgroundColor: Colors.grey[300]!,
+      backgroundColor: Theme.of(context).drawerTheme.backgroundColor!,
       openCurve: Curves.fastOutSlowIn,
       slideWidth: MediaQuery.of(context).size.width * 0.75,
     ));

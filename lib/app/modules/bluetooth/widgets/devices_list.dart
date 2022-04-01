@@ -35,12 +35,8 @@ class DeviceList extends HookConsumerWidget {
     }, [deviceList, nameFilter]);
 
     return Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
           centerTitle: false,
-          iconTheme: IconThemeData(color: Colors.indigo),
           title: AppHeaderTitle(
             logo: SizedBox(width: 0),
             title: 'CONNECTING...',
